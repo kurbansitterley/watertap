@@ -15,13 +15,11 @@ from copy import deepcopy
 
 # Import Pyomo libraries
 from pyomo.environ import (
-    Set,
     Var,
     check_optimal_termination,
     Param,
     Suffix,
     log,
-    value,
     units as pyunits,
 )
 from pyomo.common.config import ConfigBlock, ConfigValue, In
@@ -37,14 +35,13 @@ from idaes.core.util.tables import create_stream_table_dataframe
 from idaes.core.util.constants import Constants
 from idaes.core.util.config import is_physical_parameter_block
 from idaes.core.util.misc import StrEnum
-from idaes.core.base.components import Component, Ion, Solute, Solvent, Cation, Anion
 from idaes.core.util.exceptions import ConfigurationError, InitializationError
 import idaes.core.util.scaling as iscale
 import idaes.logger as idaeslog
 
 from watertap.core import InitializationMixin
 
-__author__ = "Kurban Sitterley"
+__author__ = "Kurban Sitterley, Abdiel Lugo"
 
 _log = idaeslog.getLogger(__name__)
 
@@ -732,9 +729,16 @@ class ElectrocoagulationData(InitializationMixin, UnitModelBlockData):
             )
 
         @self.Expression(doc="Power density Faradaic")
-        def power_density(b):
+        def power_density_faradaic(b):
             return pyunits.convert(
                 (b.overpotential * b.applied_current) / b.electrode_area_total,
+                to_units=pyunits.microwatts / pyunits.cm**2,
+            )
+
+        @self.Expression(doc="Power density total")
+        def power_density_total(b):
+            return pyunits.convert(
+                b.power_required / (b.electrode_area_total * 0.5),
                 to_units=pyunits.microwatts / pyunits.cm**2,
             )
 
@@ -885,6 +889,7 @@ class ElectrocoagulationData(InitializationMixin, UnitModelBlockData):
                     f"Trouble solving unit model {self.name}, trying one more time"
                 )
                 res = opt.solve(self, tee=slc.tee)
+
         init_log.info("Initialization Step 2 {}.".format(idaeslog.condition(res)))
         # ---------------------------------------------------------------------
         # Release Inlet state
@@ -925,8 +930,6 @@ class ElectrocoagulationData(InitializationMixin, UnitModelBlockData):
 
         iscale.set_scaling_factor(self.reactor_volume, 0.1)
 
-        # iscale.set_scaling_factor(self.metal_loading, 1e6)
-
         iscale.set_scaling_factor(self.ohmic_resistance, 1e5)
 
         iscale.set_scaling_factor(self.charge_loading_rate, 1e-2)
@@ -936,12 +939,6 @@ class ElectrocoagulationData(InitializationMixin, UnitModelBlockData):
         iscale.set_scaling_factor(self.cell_voltage, 0.1)
 
         iscale.set_scaling_factor(self.overpotential, 0.1)
-
-        # iscale.set_scaling_factor(self.power_required, 1e-4)
-
-        # transforming constraints
-        # sf = iscale.get_scaling_factor(self.metal_loading)
-        # iscale.constraint_scaling_transform(self.eq_metal_loading_rate, sf)
 
         sf = iscale.get_scaling_factor(self.charge_loading_rate)
         iscale.constraint_scaling_transform(self.eq_charge_loading_rate, sf)

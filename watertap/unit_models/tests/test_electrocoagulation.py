@@ -64,7 +64,7 @@ class TestEC_noTDS:
     def test_no_tds_in_feed(self):
         ec_feed_no_tds = {
             "solute_list": ["foo", "bar", "baz", "Al_3+"],
-            "mw_data": {"foo": 10e-3, "bar": 222e-3, "baz": 39e-3, "Al_3+": 29.98e-3},
+            "mw_data": {"foo": 10e-3, "bar": 222e-3, "baz": 39e-3, "Al_3+": 26.98e-3},
             "charge": {"Al_3+": 3},
         }
         error_msg = "TDS must be in feed stream for solution conductivity estimation."
@@ -104,7 +104,7 @@ class TestEC_noECion:
                 "eat": 242e-3,
                 "fish": 139e-3,
                 "TDS": 31.4038218e-3,
-                "Al_3+": 29.98e-3,
+                "Al_3+": 26.98e-3,
             },
             "charge": {"Al_3+": 3},
         }
@@ -122,7 +122,7 @@ class TestElectrocoagulationAL_default:
     def ec_al_default(self):
         ec_feed = {
             "solute_list": ["TDS", "Al_3+"],
-            "mw_data": {"TDS": 31.4038218e-3, "Al_3+": 29.98e-3},
+            "mw_data": {"TDS": 31.4038218e-3, "Al_3+": 26.98e-3},
             "charge": {"Al_3+": 3},
         }
 
@@ -320,7 +320,7 @@ class TestElectrocoagulationAL_regression:  # overpotential calculation is "regr
     def ec_al_regression(self):
         ec_feed = {
             "solute_list": ["TDS", "Al_3+"],
-            "mw_data": {"TDS": 31.4038218e-3, "Al_3+": 29.98e-3},
+            "mw_data": {"TDS": 31.4038218e-3, "Al_3+": 26.98e-3},
             "charge": {"Al_3+": 3},
         }
 
@@ -524,7 +524,7 @@ class TestElectrocoagulationAL_nernst:  # overpotential calculation is "nernst"
     def ec_al_nernst(self):
         ec_feed = {
             "solute_list": ["TDS", "Al_3+"],
-            "mw_data": {"TDS": 31.4038218e-3, "Al_3+": 29.98e-3},
+            "mw_data": {"TDS": 31.4038218e-3, "Al_3+": 26.98e-3},
             "charge": {"Al_3+": 3},
         }
 

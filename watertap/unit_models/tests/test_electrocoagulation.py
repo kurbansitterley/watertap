@@ -255,7 +255,7 @@ class TestElectrocoagulationAL_default:
         ) == pytest.approx(31.3815, rel=5e-3)
         assert value(
             ec.properties_out[0].flow_mol_phase_comp["Liq", "Al_3+"]
-        ) == pytest.approx(0.043829, rel=5e-3)
+        ) == pytest.approx(0.048702, rel=5e-3)
         assert value(
             ec.properties_waste[0].flow_mol_phase_comp["Liq", "H2O"]
         ) == pytest.approx(22.505899, rel=5e-3)
@@ -264,12 +264,12 @@ class TestElectrocoagulationAL_default:
         ) == pytest.approx(73.223571, rel=5e-3)
         assert value(
             ec.properties_waste[0].flow_mol_phase_comp["Liq", "Al_3+"]
-        ) == pytest.approx(0.102268, rel=5e-3)
-        assert value(ec.ohmic_resistance) == pytest.approx(3.1403137e-4, rel=5e-3)
-        assert value(ec.charge_loading_rate) == pytest.approx(581.6246, rel=5e-3)
-        assert value(ec.electrode_area_total) == pytest.approx(84.91720478, rel=5e-3)
-        assert value(ec.applied_current) == pytest.approx(25475.1614, rel=5e-3)
-        assert value(ec.power_required) == pytest.approx(242.014033, rel=5e-3)
+        ) == pytest.approx(0.1136397, rel=5e-3)
+        assert value(ec.ohmic_resistance) == pytest.approx(0.00028260, rel=5e-3)
+        assert value(ec.charge_loading_rate) == pytest.approx(646.29756, rel=5e-3)
+        assert value(ec.electrode_area_total) == pytest.approx(94.35944, rel=5e-3)
+        assert value(ec.applied_current) == pytest.approx(28307.833, rel=5e-3)
+        assert value(ec.power_required) == pytest.approx(268.9244, rel=5e-3)
         assert value(ec.cell_voltage) == pytest.approx(9.4999999, rel=5e-3)
 
         ## test mass balance
@@ -297,21 +297,19 @@ class TestElectrocoagulationAL_default:
         results = solver.solve(m)
         assert_optimal_termination(results)
 
-        assert value(m.fs.costing.LCOW) == pytest.approx(1.143868, 1e-5)
+        assert value(m.fs.costing.LCOW) == pytest.approx(1.212211, 1e-5)
         assert value(m.fs.costing.total_capital_cost) == pytest.approx(
-            5756017.3947, 1e-5
+            6255266.054, 1e-5
         )
         assert value(m.fs.costing.specific_energy_consumption) == pytest.approx(
-            1.6359774, 1e-5
+            1.81788, 1e-5
         )
-        assert value(ec.costing.capital_cost_reactor) == pytest.approx(
-            75593.25351, 1e-5
-        )
+        assert value(ec.costing.capital_cost_reactor) == pytest.approx(78582.2452, 1e-5)
         assert value(ec.costing.capital_cost_power_supply) == pytest.approx(
-            2727847.3242, 1e-5
+            2973345.544, 1e-5
         )
         assert value(ec.costing.capital_cost_electrodes) == pytest.approx(
-            5384.142, 1e-5
+            6521.260, 1e-5
         )
 
 
@@ -458,7 +456,7 @@ class TestElectrocoagulationAL_regression:  # overpotential calculation is "regr
         ) == pytest.approx(3.13815307, rel=5e-3)
         assert value(
             ec.properties_out[0].flow_mol_phase_comp["Liq", "Al_3+"]
-        ) == pytest.approx(0.043829, rel=5e-3)
+        ) == pytest.approx(0.0487027, rel=5e-3)
         assert value(
             ec.properties_waste[0].flow_mol_phase_comp["Liq", "H2O"]
         ) == pytest.approx(24.1483999999, rel=5e-3)
@@ -467,13 +465,13 @@ class TestElectrocoagulationAL_regression:  # overpotential calculation is "regr
         ) == pytest.approx(7.322357, rel=5e-3)
         assert value(
             ec.properties_waste[0].flow_mol_phase_comp["Liq", "Al_3+"]
-        ) == pytest.approx(0.102268, rel=5e-3)
+        ) == pytest.approx(0.1136397, rel=5e-3)
         assert value(ec.overpotential) == pytest.approx(1.4724032, rel=5e-3)
-        assert value(ec.ohmic_resistance) == pytest.approx(0.00031403, rel=5e-3)
-        assert value(ec.charge_loading_rate) == pytest.approx(581.6246, rel=5e-3)
-        assert value(ec.electrode_area_total) == pytest.approx(849.17204, rel=5e-3)
-        assert value(ec.applied_current) == pytest.approx(25475.1614, rel=5e-3)
-        assert value(ec.power_required) == pytest.approx(241.3110, rel=5e-3)
+        assert value(ec.ohmic_resistance) == pytest.approx(0.00028260, rel=5e-3)
+        assert value(ec.charge_loading_rate) == pytest.approx(646.2975, rel=5e-3)
+        assert value(ec.electrode_area_total) == pytest.approx(943.594440, rel=5e-3)
+        assert value(ec.applied_current) == pytest.approx(28307.833, rel=5e-3)
+        assert value(ec.power_required) == pytest.approx(268.1432, rel=5e-3)
         assert value(ec.cell_voltage) == pytest.approx(9.47240, rel=5e-3)
 
         ## test mass balance
@@ -501,21 +499,19 @@ class TestElectrocoagulationAL_regression:  # overpotential calculation is "regr
         results = solver.solve(m)
         assert_optimal_termination(results)
 
-        assert value(m.fs.costing.LCOW) == pytest.approx(1.0893840, 1e-5)
+        assert value(m.fs.costing.LCOW) == pytest.approx(1.1562229, 1e-5)
         assert value(m.fs.costing.total_capital_cost) == pytest.approx(
-            5755388.45189, 1e-5
+            6271248.3218, 1e-5
         )
         assert value(m.fs.costing.specific_energy_consumption) == pytest.approx(
-            1.55407465, 1e-5
+            1.7268776, 1e-5
         )
-        assert value(ec.costing.capital_cost_reactor) == pytest.approx(
-            26821.49848, 1e-5
-        )
+        assert value(ec.costing.capital_cost_reactor) == pytest.approx(27882.0327, 1e-5)
         assert value(ec.costing.capital_cost_power_supply) == pytest.approx(
-            2727847.3242, 1e-5
+            2973345.544, 1e-5
         )
         assert value(ec.costing.capital_cost_electrodes) == pytest.approx(
-            53841.42622, 1e-5
+            65212.6070, 1e-5
         )
 
 
@@ -656,7 +652,7 @@ class TestElectrocoagulationAL_nernst:  # overpotential calculation is "nernst"
         ) == pytest.approx(31.38153076, rel=5e-3)
         assert value(
             ec.properties_out[0].flow_mol_phase_comp["Liq", "Al_3+"]
-        ) == pytest.approx(0.043829219, rel=5e-3)
+        ) == pytest.approx(0.0487027, rel=5e-3)
         assert value(
             ec.properties_waste[0].flow_mol_phase_comp["Liq", "H2O"]
         ) == pytest.approx(22.5058999, rel=5e-3)
@@ -665,13 +661,13 @@ class TestElectrocoagulationAL_nernst:  # overpotential calculation is "nernst"
         ) == pytest.approx(73.223571, rel=5e-3)
         assert value(
             ec.properties_waste[0].flow_mol_phase_comp["Liq", "Al_3+"]
-        ) == pytest.approx(0.10226817, rel=5e-3)
+        ) == pytest.approx(0.1136397, rel=5e-3)
         assert value(ec.overpotential) == pytest.approx(1.4547750566, rel=5e-3)
-        assert value(ec.ohmic_resistance) == pytest.approx(0.00031403137, rel=5e-3)
-        assert value(ec.charge_loading_rate) == pytest.approx(581.6246, rel=5e-3)
-        assert value(ec.electrode_area_total) == pytest.approx(84.91720, rel=5e-3)
-        assert value(ec.applied_current) == pytest.approx(25475.1614, rel=5e-3)
-        assert value(ec.power_required) == pytest.approx(240.8619208, rel=5e-3)
+        assert value(ec.ohmic_resistance) == pytest.approx(0.00028260, rel=5e-3)
+        assert value(ec.charge_loading_rate) == pytest.approx(646.2975616, rel=5e-3)
+        assert value(ec.electrode_area_total) == pytest.approx(94.35944, rel=5e-3)
+        assert value(ec.applied_current) == pytest.approx(28307.8332, rel=5e-3)
+        assert value(ec.power_required) == pytest.approx(267.64419, rel=5e-3)
         assert value(ec.cell_voltage) == pytest.approx(9.454775, rel=5e-3)
 
         ## test mass balance
@@ -699,21 +695,21 @@ class TestElectrocoagulationAL_nernst:  # overpotential calculation is "nernst"
         results = solver.solve(m)
         assert_optimal_termination(results)
 
-        assert value(m.fs.costing.LCOW) == pytest.approx(1.143322, 1e-5)
+        assert value(m.fs.costing.LCOW) == pytest.approx(1.2116060, 1e-5)
         assert value(m.fs.costing.total_capital_cost) == pytest.approx(
-            5756017.39477, 1e-5
+            6255266.0542, 1e-5
         )
         assert value(m.fs.costing.specific_energy_consumption) == pytest.approx(
-            1.62818931, 1e-5
+            1.8092333, 1e-5
         )
         assert value(ec.costing.capital_cost_reactor) == pytest.approx(
-            75593.25351, 1e-5
+            78582.24525, 1e-5
         )
         assert value(ec.costing.capital_cost_power_supply) == pytest.approx(
-            2727847.324, 1e-5
+            2973345.5441, 1e-5
         )
         assert value(ec.costing.capital_cost_electrodes) == pytest.approx(
-            5384.14262, 1e-5
+            6521.26070, 1e-5
         )
 
 

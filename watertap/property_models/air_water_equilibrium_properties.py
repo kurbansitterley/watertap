@@ -131,6 +131,16 @@ class VapDiffusivityCalculation(Enum):
     WilkeLee = auto()
 
 
+class SaturationVaporPressureCalculation(Enum):
+    """
+    Approach to determine saturation vapor presssure. ArdenBuck is default.
+    """
+
+    none = auto()
+    ArdenBuck = auto()
+    Huang = auto()
+
+
 @declare_process_block_class("AirWaterEq")
 class AirWaterEqData(PhysicalParameterBlock):
     CONFIG = PhysicalParameterBlock.CONFIG()
@@ -166,6 +176,15 @@ class AirWaterEqData(PhysicalParameterBlock):
             default={},
             domain=dict,
             description="Dict of solute species names and molar volume of aqueous species",
+        ),
+    )
+
+    CONFIG.declare(
+        "saturation_vap_pressure_data",
+        ConfigValue(
+            default=0,
+            domain=float,
+            description="User provided value for saturation vapor pressure of water in air in Pa",
         ),
     )
 
@@ -308,6 +327,27 @@ class AirWaterEqData(PhysicalParameterBlock):
         ),
     )
 
+    CONFIG.declare(
+        "saturation_vapor_pressure_calculation",
+        ConfigValue(
+            default=SaturationVaporPressureCalculation.ArdenBuck,
+            domain=In(SaturationVaporPressureCalculation),
+            description="Saturation vapor pressure calculation flag",
+            doc="""
+           Options to estimate saturation vapor pressure for water in air.
+
+           **default** - ``SaturationVaporPressureCalculation.ArdenBuck``
+
+       .. csv-table::
+           :header: "Configuration Options", "Description"
+
+           "``SaturationVaporPressureCalculation.none``", "Users provide data via the saturation_vapor_pressure configuration"
+           "``SaturationVaporPressureCalculation.ArdenBuck``", "Saturation vapor pressure is calcualted from Arden Buck equation"
+           "``SaturationVaporPressureCalculation.Huang``", "Saturation vapor pressure is calcualted from Huang equation"
+       """,
+        ),
+    )
+
     def build(self):
         super().build()
 
@@ -388,6 +428,13 @@ class AirWaterEqData(PhysicalParameterBlock):
             initialize=self.config.henry_constant_data,
             units=pyunits.dimensionless,
             doc="Henry's constant",
+        )
+
+        self.saturation_vap_pressure = Var(
+            ["H2O"],
+            initialize=self.config.saturation_vap_pressure_data,
+            units=pyunits.Pa,
+            doc="User provided saturation vapor pressure",
         )
 
         if self.config.temp_adjust_henry:
@@ -1514,50 +1561,108 @@ class AirWaterEqStateBlockData(StateBlockData):
         # Huang, J. (2018). A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice.
         # Journal of Applied Meteorology and Climatology, 57(6), 1265-1272. doi:10.1175/jamc-d-17-0334.1
 
-        self.sat_vap_press_A = a = Param(
-            initialize=34.494,
-            units=pyunits.dimensionless,
-            doc="Huang correlation: A parameter",
-        )
-        self.sat_vap_press_B = b_ = Param(
-            initialize=4924.99,
-            units=pyunits.dimensionless,
-            doc="Huang correlation: B parameter",
-        )
-        self.sat_vap_press_C = c = Param(
-            initialize=1.57,
-            units=pyunits.dimensionless,
-            doc="Huang correlation: C parameter",
-        )
-        self.sat_vap_press_D1 = d1 = Param(
-            initialize=237.1,
-            units=pyunits.dimensionless,
-            doc="Huang correlation: D1 parameter",
-        )
-        self.sat_vap_press_D2 = d2 = Param(
-            initialize=105,
-            units=pyunits.dimensionless,
-            doc="Huang correlation: D2 parameter",
-        )
 
-        self.saturation_vap_pressure = Var(
-            ["H2O"],
-            initialize=101325,
-            units=pyunits.Pa,
-            doc="Saturation vapor pressure of water",
-        )
-
-        def rule_saturation_vap_pressure(b, h2o):
-            t = b.temperature["Vap"] - 273.15 * pyunits.degK
-            return (
-                b.saturation_vap_pressure[h2o]
-                == exp(a - (b_ / (t + d1))) / (t + d2) ** c
+        if (
+            self.params.config.saturation_vapor_pressure_calculation
+            != SaturationVaporPressureCalculation.none
+        ):
+            self.saturation_vap_pressure = Var(
+                ["H2O"],
+                initialize=101325,
+                units=pyunits.Pa,
+                doc="Saturation vapor pressure of water",
             )
+                
+            if (
+                self.params.config.saturation_vapor_pressure_calculation
+                == SaturationVaporPressureCalculation.Huang
+            ):
+                self.sat_vap_press_A = a = Param(
+                    initialize=34.494,
+                    units=pyunits.dimensionless,
+                    doc="Huang correlation: A parameter",
+                )
+                self.sat_vap_press_B = b_ = Param(
+                    initialize=4924.99,
+                    units=pyunits.dimensionless,
+                    doc="Huang correlation: B parameter",
+                )
+                self.sat_vap_press_C = c = Param(
+                    initialize=1.57,
+                    units=pyunits.dimensionless,
+                    doc="Huang correlation: C parameter",
+                )
+                self.sat_vap_press_D1 = d1 = Param(
+                    initialize=237.1,
+                    units=pyunits.dimensionless,
+                    doc="Huang correlation: D1 parameter",
+                )
+                self.sat_vap_press_D2 = d2 = Param(
+                    initialize=105,
+                    units=pyunits.dimensionless,
+                    doc="Huang correlation: D2 parameter",
+                )
 
-        self.eq_saturation_vap_pressure = Constraint(
-            ["H2O"], rule=rule_saturation_vap_pressure
-        )
+                def rule_saturation_vap_pressure(b, h2o):
+                    t = b.temperature["Vap"] - 273.15 * pyunits.degK
+                    return (
+                        b.saturation_vap_pressure[h2o]
+                        == exp(a - (b_ / (t + d1))) / (t + d2) ** c
+                    )
 
+            if (
+                self.params.config.saturation_vapor_pressure_calculation
+                == SaturationVaporPressureCalculation.ArdenBuck
+            ):
+                self.arden_buck_coeff_a = a = Param(
+                    initialize=6.1121,
+                    units=pyunits.millibar,
+                    doc="Arden Buck equation for saturation vapor pressure, a coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
+                )
+
+                self.arden_buck_coeff_b = b_ = Param(
+                    initialize=18.678,
+                    units=pyunits.dimensionless,
+                    doc="Arden Buck equation for saturation vapor pressure, b coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
+                )
+
+                self.arden_buck_coeff_c = c = Param(
+                    initialize=257.14,
+                    units=pyunits.dimensionless,
+                    doc="Arden Buck equation for saturation vapor pressure, c coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
+                )
+
+                self.arden_buck_coeff_d = d = Param(
+                    initialize=234.5,
+                    units=pyunits.dimensionless,
+                    doc="Arden Buck equation for saturation vapor pressure, d coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
+                )
+
+                air_temp_degC_dimensionless = pyunits.convert(
+                    (self.temperature["Vap"] - 273.15 * pyunits.degK) * pyunits.degK**-1,
+                    to_units=pyunits.dimensionless,
+                )
+
+                self.arden_buck_exponential_term = Expression(
+                    expr=(b_ - air_temp_degC_dimensionless / d)
+                    * (air_temp_degC_dimensionless / (c + air_temp_degC_dimensionless))
+                )
+
+                def rule_saturation_vap_pressure(b, h2o):
+                    return b.saturation_vap_pressure[h2o] == pyunits.convert(
+                        a * exp(self.arden_buck_exponential_term), to_units=pyunits.Pa
+                    )
+
+            self.eq_saturation_vap_pressure = Constraint(
+                ["H2O"], rule=rule_saturation_vap_pressure
+            )
+        
+        else:
+
+            add_object_reference(
+                self, "saturation_vap_pressure", self.params.saturation_vap_pressure
+            )
+            
     def _vap_pressure(self):
 
         # Antoine Eq

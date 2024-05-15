@@ -78,10 +78,12 @@ boltzmann = pyunits.convert(
     Constants.boltzmann_constant,
     to_units=(pyunits.g * pyunits.cm**2) / (pyunits.second**2 * pyunits.degK),
 )
+
 # Set up logger
 _log = idaeslog.getLogger(__name__)
 
 __author__ = "Kurban Sitterley"
+
 
 """
 REFERENCES: 
@@ -100,6 +102,8 @@ Industrial & Engineering Chemistry, 47(6), 1253-1257. doi:10.1021/ie50546a056
 Huang, J. (2018).
 A Simple Accurate Formula for Calculating Saturation Vapor Pressure of Water and Ice.
 Journal of Applied Meteorology and Climatology, 57(6), 1265-1272. doi:10.1175/jamc-d-17-0334.1
+
+#TODO: add refs for Sharqawy, Arden Buck, Antoine, 
 
 """
 
@@ -188,8 +192,8 @@ class AirWaterEqData(PhysicalParameterBlock):
             domain=list,
             description="Required argument. List of strings that specify names of solute species.",
         ),
-    )    
-    
+    )
+
     CONFIG.declare(
         "solute_list",
         ConfigValue(
@@ -197,7 +201,7 @@ class AirWaterEqData(PhysicalParameterBlock):
             description="Required argument. List of strings that specify names of solute species.",
         ),
     )
-    
+
     CONFIG.declare(
         "liquid_solute_list",
         ConfigValue(
@@ -532,6 +536,7 @@ class AirWaterEqData(PhysicalParameterBlock):
 
         # for j in self.config.solute_list:
         #     self.add_component(j, Solute())
+
         for j in self.config.liquid_solute_list + self.config.air_solute_list:
             self.add_component(j, Solute())
 
@@ -1188,22 +1193,6 @@ class AirWaterEqStateBlockData(StateBlockData):
     def _dens_mass_phase(self):
 
         add_object_reference(self, "dens_mass_phase", self.params.dens_mass_phase)
-        # self.dens_mass_phase = Var(
-        #     self.params.phase_list,
-        #     initialize=self.params.config.density_data,
-        #     units=pyunits.kg / pyunits.m**3,
-        #     doc="Mass density for each phase",
-        # )
-
-        # def rule_dens_mass_phase(b, p):
-        #     return (
-        #         b.dens_mass_phase[p]
-        #         == b.params.config.density_data[p] * pyunits.kg / pyunits.m**3
-        #     )
-
-        # self.eq_dens_mass_phase = Constraint(
-        #     self.params.phase_list, rule=rule_dens_mass_phase
-        # )
 
     def _flow_mol_phase_comp(self):
         self.flow_mol_phase_comp = Var(
@@ -1238,9 +1227,10 @@ class AirWaterEqStateBlockData(StateBlockData):
         def rule_mass_frac_phase_comp(b, p, j):
             phase_comp_list = [
                 (p, _j)
-                for _j in self.params.component_list
+                for _j in self.params.phase_comp_dict[p]
                 if (p, _j) in self.phase_component_set
             ]
+            # phase_comp_list =
             return b.mass_frac_phase_comp[p, j] == b.flow_mass_phase_comp[p, j] / sum(
                 b.flow_mass_phase_comp[p, _j] for p, _j in phase_comp_list
             )
@@ -2180,6 +2170,9 @@ class AirWaterEqStateBlockData(StateBlockData):
 
     def get_material_flow_basis(self):
         return MaterialFlowBasis.mass
+
+    def get_material_density_terms(self):
+        return self.dens_mass_phase
 
     def define_state_vars(self):
         """Define state vars."""

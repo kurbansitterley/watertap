@@ -44,7 +44,7 @@ import idaes.logger as idaeslog
 
 from watertap.core import ControlVolume0DBlock, InitializationMixin
 
-# from watertap.costing.unit_models.ion_exchange import cost_ion_exchange
+from watertap.costing.unit_models.evaporation_pond import cost_evaporation_pond
 
 __author__ = "Kurban Sitterley"
 
@@ -179,7 +179,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
         prop_out = self.process_flow.properties_out[0]
 
         self.process_flow.mass_transfer_term[:, "Vap", "Air"].fix(0)
-        # self.process_flow.mass_transfer_term[:, "Liq", "H2O"].fix(0)
+        self.air_temperature_C = prop_in.temperature["Vap"] - 273.15 * pyunits.degK
 
         self.add_inlet_port(name="inlet", block=self.process_flow)
         self.add_outlet_port(name="outlet", block=self.process_flow)
@@ -218,26 +218,6 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
             mutable=True,
             units=pyunits.dimensionless,
             doc="Area correction factor exponent",
-        )
-
-        self.daily_change_water_temperature = Param(
-            initialize=1,
-            mutable=True,
-            units=pyunits.degK / pyunits.day,
-            doc="Daily change in water temperature",
-        )
-        self.heat_capacity_air = Param(
-            initialize=1013,
-            mutable=True,
-            units=pyunits.joule / (pyunits.kg * pyunits.degK),
-            doc="Specific heat capacity of dry air",  # doi:10.1029/2008JD010174
-        )
-
-        self.heat_capacity_water = Param(
-            initialize=4186,
-            mutable=True,
-            units=pyunits.joule / (pyunits.kg * pyunits.degK),
-            doc="Specific heat capacity of water",  # doi:10.1029/2008JD010174
         )
 
         ## solids precipitation rate is a function of TDS concentration [g / L]
@@ -314,13 +294,18 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
             doc="Intercept of equation to calculate water temperature based on air temperature",
         )
 
-        self.air_temperature_C = prop_in.temperature["Vap"] - 273.15 * pyunits.degK
-
         self.net_solar_radiation = Param(
             initialize=150,
             mutable=True,
             units=pyunits.watt / pyunits.m**2,
             doc="Net incident solar radiation",  # net shortwave radiation - net longwave radiation
+        )
+
+        self.differential_head = Param(
+            initialize=40,
+            mutable=True,
+            units=pyunits.m,
+            doc="Differential head for pumping energy",
         )
 
         self.net_heat_flux_out = Var(
@@ -369,7 +354,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
             initialize=0.01,
             bounds=(0, None),
             units=pyunits.feet / pyunits.year,
-            doc="Rate at which solids precipitate ",
+            doc="Rate at which solids precipitate on bottom of pond",
         )
 
         self.total_evaporative_area_required = Var(
@@ -395,7 +380,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
 
         self.number_evaporation_ponds = Var(
             initialize=1,
-            bounds=(1, 25),
+            bounds=(1, None),
             units=pyunits.dimensionless,
             doc="Number of evaporation ponds",
         )
@@ -430,6 +415,15 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
             return pyunits.convert(
                 b.total_pond_area_acre * b.solids_precipitation_rate * b.dens_solids,
                 to_units=pyunits.kg / pyunits.year,
+            )
+
+        @self.Expression(doc="Differential pressure required for pumping")
+        def differential_pressure(b):
+            return pyunits.convert(
+                prop_in.dens_mass_phase["Liq"]
+                * Constants.acceleration_gravity
+                * b.differential_head,
+                to_units=pyunits.Pa,
             )
 
         @self.Constraint(doc="Mass balance of liquid water")
@@ -597,7 +591,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
         def eq_evaporative_area_per_pond(b):
             return (
                 b.evaporative_area_per_pond * b.number_evaporation_ponds
-                == b.total_evaporative_area_required
+                >= b.total_evaporative_area_required
             )
 
         @self.Constraint(doc="Evaporation pond area")
@@ -724,6 +718,6 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
         var_dict = dict()
         return {"vars": var_dict}
 
-    # @property
-    # def default_costing_method(self):
-    #     return cost_ion_exchange
+    @property
+    def default_costing_method(self):
+        return cost_evaporation_pond

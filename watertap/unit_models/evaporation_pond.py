@@ -22,7 +22,7 @@ from pyomo.environ import (
     exp,
     units as pyunits,
 )
-from pyomo.common.config import ConfigBlock, ConfigValue, In
+from pyomo.common.config import ConfigBlock, ConfigValue, In, PositiveInt
 
 # Import IDAES cores
 from idaes.core import (
@@ -68,7 +68,7 @@ area_correction_factor_param_dict = {
 
 
 @declare_process_block_class("EvaporationPond")
-class IonExchangeODData(InitializationMixin, UnitModelBlockData):
+class EvaporationPondData(InitializationMixin, UnitModelBlockData):
     """
     Zero order evaporation pond model
     """
@@ -121,6 +121,15 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
     **default** - None.
     **Valid values:** {
     see property package for documentation.}""",
+        ),
+    )
+    CONFIG.declare(
+        "dike_height",
+        ConfigValue(
+            default=8,
+            domain=PositiveInt,
+            description="Height of the dike used for evaporation pond.",
+            doc="""A ConfigBlock specifying the height of the dike of the evaporation pond. Units are ft. Must be 4, 8, or 12. Determines coefficient for calculating various costing and design parameters.""",
         ),
     )
 
@@ -180,33 +189,55 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
     def build(self):
         super().build()
 
+        if self.config.dike_height not in [4, 8, 12]:
+            raise ConfigurationError(
+                f"Dike height must be either 4, 8, or 12 but {self.config.dike_height} was provided."
+            )
+
         self.scaling_factor = Suffix(direction=Suffix.EXPORT)
+
+        self.process_flow = ControlVolume0DBlock(
+            dynamic=False,
+            has_holdup=False,
+            property_package=self.config.property_package,
+            property_package_args=self.config.property_package_args,
+        )
+
+        self.process_flow.add_state_blocks(has_phase_equilibrium=False)
+        self.process_flow.add_material_balances(
+            balance_type=self.config.material_balance_type, has_mass_transfer=True
+        )
+        self.process_flow.add_energy_balances(
+            balance_type=self.config.energy_balance_type, has_enthalpy_transfer=False
+        )
+        # self.process_flow.add_isothermal_assumption()
+        self.process_flow.add_momentum_balances(
+            balance_type=self.config.momentum_balance_type,
+            has_pressure_change=False,
+        )
+
+        prop_in = self.process_flow.properties_in[0]
+        prop_out = self.process_flow.properties_out[0]
+
+        self.process_flow.mass_transfer_term[:, "Vap", :].fix(0)
+
+        self.add_inlet_port(name="inlet", block=self.process_flow)
+        self.add_outlet_port(name="outlet", block=self.process_flow)
 
         tmp_dict = dict(**self.config.property_package_args)
         tmp_dict["has_phase_equilibrium"] = False
         tmp_dict["parameters"] = self.config.property_package
-        tmp_dict["defined_state"] = True  # inlet block is an inlet
-        self.properties_in = self.config.property_package.state_block_class(
-            self.flowsheet().config.time, doc="Material properties of inlet", **tmp_dict
-        )
+        tmp_dict["defined_state"] = False
 
-        # Add outlet and waste block
-        tmp_dict["defined_state"] = False  # outlet and waste block is not an inlet
-
-        self.properties_out = self.config.property_package.state_block_class(
-            self.flowsheet().config.time,
-            doc="Material properties of liquid outlet",
-            **tmp_dict,
-        )
         self.area_correction_factor_base = Param(
-            initialize=area_correction_factor_param_dict[self.dike_height][0],
+            initialize=area_correction_factor_param_dict[self.config.dike_height][0],
             mutable=True,
             units=pyunits.dimensionless,
             doc="Area correction factor base",
         )
 
         self.area_correction_factor_exp = Param(
-            initialize=area_correction_factor_param_dict[self.dike_height][1],
+            initialize=area_correction_factor_param_dict[self.config.dike_height][1],
             mutable=True,
             units=pyunits.dimensionless,
             doc="Area correction factor exponent",
@@ -219,47 +250,47 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
             doc="Daily change in water temperature",
         )
 
-        self.mw_ratio = Param(
-            initialize=0.622,
-            units=pyunits.dimensionless,
-            doc="Ratio of molecular weight of water vapor to air",
-        )
+        # self.mw_ratio = Param(
+        #     initialize=0.622,
+        #     units=pyunits.dimensionless,
+        #     doc="Ratio of molecular weight of water vapor to air",
+        # )
 
-        self.arden_buck_coeff_a = Param(
-            initialize=6.1121,
-            units=pyunits.millibar,
-            doc="Arden Buck equation for saturation vapor pressure, a coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
-        )
+        # self.arden_buck_coeff_a = Param(
+        #     initialize=6.1121,
+        #     units=pyunits.millibar,
+        #     doc="Arden Buck equation for saturation vapor pressure, a coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
+        # )
 
-        self.arden_buck_coeff_b = Param(
-            initialize=18.678,
-            units=pyunits.dimensionless,
-            doc="Arden Buck equation for saturation vapor pressure, b coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
-        )
+        # self.arden_buck_coeff_b = Param(
+        #     initialize=18.678,
+        #     units=pyunits.dimensionless,
+        #     doc="Arden Buck equation for saturation vapor pressure, b coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
+        # )
 
-        self.arden_buck_coeff_c = Param(
-            initialize=257.14,
-            units=pyunits.dimensionless,
-            doc="Arden Buck equation for saturation vapor pressure, c coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
-        )
+        # self.arden_buck_coeff_c = Param(
+        #     initialize=257.14,
+        #     units=pyunits.dimensionless,
+        #     doc="Arden Buck equation for saturation vapor pressure, c coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
+        # )
 
-        self.arden_buck_coeff_d = Param(
-            initialize=234.5,
-            units=pyunits.dimensionless,
-            doc="Arden Buck equation for saturation vapor pressure, d coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
-        )
+        # self.arden_buck_coeff_d = Param(
+        #     initialize=234.5,
+        #     units=pyunits.dimensionless,
+        #     doc="Arden Buck equation for saturation vapor pressure, d coefficient",  # https://en.wikipedia.org/wiki/Arden_Buck_equation
+        # )
 
-        self.latent_heat_of_vaporization_intercept = Param(
-            initialize=2500.78,
-            units=pyunits.kilojoule / pyunits.kg,
-            doc="Intercept of latent heat of vaporization equation",  # doi:10.1029/2008JD010174
-        )
+        # self.latent_heat_of_vaporization_intercept = Param(
+        #     initialize=2500.78,
+        #     units=pyunits.kilojoule / pyunits.kg,
+        #     doc="Intercept of latent heat of vaporization equation",  # doi:10.1029/2008JD010174
+        # )
 
-        self.latent_heat_of_vaporization_slope = Param(
-            initialize=2.3601,
-            units=pyunits.kilojoule / (pyunits.kg * pyunits.degK),
-            doc="Slope of latent heat of vaporization equation",  # doi:10.1029/2008JD010174
-        )
+        # self.latent_heat_of_vaporization_slope = Param(
+        #     initialize=2.3601,
+        #     units=pyunits.kilojoule / (pyunits.kg * pyunits.degK),
+        #     doc="Slope of latent heat of vaporization equation",  # doi:10.1029/2008JD010174
+        # )
 
         self.heat_capacity_air = Param(
             initialize=1013,
@@ -314,12 +345,12 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
             doc="Atmospheric pressure",
         )
 
-        self.dens_vap = Param(
-            initialize=1.293,
-            mutable=True,
-            units=pyunits.kg / pyunits.m**3,
-            doc="Density of air",
-        )
+        # self.dens_vap = Param(
+        #     initialize=1.293,
+        #     mutable=True,
+        #     units=pyunits.kg / pyunits.m**3,
+        #     doc="Density of air",
+        # )
 
         self.evaporation_pond_depth = Param(
             initialize=18,
@@ -342,9 +373,9 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
             doc="Factor to increase evaporation rate due to enhancement",
         )
 
-        self.air_temperature = Param(
-            initialize=300, mutable=True, units=pyunits.degK, doc="Air temperature"
-        )
+        # self.air_temperature = Param(
+        #     initialize=300, mutable=True, units=pyunits.degK, doc="Air temperature"
+        # )
 
         self.water_temperature_calc_slope = Param(
             initialize=1.04,
@@ -360,14 +391,14 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
             doc="Intercept of equation to calculate water temperature based on air temperature",
         )
 
-        self.air_temperature_C = self.air_temperature - 273.15 * pyunits.degK
+        self.air_temperature_C = prop_in.temperature["Vap"] - 273.15 * pyunits.degK
 
-        self.relative_humidity = Param(
-            initialize=0.5,
-            mutable=True,
-            units=pyunits.dimensionless,
-            doc="Relative humidity",
-        )
+        # self.relative_humidity = Param(
+        #     initialize=0.5,
+        #     mutable=True,
+        #     units=pyunits.dimensionless,
+        #     doc="Relative humidity",
+        # )
 
         self.net_solar_radiation = Param(
             initialize=150,
@@ -390,26 +421,26 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
             doc="Area correction factor",
         )
 
-        self.saturation_vapor_pressure = Var(
-            initialize=6,
-            bounds=(0, None),
-            units=pyunits.kPa,
-            doc="Saturation vapor pressure at air temperature",
-        )
+        # self.saturation_vapor_pressure = Var(
+        #     initialize=6,
+        #     bounds=(0, None),
+        #     units=pyunits.kPa,
+        #     doc="Saturation vapor pressure at air temperature",
+        # )
 
-        self.vapor_pressure = Var(
-            initialize=4,
-            bounds=(0, None),
-            units=pyunits.kPa,
-            doc="Vapor pressure at air temperature",
-        )
+        # self.vapor_pressure = Var(
+        #     initialize=4,
+        #     bounds=(0, None),
+        #     units=pyunits.kPa,
+        #     doc="Vapor pressure at air temperature",
+        # )
 
-        self.latent_heat_of_vaporization = Var(
-            initialize=2500,
-            bounds=(0, None),
-            units=pyunits.kilojoule / pyunits.kg,
-            doc="Latent heat of vaporization of water",
-        )
+        # self.latent_heat_of_vaporization = Var(
+        #     initialize=2500,
+        #     bounds=(0, None),
+        #     units=pyunits.kilojoule / pyunits.kg,
+        #     doc="Latent heat of vaporization of water",
+        # )
 
         self.bowen_ratio = Var(
             initialize=0.3,
@@ -501,7 +532,7 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
 
         @self.Expression(doc="Water temperature in deg C")
         def water_temperature_C(b):
-            return b.properties_in.temperature - 273.15 * pyunits.degK
+            return prop_in.temperature["Liq"] - 273.15 * pyunits.degK
 
         @self.Expression(doc="Mass flow of precipitated solids")
         def mass_flow_precipitate(b):
@@ -513,20 +544,39 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
                 to_units=pyunits.kg / pyunits.year,
             )
 
-        @self.Expression(doc="Arden Buck fraction component")
-        def arden_buck_exponential_term(b):
-            temp_degC_dim = pyunits.convert(
-                b.air_temperature_C * pyunits.degK**-1,
-                to_units=pyunits.dimensionless,
-            )  # dimensionless temperature in degC
-            return (b.arden_buck_coeff_b - temp_degC_dim / b.arden_buck_coeff_d) * (
-                temp_degC_dim / (b.arden_buck_coeff_c + temp_degC_dim)
+        # @self.Expression(doc="Arden Buck fraction component")
+        # def arden_buck_exponential_term(b):
+        #     temp_degC_dim = pyunits.convert(
+        #         b.air_temperature_C * pyunits.degK**-1,
+        #         to_units=pyunits.dimensionless,
+        #     )  # dimensionless temperature in degC
+        #     return (b.arden_buck_coeff_b - temp_degC_dim / b.arden_buck_coeff_d) * (
+        #         temp_degC_dim / (b.arden_buck_coeff_c + temp_degC_dim)
+        #     )
+
+        @self.Constraint(doc="Mass balance")
+        def mass_balance_constraint(b):
+            return b.process_flow.mass_transfer_term[
+                0, "Liq", "H2O"
+            ] == 1 * pyunits.convert(
+                b.mass_flux_water_vapor * b.total_pond_area_acre,
+                to_units=pyunits.kg / pyunits.s,
+            )
+        @self.Constraint(doc="Mass balance")
+        def mass_balance_constraint2(b):
+            return b.process_flow.mass_transfer_term[
+                0, "Liq", "TDS"
+            ] == 1 * pyunits.convert(
+                b.mass_flow_precipitate,
+                to_units=pyunits.kg / pyunits.s,
             )
 
         @self.Constraint(doc="Solids precipitation rate")
         def solids_precipitation_rate_constraint(b):
             tds_in_dim = pyunits.convert(
-                b.properties_in.conc_mass_comp["TDS"] * pyunits.g**-1 * pyunits.L,
+                prop_in.conc_mass_phase_comp["Liq", "TDS"]
+                * pyunits.g**-1
+                * pyunits.L,
                 to_units=pyunits.dimensionless,
             )
             return (
@@ -551,7 +601,7 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
         @self.Constraint(doc="Water temperature as function of air temperature")
         def water_temperature_constraint(b):
             return (
-                b.properties_in.temperature
+                prop_out.temperature["Liq"]
                 == (
                     b.water_temperature_calc_slope * b.air_temperature_C
                     + b.water_temperature_calc_intercept
@@ -561,40 +611,45 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
 
         @self.Constraint(doc="Net heat flux out of surroundings/ecosystem")
         def net_flux_heat_constraint(b):
+            temp_change = prop_in.temperature["Liq"] - prop_in.temperature["Vap"]
             return b.net_heat_flux == pyunits.convert(
-                b.properties_in.dens_mass
-                * b.heat_capacity_water
+                prop_in.dens_mass_phase["Liq"]
+                * prop_in.cp_mass_solvent["Liq"]
                 * b.evaporation_pond_depth
-                * (b.properties_in.temperature - b.air_temperature),
+                * b.daily_change_water_temperature,
                 to_units=pyunits.watt / pyunits.m**2,
             )
 
-        @self.Constraint(doc="Arden Buck equation for saturation vapor pressure")
-        def arden_buck_constraint(b):
-            return b.saturation_vapor_pressure == pyunits.convert(
-                b.arden_buck_coeff_a * exp(b.arden_buck_exponential_term),
-                to_units=pyunits.kPa,
-            )
+        # @self.Constraint(doc="Arden Buck equation for saturation vapor pressure")
+        # def arden_buck_constraint(b):
+        #     return b.saturation_vapor_pressure == pyunits.convert(
+        #         b.arden_buck_coeff_a * exp(b.arden_buck_exponential_term),
+        #         to_units=pyunits.kPa,
+        #     )
 
-        @self.Constraint(doc="Latent heat of vaporization equation")
-        def latent_heat_of_vaporization_constraint(b):
-            return (
-                b.latent_heat_of_vaporization
-                == b.latent_heat_of_vaporization_intercept
-                + b.latent_heat_of_vaporization_slope * b.air_temperature_C
-            )
+        # @self.Constraint(doc="Latent heat of vaporization equation")
+        # def latent_heat_of_vaporization_constraint(b):
+        #     return (
+        #         b.latent_heat_of_vaporization
+        #         == b.latent_heat_of_vaporization_intercept
+        #         + b.latent_heat_of_vaporization_slope * b.air_temperature_C
+        #     )
 
         @self.Constraint(doc="Psychrometric constant equation")
         def psychrometric_constant_constraint(b):
+            mw_ratio = pyunits.convert(
+                prop_in.mw_comp["H2O"] / prop_in.mw_comp["Air"],
+                to_units=pyunits.dimensionless,
+            )
             return b.psychrometric_constant == pyunits.convert(
-                (b.heat_capacity_air * b.pressure_atm)
-                / (b.mw_ratio * b.latent_heat_of_vaporization),
+                (prop_in.cp_air * b.pressure_atm)
+                / (mw_ratio * prop_in.dh_vap_mass_solvent),
                 to_units=pyunits.kPa * pyunits.degK**-1,
             )
 
-        @self.Constraint(doc="Vapor pressure equation")
-        def vapor_pressure_constraint(b):
-            return b.vapor_pressure == b.saturation_vapor_pressure * b.relative_humidity
+        # @self.Constraint(doc="Vapor pressure equation")
+        # def vapor_pressure_constraint(b):
+        #     return b.vapor_pressure == b.saturation_vapor_pressure * b.relative_humidity
 
         @self.Constraint(doc="Bowen ratio calculation")
         def bowen_ratio_constraint(b):
@@ -602,7 +657,10 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
                 b.psychrometric_constant
                 * (
                     (b.water_temperature_C - b.air_temperature_C)
-                    / (b.saturation_vapor_pressure - b.vapor_pressure)
+                    / (
+                        prop_in.saturation_vap_pressure["H2O"]
+                        - prop_in.vap_pressure["H2O"]
+                    )
                 ),
                 to_units=pyunits.dimensionless,
             )
@@ -615,7 +673,7 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
                 * b.evaporation_rate_enhancement_adjustment_factor
                 * pyunits.convert(
                     b.net_radiation
-                    / (b.latent_heat_of_vaporization * (1 + b.bowen_ratio)),
+                    / (prop_in.dh_vap_mass_solvent * (1 + b.bowen_ratio)),
                     to_units=pyunits.kg / (pyunits.m**2 * pyunits.s),
                 )
             )
@@ -623,7 +681,7 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
         @self.Constraint(doc="Evaporation rate")
         def evaporation_rate_constraint(b):
             return b.evaporation_rate == pyunits.convert(
-                b.mass_flux_water_vapor / b.properties_in.dens_mass,
+                b.mass_flux_water_vapor / prop_in.dens_mass_phase["Liq"],
                 to_units=pyunits.m / pyunits.s,
             )
 
@@ -631,7 +689,7 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
         def total_evaporative_area_required_constraint(b):
             return (
                 b.mass_flux_water_vapor * b.total_evaporative_area_required
-                == b.properties_in.flow_mass_phase_comp["Liq", "H2O"]
+                == prop_in.flow_mass_phase_comp["Liq", "H2O"]
             )
 
         @self.Constraint(doc="Total evaporation pond area")
@@ -704,19 +762,19 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
 
         state_args_out = deepcopy(state_args)
 
-        for p, j in self.process_flow.properties_out.phase_component_set:
-            if j in self.target_ion_set:
-                state_args_out["flow_mol_phase_comp"][(p, j)] = (
-                    state_args["flow_mol_phase_comp"][(p, j)] * 1e-3
-                )
+        # for p, j in self.process_flow.properties_out.phase_component_set:
+        #     if j in self.target_ion_set:
+        #         state_args_out["flow_mol_phase_comp"][(p, j)] = (
+        #             state_args["flow_mol_phase_comp"][(p, j)] * 1e-3
+        #         )
 
-        # self.process_flow.properties_out.initialize(
-        #     outlvl=outlvl,
-        #     optarg=optarg,
-        #     solver=solver,
-        #     state_args=state_args_out,
-        # )
-        # init_log.info("Initialization Step 1b Complete.")
+        self.process_flow.properties_out.initialize(
+            outlvl=outlvl,
+            optarg=optarg,
+            solver=solver,
+            state_args=state_args_out,
+        )
+        init_log.info("Initialization Step 1b Complete.")
 
         # state_args_regen = deepcopy(state_args)
 
@@ -729,20 +787,20 @@ class IonExchangeODData(InitializationMixin, UnitModelBlockData):
 
         # init_log.info("Initialization Step 1c Complete.")
 
-        # # Solve unit
-        # with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
-        #     res = opt.solve(self, tee=slc.tee)
-        #     if not check_optimal_termination(res):
-        #         init_log.warning(
-        #             f"Trouble solving unit model {self.name}, trying one more time"
-        #         )
-        #         res = opt.solve(self, tee=slc.tee)
+        # Solve unit
+        with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
+            res = opt.solve(self, tee=slc.tee)
+            if not check_optimal_termination(res):
+                init_log.warning(
+                    f"Trouble solving unit model {self.name}, trying one more time"
+                )
+                res = opt.solve(self, tee=slc.tee)
 
-        # init_log.info("Initialization Step 2 {}.".format(idaeslog.condition(res)))
+        init_log.info("Initialization Step 2 {}.".format(idaeslog.condition(res)))
 
-        # # Release Inlet state
-        # self.process_flow.properties_in.release_state(flags, outlvl=outlvl)
-        # init_log.info("Initialization Complete: {}".format(idaeslog.condition(res)))
+        # Release Inlet state
+        self.process_flow.properties_in.release_state(flags, outlvl=outlvl)
+        init_log.info("Initialization Complete: {}".format(idaeslog.condition(res)))
 
         # if not check_optimal_termination(res):
         #     raise InitializationError(f"Unit model {self.name} failed to initialize.")

@@ -591,7 +591,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
         def eq_evaporative_area_per_pond(b):
             return (
                 b.evaporative_area_per_pond * b.number_evaporation_ponds
-                >= b.total_evaporative_area_required
+                == b.total_evaporative_area_required
             )
 
         @self.Constraint(doc="Evaporation pond area")
@@ -657,12 +657,6 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
 
         state_args_out = deepcopy(state_args)
 
-        # for p, j in self.process_flow.properties_out.phase_component_set:
-        #     if j in self.target_ion_set:
-        #         state_args_out["flow_mol_phase_comp"][(p, j)] = (
-        #             state_args["flow_mol_phase_comp"][(p, j)] * 1e-3
-        #         )
-
         self.process_flow.properties_out.initialize(
             outlvl=outlvl,
             optarg=optarg,
@@ -702,6 +696,39 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
 
     def calculate_scaling_factors(self):
         super().calculate_scaling_factors()
+
+        if iscale.get_scaling_factor(self.net_heat_flux_out) is None:
+            iscale.set_scaling_factor(self.net_heat_flux_out, 0.01)
+
+        if iscale.get_scaling_factor(self.area_correction_factor) is None:
+            iscale.set_scaling_factor(self.area_correction_factor, 1)
+
+        if iscale.get_scaling_factor(self.bowen_ratio) is None:
+            iscale.set_scaling_factor(self.bowen_ratio, 10)
+
+        if iscale.get_scaling_factor(self.psychrometric_constant) is None:
+            iscale.set_scaling_factor(self.psychrometric_constant, 100)
+
+        if iscale.get_scaling_factor(self.mass_flux_water_vapor) is None:
+            iscale.set_scaling_factor(self.mass_flux_water_vapor, 1e5)
+
+        if iscale.get_scaling_factor(self.evaporation_rate) is None:
+            iscale.set_scaling_factor(self.evaporation_rate, 1e8)
+
+        if iscale.get_scaling_factor(self.solids_precipitation_rate) is None:
+            iscale.set_scaling_factor(self.solids_precipitation_rate, 1e2)
+
+        if iscale.get_scaling_factor(self.total_evaporative_area_required) is None:
+            iscale.set_scaling_factor(self.total_evaporative_area_required, 1e-4)
+
+        if iscale.get_scaling_factor(self.number_evaporation_ponds) is None:
+            iscale.set_scaling_factor(self.number_evaporation_ponds, 0.1)
+
+        if iscale.get_scaling_factor(self.evaporative_area_per_pond) is None:
+            iscale.set_scaling_factor(self.evaporative_area_per_pond, 1e-3)
+
+        if iscale.get_scaling_factor(self.evaporation_pond_area) is None:
+            iscale.set_scaling_factor(self.evaporation_pond_area, 1e-3)
 
     def _get_stream_table_contents(self, time_point=0):
 

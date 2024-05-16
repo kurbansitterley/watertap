@@ -187,24 +187,26 @@ class AirWaterEqData(PhysicalParameterBlock):
     CONFIG = PhysicalParameterBlock.CONFIG()
 
     CONFIG.declare(
-        "air_solute_list",
+        "vapor_solute_list", # volatile 
         ConfigValue(
+            default=[], 
             domain=list,
             description="Required argument. List of strings that specify names of solute species.",
         ),
     )
 
-    CONFIG.declare(
-        "solute_list",
-        ConfigValue(
-            domain=list,
-            description="Required argument. List of strings that specify names of solute species.",
-        ),
-    )
+    # CONFIG.declare(
+    #     "solute_list",
+    #     ConfigValue(
+    #         domain=list,
+    #         description="Required argument. List of strings that specify names of solute species.",
+    #     ),
+    # )
 
     CONFIG.declare(
-        "liquid_solute_list",
+        "liquid_solute_list", # non-volatile
         ConfigValue(
+            default=[], 
             domain=list,
             description="Required argument. List of strings that specify names of solute species.",
         ),
@@ -536,9 +538,12 @@ class AirWaterEqData(PhysicalParameterBlock):
 
         # for j in self.config.solute_list:
         #     self.add_component(j, Solute())
-
-        for j in self.config.liquid_solute_list + self.config.air_solute_list:
-            self.add_component(j, Solute())
+        # self.liq_comp_list = ["H2O"] + self.config.liquid_solute_list
+        # self.vap_comp_list = ["Air", "H2O"] + self.config.vapor_solute_list
+        # for j in self.config.liquid_solute_list + self.config.vapor_solute_list:
+        # for j in set(self.liq_comp_list + self.vap_comp_list):
+            # self.add_component(j, Solute())
+        # Phases
 
         # Liq phase indexes
         self.liq_comp_list = ["H2O"] + self.config.liquid_solute_list
@@ -552,7 +557,7 @@ class AirWaterEqData(PhysicalParameterBlock):
         )
 
         # Vap phase indexes
-        self.vap_comp_list = ["Air"] + self.config.air_solute_list
+        self.vap_comp_list = ["Air", "H2O"] + self.config.vapor_solute_list
         vap_phase_comps_idx = list(itertools.product(["Vap"], self.vap_comp_list))
         self.vap_comps = Set(
             initialize=self.vap_comp_list, doc="Set for all components in vapor phase"
@@ -562,14 +567,19 @@ class AirWaterEqData(PhysicalParameterBlock):
             doc="Set for vapor phase solutes",
         )
 
-        # self.solute_list = self.config.air_solute_list | self.config.liquid_solute_list
+        # self.solute_list = self.config.vapor_solute_list | self.config.liquid_solute_list
+        self.unique_set = self.vap_comps | self.liq_comps
+        for j in self.unique_set:
+            self.add_component(j, Solute())
 
         # Dict to store all components for each phase
+        self.Liq = LiquidPhase(component_list=self.liq_comps)
+        self.Vap = VaporPhase(component_list=self.vap_comps)
         self.phase_comp_dict = {"Liq": self.liq_comp_list, "Vap": self.vap_comp_list}
 
         # Phases
-        self.Liq = LiquidPhase(component_list=self.liq_comps)
-        self.Vap = VaporPhase(component_list=self.vap_comps)
+        # self.Liq = LiquidPhase(component_list=self.liq_comps)
+        # self.Vap = VaporPhase(component_list=self.vap_comps)
 
         # Set containing both phases and solutes; no solvents
         self.phase_solute_set = self.phase_list * self.solute_set

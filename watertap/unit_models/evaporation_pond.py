@@ -9,7 +9,7 @@
 # information, respectively. These files are also available online at the URL
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
-
+import math
 from copy import deepcopy
 
 # Import Pyomo libraries
@@ -23,6 +23,7 @@ from pyomo.environ import (
     units as pyunits,
 )
 from pyomo.common.config import ConfigBlock, ConfigValue, In, PositiveInt
+from pyomo.util.calc_var_value import calculate_variable_from_constraint
 
 # Import IDAES cores
 from idaes.core import (
@@ -161,50 +162,34 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
 
         self.scaling_factor = Suffix(direction=Suffix.EXPORT)
 
-        self.process_flow = ControlVolume0DBlock(
-            dynamic=False,
-            has_holdup=False,
-            property_package=self.config.property_package,
-            property_package_args=self.config.property_package_args,
-        )
-        self.process_flow.add_state_blocks(has_phase_equilibrium=False)
-        self.process_flow.add_material_balances(
-            balance_type=self.config.material_balance_type, has_mass_transfer=True
-        )
-        self.process_flow.add_energy_balances(
-            balance_type=EnergyBalanceType.none, has_enthalpy_transfer=False
-        )
-
-        prop_in = self.process_flow.properties_in[0]
-        prop_out = self.process_flow.properties_out[0]
-
-        self.process_flow.mass_transfer_term[:, "Vap", "Air"].fix(0)
-        self.air_temperature_C = prop_in.temperature["Vap"] - 273.15 * pyunits.degK
-
-        self.add_inlet_port(name="inlet", block=self.process_flow)
-        self.add_outlet_port(name="outlet", block=self.process_flow)
+        if not "TDS" in self.config.property_package.component_list:
+            raise ConfigurationError(
+                "TDS must be present as a component in the influent stream."
+            )
 
         tmp_dict = dict(**self.config.property_package_args)
         tmp_dict["has_phase_equilibrium"] = False
         tmp_dict["parameters"] = self.config.property_package
-        tmp_dict["defined_state"] = False
+        tmp_dict["defined_state"] = True
+        self.properties_in = self.config.property_package.state_block_class(
+            self.flowsheet().config.time, doc="Material properties of inlet", **tmp_dict
+        )
 
-        self.pond_solids = self.config.property_package.state_block_class(
+        tmp_dict["defined_state"] = False
+        self.properties_out = self.config.property_package.state_block_class(
             self.flowsheet().config.time,
-            doc="Material properties of pond solids",
+            doc="Material properties of liquid outlet",
             **tmp_dict,
         )
 
-        solids = self.pond_solids[0]
+        prop_in = self.properties_in[0]
+        prop_out = self.properties_out[0]
+        prop_out.flow_mass_phase_comp["Liq", "H2O"].set_value(0)
 
-        self.add_outlet_port(name="solids", block=self.pond_solids)
-        solids.flow_mass_phase_comp["Liq", "H2O"].fix(0)
-        solids.flow_mass_phase_comp["Vap", "H2O"].fix(0)
-        solids.flow_mass_phase_comp["Vap", "Air"].fix(0)
+        self.air_temperature_C = prop_in.temperature["Vap"] - 273.15 * pyunits.degK
 
-        # for j in inerts:
-        #     self.process_flow.mass_transfer_term[:, "Liq", j].fix(0)
-        #     regen.get_material_flow_terms("Liq", j).fix(0)
+        self.add_inlet_port(name="inlet", block=self.properties_in)
+        self.add_outlet_port(name="outlet", block=self.properties_out)
 
         self.area_correction_factor_base = Param(
             initialize=area_correction_factor_param_dict[self.config.dike_height][0],
@@ -317,7 +302,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
 
         self.area_correction_factor = Var(
             initialize=1,
-            bounds=(0.99, 3.2),
+            bounds=(0.99, 10),
             units=pyunits.dimensionless,
             doc="Area correction factor",
         )
@@ -426,35 +411,27 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
                 to_units=pyunits.Pa,
             )
 
-        @self.Constraint(doc="Mass balance of liquid water")
-        def eq_mass_balance_liquid_water(b):
-            return (
-                prop_in.flow_mass_phase_comp["Liq", "H2O"]
-                + b.process_flow.mass_transfer_term[0, "Liq", "H2O"]
-                == prop_out.flow_mass_phase_comp["Liq", "H2O"]
-            )
+        # @self.Constraint(doc="Mass balance of liquid water")
+        # def eq_mass_balance_liquid_water(b):
+        #     return (
+        #         prop_out.flow_mass_phase_comp["Liq", "H2O"]
+        #         == prop_in.flow_mass_phase_comp["Liq", "H2O"]
+        #         - prop_out.flow_mass_phase_comp["Vap", "H2O"]
+        #     )
 
-        @self.Constraint(doc="Mass flow rate of precipitated solids")
-        def eq_mass_flow_precipitated_solids(b):
-            return (
-                solids.flow_mass_phase_comp["Liq", "TDS"]
-                == -1 * b.process_flow.mass_transfer_term[0, "Liq", "TDS"]
-            )
-
-        @self.Constraint(doc="Mass transfer term for precipitated solids")
-        def eq_mass_transfer_tds(b):
-            return b.process_flow.mass_transfer_term[
-                0, "Liq", "TDS"
-            ] == -1 * pyunits.convert(
+        @self.Constraint(
+            # non_volatile_comps,
+            doc="Mass transfer term for precipitated solids and non-volatile components",
+        )
+        def eq_mass_transfer_non_volatile_solutes(b):
+            return prop_out.flow_mass_phase_comp["Liq", "TDS"] == pyunits.convert(
                 b.mass_flow_precipitate,
                 to_units=pyunits.kg / pyunits.s,
             )
 
         @self.Constraint(doc="Mass transfer term for evaporated water")
         def eq_mass_transfer_evaporated_water(b):
-            return b.process_flow.mass_transfer_term[
-                0, "Liq", "H2O"
-            ] == -1 * pyunits.convert(
+            return prop_out.flow_mass_phase_comp["Vap", "H2O"] == pyunits.convert(
                 b.mass_flux_water_vapor * b.total_evaporative_area_required,
                 to_units=pyunits.kg / pyunits.s,
             )
@@ -514,7 +491,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
             )
 
         @self.Constraint(doc="Net heat flux out of surroundings/ecosystem")
-        def net_flux_heat_constraint(b):
+        def eq_net_heat_flux_out(b):
             daily_temperature_change = (
                 prop_out.temperature["Liq"] - prop_in.temperature["Vap"]
             ) / pyunits.day
@@ -530,9 +507,9 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
         def eq_isothermal(b):
             return prop_in.temperature["Vap"] == prop_out.temperature["Vap"]
 
-        # @self.Constraint()
-        # def eq_isobaric(b):
-        #     return prop_in.pressure == prop_out.pressure
+        @self.Constraint()
+        def eq_isobaric(b):
+            return prop_in.pressure == prop_out.pressure
 
         @self.Constraint(doc="Psychrometric constant equation")
         def eq_psychrometric_constant(b):
@@ -542,7 +519,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
             )
             return b.psychrometric_constant == pyunits.convert(
                 (prop_in.cp_air * b.pressure_atm)
-                / (mw_ratio * prop_in.dh_vap_mass_solvent),
+                / (mw_ratio * prop_out.dh_vap_mass_solvent),
                 to_units=pyunits.kPa * pyunits.degK**-1,
             )
 
@@ -551,7 +528,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
             return b.bowen_ratio == pyunits.convert(
                 b.psychrometric_constant
                 * (
-                    (prop_out.temperature["Liq"] - prop_out.temperature["Vap"])
+                    (prop_out.temperature["Liq"] - prop_in.temperature["Vap"])
                     / (
                         prop_in.saturation_vap_pressure["H2O"]
                         - prop_in.vap_pressure["H2O"]
@@ -587,18 +564,18 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
                 == prop_in.flow_mass_phase_comp["Liq", "H2O"]
             )
 
-        @self.Constraint(doc="Total evaporation pond area")
-        def eq_evaporative_area_per_pond(b):
-            return (
-                b.evaporative_area_per_pond * b.number_evaporation_ponds
-                == b.total_evaporative_area_required
-            )
-
         @self.Constraint(doc="Evaporation pond area")
         def eq_evaporation_pond_area(b):
             return (
                 b.evaporation_pond_area
                 == b.evaporative_area_per_pond * b.area_correction_factor
+            )
+
+        @self.Constraint(doc="Total evaporation pond area")
+        def eq_evaporative_area_per_pond(b):
+            return (
+                b.number_evaporation_ponds * b.evaporative_area_per_pond
+                == b.total_evaporative_area_required
             )
 
     def initialize(
@@ -629,7 +606,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
         opt = get_solver(solver, optarg)
 
         # ---------------------------------------------------------------------
-        flags = self.process_flow.properties_in.initialize(
+        flags = self.properties_in.initialize(
             outlvl=outlvl,
             optarg=optarg,
             solver=solver,
@@ -643,7 +620,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
         # Set state_args from inlet state
         if state_args is None:
             self.state_args = state_args = {}
-            state_dict = self.process_flow.properties_in[
+            state_dict = self.properties_in[
                 self.flowsheet().config.time.first()
             ].define_port_members()
 
@@ -655,9 +632,48 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
                 else:
                     state_args[k] = state_dict[k].value
 
-        state_args_out = deepcopy(state_args)
+        calculate_variable_from_constraint(
+            self.properties_out[0].temperature["Liq"],
+            self.eq_water_temperature_constraint,
+        )
+        calculate_variable_from_constraint(
+            self.net_heat_flux_out, self.eq_net_heat_flux_out
+        )
+        calculate_variable_from_constraint(
+            self.psychrometric_constant, self.eq_psychrometric_constant
+        )
+        calculate_variable_from_constraint(self.bowen_ratio, self.eq_bowen_ratio)
+        calculate_variable_from_constraint(
+            self.net_heat_flux_out, self.eq_net_heat_flux_out
+        )
+        calculate_variable_from_constraint(
+            self.mass_flux_water_vapor, self.eq_mass_flux_water_vapor
+        )
+        calculate_variable_from_constraint(
+            self.total_evaporative_area_required,
+            self.eq_total_evaporative_area_required,
+        )
 
-        self.process_flow.properties_out.initialize(
+        state_args_out = deepcopy(state_args)
+        for k, v in state_args_out.items():
+            if k == "flow_mass_phase_comp":
+                for (p, j) in v.keys():
+                    if p == "Liq":
+                        if j == "H2O":
+                            state_args_out[k][(p, j)] = 0
+                        elif j == "TDS":
+                            state_args_out[k][(p, j)] = state_args[k][(p, j)] * 0.5
+                        else:
+                            state_args_out[k][(p, j)] = state_args[k][(p, j)]
+                    if p == "Vap":
+                        if j == "H2O":
+                            state_args_out[k][(p, j)] = state_args[k][("Liq", j)]
+                        elif j == "Air":
+                            state_args_out[k][(p, j)] = state_args[k][(p, j)]
+                        else:
+                            state_args_out[k][(p, j)] = state_args[k][(p, j)]
+
+        self.properties_out.initialize(
             outlvl=outlvl,
             optarg=optarg,
             solver=solver,
@@ -665,19 +681,13 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
         )
         init_log.info("Initialization Step 1b Complete.")
 
-        state_args_solids = deepcopy(state_args)
-
-        self.pond_solids.initialize(
-            outlvl=outlvl,
-            optarg=optarg,
-            solver=solver,
-            state_args=state_args_solids,
-        )
-
-        init_log.info("Initialization Step 1c Complete.")
-
         # Solve unit
         with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
+            res = opt.solve(self, tee=slc.tee)
+            nponds = math.floor(self.number_evaporation_ponds.value)
+            if nponds < 1:
+                nponds = 1
+            self.number_evaporation_ponds.fix(nponds)
             res = opt.solve(self, tee=slc.tee)
             if not check_optimal_termination(res):
                 init_log.warning(
@@ -688,8 +698,10 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
         init_log.info("Initialization Step 2 {}.".format(idaeslog.condition(res)))
 
         # Release Inlet state
-        self.process_flow.properties_in.release_state(flags, outlvl=outlvl)
+        self.properties_in.release_state(flags, outlvl=outlvl)
         init_log.info("Initialization Complete: {}".format(idaeslog.condition(res)))
+
+        self.number_evaporation_ponds.unfix()
 
         if not check_optimal_termination(res):
             raise InitializationError(f"Unit model {self.name} failed to initialize.")

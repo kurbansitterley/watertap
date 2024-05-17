@@ -384,7 +384,7 @@ def cost_evaporation_pond(blk):
     @blk.Constraint(doc="Low-pressure pump capital cost")
     def pump_capital_cost_constraint(b):
         return b.pump_capital_cost == pyo.units.convert(
-            pump_params.cost * b.unit_model.process_flow.properties_in[0].flow_vol,
+            pump_params.cost * b.unit_model.properties_in[0].flow_vol,
             to_units=b.costing_package.base_currency,
         )
     
@@ -431,7 +431,7 @@ def cost_evaporation_pond(blk):
     def pumping_power(b):
         return pyo.units.convert(
             blk.unit_model.differential_pressure
-            * blk.unit_model.process_flow.properties_in[0].flow_vol,
+            * blk.unit_model.properties_in[0].flow_vol,
             to_units=pyo.units.kilowatt,
         )
 

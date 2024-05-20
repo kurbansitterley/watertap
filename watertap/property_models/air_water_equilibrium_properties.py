@@ -548,7 +548,7 @@ class AirWaterEqData(PhysicalParameterBlock):
         )  # assumed all volatile and non-volatile solutes can be in liquid phase except Air
         liq_phase_comps_idx = list(itertools.product(["Liq"], self.liq_comp_list))
         non_volatile_phase_comps_idx = list(
-            itertools.product(["Liq"], self.config.volatile_solute_list)
+            itertools.product(["Liq"], self.config.non_volatile_solute_list)
         )
         self.liq_comps = Set(
             initialize=self.liq_comp_list, doc="Set for all components in liquid phase"
@@ -687,7 +687,7 @@ class AirWaterEqData(PhysicalParameterBlock):
             ["H2O"],
             initialize=self.config.relative_humidity_data,
             bounds=(0, 1),
-            units=pyunits.Pa,
+            units=pyunits.dimensionless,
             doc="User provided relative humidity",
         )
 

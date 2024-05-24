@@ -14,12 +14,10 @@ from copy import deepcopy
 
 # Import Pyomo libraries
 from pyomo.environ import (
-    Set,
     Var,
     check_optimal_termination,
     Param,
     Suffix,
-    exp,
     units as pyunits,
 )
 from pyomo.common.config import ConfigBlock, ConfigValue, In, PositiveInt
@@ -29,7 +27,6 @@ from pyomo.util.calc_var_value import calculate_variable_from_constraint
 from idaes.core import (
     declare_process_block_class,
     MaterialBalanceType,
-    EnergyBalanceType,
     UnitModelBlockData,
     useDefault,
 )
@@ -37,13 +34,12 @@ from watertap.core.solvers import get_solver
 from idaes.core.util.tables import create_stream_table_dataframe
 from idaes.core.util.constants import Constants
 from idaes.core.util.config import is_physical_parameter_block
-from idaes.core.util.misc import StrEnum
 from idaes.core.util.exceptions import InitializationError, ConfigurationError
 
 import idaes.core.util.scaling as iscale
 import idaes.logger as idaeslog
 
-from watertap.core import ControlVolume0DBlock, InitializationMixin
+from watertap.core import InitializationMixin
 
 from watertap.costing.unit_models.evaporation_pond import cost_evaporation_pond
 
@@ -401,7 +397,7 @@ class EvaporationPondData(InitializationMixin, UnitModelBlockData):
                 b.total_pond_area_acre * b.solids_precipitation_rate * b.dens_solids,
                 to_units=pyunits.kg / pyunits.year,
             )
-
+        
         @self.Expression(doc="Differential pressure required for pumping")
         def differential_pressure(b):
             return pyunits.convert(

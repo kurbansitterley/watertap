@@ -16,7 +16,7 @@ from ..util import (
     make_capital_cost_var,
     make_fixed_operating_cost_var,
 )
-from .pump import build_low_pressure_pump_cost_param_block, cost_low_pressure_pump
+from .pump import build_low_pressure_pump_cost_param_block
 
 
 costing_params_dict = {
@@ -31,7 +31,7 @@ costing_params_dict = {
 }
 
 
-def build_evaporation_pond_cost_param_block(blk, dike_height=8):
+def build_evaporation_pond_cost_param_block(blk):
 
     blk.basis_year = 2001
     blk.basis_currency = getattr(pyo.units, f"USD_{blk.basis_year}")

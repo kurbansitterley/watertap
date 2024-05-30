@@ -20,16 +20,7 @@ from pyomo.environ import (
     value,
     assert_optimal_termination,
 )
-
 from pyomo.network import Port
-from watertap.unit_models.air_stripping import (
-    AirStripping,
-    PackingMaterial,
-)
-
-from watertap.core import ControlVolume0DBlock
-from watertap.property_models.air_water_equilibrium_prop_pack import AirWaterEq
-from watertap.costing import WaterTAPCosting
 
 from idaes.core import (
     MaterialBalanceType,
@@ -38,7 +29,6 @@ from idaes.core import (
 )
 from idaes.core import FlowsheetBlock, UnitModelCostingBlock
 from idaes.core.util.testing import initialization_tester
-from idaes.core.solvers import get_solver
 from idaes.core.util.model_statistics import (
     degrees_of_freedom,
     number_variables,
@@ -52,11 +42,21 @@ from idaes.core.util.scaling import (
 )
 import idaes.logger as idaeslog
 
+from watertap.unit_models.air_stripping import (
+    AirStripping,
+    PackingMaterial,
+)
+
+from watertap.core import ControlVolume0DBlock
+from watertap.core.solvers import get_solver
+from watertap.property_models.air_water_equilibrium_prop_pack import AirWaterEq
+from watertap.costing import WaterTAPCosting
+
 # Get default solver for testing
 solver = get_solver()
 
 
-class TestAirStripping0D:
+class TestAirStripping:
     @pytest.fixture(scope="class")
     def ax_frame1(self):
         target = "TCA"

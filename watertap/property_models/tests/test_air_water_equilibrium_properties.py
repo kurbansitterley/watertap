@@ -28,7 +28,7 @@ from idaes.core.util.exceptions import ConfigurationError
 from watertap.core.util.initialization import check_dof
 from watertap.core.solvers import get_solver
 
-from watertap.property_models.air_water_equilibrium_properties import (
+from watertap.property_models.air_water_equilibrium_prop_pack import (
     AirWaterEq,
     AirWaterEqStateBlock,
     MolarVolumeCalculation,

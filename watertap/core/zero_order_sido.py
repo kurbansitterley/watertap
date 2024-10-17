@@ -16,7 +16,7 @@ zero-order single inlet-double outlet (SIDO) unit models.
 from types import MethodType
 
 import idaes.logger as idaeslog
-from idaes.core.solvers import get_solver
+from watertap.core.solvers import get_solver
 import idaes.core.util.scaling as iscale
 from idaes.core.util.exceptions import InitializationError
 
@@ -27,8 +27,8 @@ from pyomo.environ import (
     units as pyunits,
 )
 
-# Some more inforation about this module
-__author__ = "Andrew Lee"
+# Some more information about this module
+__author__ = "Andrew Lee, Adam Atia"
 
 # Set up logger
 _log = idaeslog.getLogger(__name__)
@@ -157,6 +157,37 @@ def build_sido(self):
     self._perf_var_dict["Solute Removal"] = self.removal_frac_mass_comp
 
     self._get_Q = MethodType(_get_Q_sido, self)
+
+    if ("temperature" in self.properties_in[0].define_state_vars()) and (
+        self.config.isothermal
+    ):
+        _add_isothermal_constraints(self)
+    if ("pressure" in self.properties_in[0].define_state_vars()) and (
+        self.config.isobaric
+    ):
+        _add_isobaric_constraints(self)
+
+
+def _add_isothermal_constraints(blk):
+    @blk.Constraint(
+        blk.flowsheet().time,
+        ["byproduct", "treated"],
+        doc="Isothermal constraints",
+    )
+    def eq_isothermal(b, t, port):
+        obj = getattr(b, port)
+        return b.inlet.temperature[t] == obj.temperature[t]
+
+
+def _add_isobaric_constraints(blk):
+    @blk.Constraint(
+        blk.flowsheet().time,
+        ["byproduct", "treated"],
+        doc="Isobaric constraints",
+    )
+    def eq_isobaric(b, t, port):
+        obj = getattr(b, port)
+        return b.inlet.pressure[t] == obj.pressure[t]
 
 
 def initialize_sido(

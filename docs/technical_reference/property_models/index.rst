@@ -4,6 +4,7 @@ Property Models
 .. toctree::
    :maxdepth: 1
 
+   air_water_equilibrium
    water
    NaCl
    NaCl_T_dep

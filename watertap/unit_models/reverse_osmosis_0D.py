@@ -117,7 +117,7 @@ class ReverseOsmosisData(ReverseOsmosisBaseData):
         def eq_mass_transfer_term(self, t, p, j):
             return (
                 self.mass_transfer_phase_comp[t, p, j]
-                == -self.feed_side.mass_transfer_term[t, p, j]
+                == -self.feed_side.mass_transfer_term[t, p, j] * 2
             )
 
         # Feed and permeate-side connection

@@ -34,7 +34,19 @@ from watertap.unit_models import (
     IonExchangeClark,
     GAC,
 )
-
+import idaes.core.surrogate.pysmo_surrogate as surrogate
+from idaes.core.surrogate.metrics import compute_fit_metrics
+import pandas as pd
+import pprint
+import itertools
+import os
+import pandas as pd
+import numpy as np
+from pyomo.environ import ConcreteModel, Var, Param, Expression, SolverFactory
+from idaes.core.surrogate.surrogate_block import SurrogateBlock
+from idaes.core.surrogate.pysmo_surrogate import PysmoSurrogate
+from watertap.core.solvers import get_solver
+import matplotlib.pyplot as plt
 solver = get_solver()
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -79,6 +91,7 @@ __all__ = [
     "resin_properties",
     "build_ix_ocwd_full", 
     "build_gac_ocwd_full",
+    "test_min_st_surrogate",
 ]
 
 
@@ -1120,3 +1133,67 @@ def build_gac_ocwd_full(species="PFOA", media="calgon_virgin", flow_rate=1, c0=1
     assert_optimal_termination(results)
     print(f"\n\ntermination = {results.solver.termination_condition}")
     return m
+
+
+
+def test_min_st_surrogate(df, surrogate_file):
+    """
+    test surrogate against input data
+    """
+    solver = get_solver()
+
+    m = ConcreteModel()
+    m.freund_ninv = Var()
+    m.N_Bi = Var()
+    m.min_st = Var()
+    min_st_surrogate = PysmoSurrogate.load_from_file(surrogate_file)
+    m.min_st_surrogate = SurrogateBlock(concrete=True)
+    m.min_st_surrogate.build_model(
+        min_st_surrogate,
+        input_vars=[m.freund_ninv, m.N_Bi],
+        output_vars=[m.min_st],
+    )
+
+    colors = [
+        "red",
+        "blue",
+        "orange",
+        "green",
+        "wheat",
+        "grey",
+        "black",
+        "purple",
+        "cyan",
+        "brown",
+        "navy",
+    ]
+    colors = itertools.cycle(colors)
+    # if "min_st_calc" not in df.columns:
+    df["min_st_calc"] = np.nan
+    for i, row in df.iterrows():
+        m.freund_ninv.fix(row.freund_ninv)
+        m.N_Bi.fix(row.N_Bi)
+        results = solver.solve(m)
+        df.at[i, "min_st_calc"] = m.min_st()
+    # df.to_csv(f"{surrogate_file.replace('json','csv')}",index=False)
+
+    fig, ax = plt.subplots()
+    for ninv in df.freund_ninv.unique():
+        c = next(colors)
+        d = df[df.freund_ninv == ninv].copy()
+        ax.plot(
+            d.N_Bi,
+            d.min_st_calc,
+            marker=".",
+            color=c,
+            label=f"1/n = {round(ninv, 2)}",
+            alpha=0.2,
+        )
+        ax.scatter(d.N_Bi, d.min_N_St, marker=".", color=c)
+    ax.legend()
+    # ax.set_title("Min St Surrogate")
+    ax.set(xlabel="Bi", ylabel="Min St", yscale="log", xscale="log")
+    plt.tight_layout()
+
+    return fig, ax 
+        

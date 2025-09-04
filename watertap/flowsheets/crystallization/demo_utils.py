@@ -89,8 +89,8 @@ def plot_contour(
         )
         ax.clabel(contour, colors="black", fmt=contour_label_fmt, fontsize=9)
 
-    ax.set_xticklabels([])
-    ax.set_yticklabels([])
+    # ax.set_xticklabels([])
+    # ax.set_yticklabels([])
     # ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x*100:.0f}%"))
     # ax.tick_params(axis="both", labelsize=16)
 

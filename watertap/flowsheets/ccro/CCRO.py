@@ -238,7 +238,6 @@ def add_multiperiod_variables(mp):
         units=pyunits.m**3 / pyunits.m**2,
         doc="Global dead volume over all time periods",
     )
-    iscale.set_scaling_factor(mp.dead_volume_to_area_ratio, 1e2)
 
     mp.dead_volume_to_area_multiplier = Var(
         initialize=2,
@@ -246,7 +245,6 @@ def add_multiperiod_variables(mp):
         units=pyunits.dimensionless,
         doc="Global dead volume over all time periods",
     )
-    iscale.set_scaling_factor(mp.dead_volume_to_area_multiplier, 1)
 
     mp.dead_volume_to_area_multiplier.fix(1)
     mp.dead_volume_to_area_ratio.fix(
@@ -350,8 +348,6 @@ def scale_multiperiod_model(mp):
         iscale.constraint_scaling_transform(c, 1e2)
     for c in mp.equal_recycle_rate.values():
         iscale.constraint_scaling_transform(c, 1e2)
-    pass
-
 
 def add_multiperiod_constraints(mp):
     """

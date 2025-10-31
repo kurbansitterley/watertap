@@ -31,6 +31,7 @@ __all__ = [
     "solve",
     "unfix_dof",
     "copy_state_prop_time_period_links",
+    "copy_inlet_state_for_mixer",
     "copy_time_period_links",
     "fix_dof_and_initialize",
     "config_op_dict",

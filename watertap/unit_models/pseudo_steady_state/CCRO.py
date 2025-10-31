@@ -153,12 +153,11 @@ class CCRO1DData(ReverseOsmosis1DData):
                 doc="Flow rate of the flushing water",
             )
 
-            # Variables
-            # self.raw_feed_concentration = Var(
-            #     initialize=0.0,
-            #     units=pyunits.kg / pyunits.m**3,
-            #     doc="Concentration of the raw feed used for flushing",
-            # )
+            self.mean_residence_time = Var(
+                initialize=30.0,
+                units=pyunits.s,
+                doc="Mean residence time in the system",
+            )
 
             self.pre_flushing_concentration = Var(
                 initialize=0.0,
@@ -518,46 +517,6 @@ class CCRO1DData(ReverseOsmosis1DData):
             super().initialize_build(
                 state_args=state_args, outlvl=outlvl, solver=solver, optarg=optarg
             )
-        # if self.config.cycle_phase == CyclePhase.flushing:
-        #     # If flushing we inherit the base UnitModelBlockData initialization
-        #     # and create a new initialization routine
-        #     # super(UnitModelBlockData, self).initialize_build(
-        #     #     state_args=state_args, outlvl=outlvl, solver=solver, optarg=optarg
-        #     # )
-
-        #     # Initialize surrogate
-        #     pre_con_fixed = self.pre_flushing_concentration.fixed
-        #     post_con_fixed = self.post_flushing_concentration.fixed
-        #     self.pre_flushing_concentration.fix()
-        #     self.post_flushing_concentration.unfix()
-        #     self.init_data = pd.DataFrame(
-        #         {
-        #             "time": [value(self.flushing_time)],
-        #         }
-        #     )
-
-        #     self.init_output = self.surrogate.evaluate_surrogate(self.init_data)
-
-        #     # Set initial values for model variables
-        #     self.flushing_efficiency.set_value(self.init_output["F_t"].values[0])
-
-        #     # Solve unit
-        #     opt = get_solver(solver, optarg)
-        #     with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
-        #         res = opt.solve(self, tee=slc.tee)
-        #     if pre_con_fixed == False:
-        #         self.pre_flushing_concentration.unfix()
-        #     if post_con_fixed == False:
-        #         self.post_flushing_concentration.unfix()
-
-        #     init_log.info_high(f"Initialization Step 2 {idaeslog.condition(res)}")
-
-        #     if not check_optimal_termination(res):
-        #         raise InitializationError(
-        #             f"Unit model {self.name} failed to initialize"
-        #         )
-
-        #     init_log.info("Initialization Complete: {}".format(idaeslog.condition(res)))
 
         # pre-solve using interval arithmetic
         interval_initializer(self)
@@ -573,11 +532,6 @@ class CCRO1DData(ReverseOsmosis1DData):
         init_log.info_high("Dead Volume Step 1 Initialized.")
 
         if self.config.cycle_phase == CyclePhase.flushing:
-            # If flushing we inherit the base UnitModelBlockData initialization
-            # and create a new initialization routine
-            # super(UnitModelBlockData, self).initialize_build(
-            #     state_args=state_args, outlvl=outlvl, solver=solver, optarg=optarg
-            # )
 
             # Initialize surrogate
             pre_con_fixed = self.pre_flushing_concentration.fixed
@@ -587,6 +541,7 @@ class CCRO1DData(ReverseOsmosis1DData):
             self.init_data = pd.DataFrame(
                 {
                     "time": [value(self.flushing_time)],
+                    "mean_residence_time": [value(self.mean_residence_time)],
                 }
             )
 
@@ -625,7 +580,7 @@ class CCRO1DData(ReverseOsmosis1DData):
         if self.config.cycle_phase == CyclePhase.filtration:
             super().calculate_scaling_factors()
         if self.config.cycle_phase == CyclePhase.flushing:
-            # super(UnitModelBlockData, self).calculate_scaling_factors()
+            
             UnitModelBlockData.calculate_scaling_factors(self)
             iscale.constraint_scaling_transform(
                 self.eq_pre_flushing_concentration, 1e-1

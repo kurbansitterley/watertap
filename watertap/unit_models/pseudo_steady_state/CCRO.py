@@ -657,16 +657,19 @@ class CCRO1DData(ReverseOsmosis1DData):
 
     def generate_rtd_profile(self):
         # Generate the RTD profile for the flushing process
+        rtd_profile = pd.DataFrame()
+        time = np.linspace(0, 3 * 35, 100)
+        N= self.number_tanks_in_series
 
-        mean_residence_time = (
-            self.accumulation_volume / self.flushing_flow_rate
-        )  # Mean residence time in s
-        time = np.linspace(0, 3 * mean_residence_time, 1000)
-        scale = mean_residence_time / self.number_tanks_in_series
-        F_t = gamma.cdf(time, a=self.number_tanks_in_series, scale=scale)
-        data = pd.DataFrame({"time": time, "F_t": F_t})
+        for t_m in np.linspace(0, 2*35, 5):
+            scale = t_m / N
+            F_t = gamma.cdf(time, a=N, scale=scale)
+            df = pd.DataFrame({"time": time, "F_t": F_t})
+            df["mean_residence_time"] = t_m
+            df["N"] = N
+            rtd_profile = pd.concat([rtd_profile, df], ignore_index=True)
 
-        self.rtd_profile = data
+        self.rtd_profile = rtd_profile
 
     def create_surrogate_model(self):
 

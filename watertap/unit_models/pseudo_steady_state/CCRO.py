@@ -155,18 +155,21 @@ class CCRO1DData(ReverseOsmosis1DData):
 
             self.mean_residence_time = Var(
                 initialize=30.0,
+                bounds=(0, None),
                 units=pyunits.s,
                 doc="Mean residence time in the system",
             )
 
             self.pre_flushing_concentration = Var(
-                initialize=0.0,
+                initialize=10,
+                bounds=(0, None),
                 units=pyunits.kg / pyunits.m**3,
                 doc="Concentration of the accumulation volume prior to flushing at the end of the concentration cycle",
             )
 
             self.post_flushing_concentration = Var(
-                initialize=0.0,
+                initialize=10,
+                bounds=(0, None),
                 units=pyunits.kg / pyunits.m**3,
                 doc="Concentration of the accumulation volume after flushing at the start of the concentration cycle",
             )
@@ -529,7 +532,7 @@ class CCRO1DData(ReverseOsmosis1DData):
             state_args=state_args,
         )
 
-        init_log.info_high("Dead Volume Step 1 Initialized.")
+        init_log.info("Dead Volume Step 1 Initialized.")
 
         if self.config.cycle_phase == CyclePhase.flushing:
 

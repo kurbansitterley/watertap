@@ -28,6 +28,7 @@ from pyomo.environ import (
 )
 from pyomo.common.config import ConfigBlock, ConfigValue, In
 
+from pyomo.util.calc_var_value import calculate_variable_from_constraint
 # Import IDAES cores
 from idaes.core import (
     ControlVolume0DBlock,
@@ -522,7 +523,10 @@ class CCRO1DData(ReverseOsmosis1DData):
             )
 
         # pre-solve using interval arithmetic
-        interval_initializer(self)
+        interval_initializer(self.accumulation_volume_block)
+
+        # if solver is None:
+        #     solver = get_solver()
 
         opt = get_solver(solver, optarg)
         acc_vol = self.accumulation_volume_block.initialize(
@@ -539,8 +543,14 @@ class CCRO1DData(ReverseOsmosis1DData):
             # Initialize surrogate
             pre_con_fixed = self.pre_flushing_concentration.fixed
             post_con_fixed = self.post_flushing_concentration.fixed
-            self.pre_flushing_concentration.fix()
-            self.post_flushing_concentration.unfix()
+
+            calculate_variable_from_constraint(
+                self.pre_flushing_concentration,
+                self.eq_pre_flushing_concentration,
+            )
+            # self.pre_flushing_concentration.fix()
+            # self.post_flushing_concentration.unfix()
+
             self.init_data = pd.DataFrame(
                 {
                     "time": [value(self.flushing_time)],
@@ -556,22 +566,22 @@ class CCRO1DData(ReverseOsmosis1DData):
             # Solve unit
             # opt = get_solver(solver, optarg)
 
-            with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
-                res = opt.solve(self, tee=slc.tee)
+            # with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
+            #     res = opt.solve(self, tee=slc.tee)
 
-            if pre_con_fixed == False:
-                self.pre_flushing_concentration.unfix()
-            if post_con_fixed == False:
-                self.post_flushing_concentration.unfix()
+            # if pre_con_fixed == False:
+            #     self.pre_flushing_concentration.unfix()
+            # if post_con_fixed == False:
+            #     self.post_flushing_concentration.unfix()
 
-            init_log.info_high(f"Initialization Step 2 {idaeslog.condition(res)}")
+            # init_log.info_high(f"Initialization Step 2 {idaeslog.condition(res)}")
 
-            if not check_optimal_termination(res):
-                raise InitializationError(
-                    f"Unit model {self.name} failed to initialize"
-                )
+            # if not check_optimal_termination(res):
+            #     raise InitializationError(
+            #         f"Unit model {self.name} failed to initialize"
+            #     )
 
-            init_log.info("Initialization Complete: {}".format(idaeslog.condition(res)))
+            # init_log.info("Initialization Complete: {}".format(idaeslog.condition(res)))
         with idaeslog.solver_log(solve_log, idaeslog.DEBUG) as slc:
             res = opt.solve(self, tee=slc.tee)
 

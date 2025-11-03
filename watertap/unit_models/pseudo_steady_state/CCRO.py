@@ -689,7 +689,7 @@ class CCRO1DData(ReverseOsmosis1DData):
         self.surrogate = PysmoSurrogate.load_from_file(self.config.surrogate_model_file)
         self.surrogate_blk.build_model(
             self.surrogate,
-            input_vars=self.flushing_time,
+            input_vars=[self.flushing_time, self.mean_residence_time],  
             output_vars=self.flushing_efficiency,
         )
 

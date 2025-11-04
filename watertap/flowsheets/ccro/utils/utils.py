@@ -331,6 +331,7 @@ def set_operating_conditions(m, op_dict=None, **kwargs):
         # m.fs.flushing.flushing_efficiency.fix(0.5)
 
         # Surrogate parameters
+        m.fs.flushing.mean_residence_time.fix(op_dict["dead_volume"]/op_dict["flushing_flowrate"])
         # m.fs.flushing.number_tanks_in_series.set_value(3)
         # m.fs.flushing.accumulator_volume.set_value(dead_volume)
         # m.fs.flushing.flushing_flow_rate.set_value(flushing_flowrate)
@@ -393,6 +394,7 @@ def set_operating_conditions(m, op_dict=None, **kwargs):
         scale_flushing_system(m)
 
     return m
+
 
 
 def initialize_system(m, **kwargs):

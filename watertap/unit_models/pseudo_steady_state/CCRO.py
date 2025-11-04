@@ -29,6 +29,7 @@ from pyomo.environ import (
 from pyomo.common.config import ConfigBlock, ConfigValue, In
 
 from pyomo.util.calc_var_value import calculate_variable_from_constraint
+
 # Import IDAES cores
 from idaes.core import (
     ControlVolume0DBlock,
@@ -487,6 +488,26 @@ class CCRO1DData(ReverseOsmosis1DData):
                     ]
                 )
 
+            @self.Expression()
+            def mean_res_time(b):
+                return pyunits.convert(
+                    b.accumulation_volume_block.volume[0]
+                    / b.accumulation_volume_block.properties_in[0].flow_vol_phase[
+                        "Liq"
+                    ],
+                    to_units=pyunits.s,
+                )
+
+            @self.Constraint()
+            def eq_mean_residence_time(b):
+                return b.mean_residence_time == pyunits.convert(
+                    b.accumulation_volume_block.volume[0]
+                    / b.accumulation_volume_block.properties_in[0].flow_vol_phase[
+                        "Liq"
+                    ],
+                    to_units=pyunits.s,
+                )
+
             # Constraint to calculate the concentration of the accumulation volume at the end of flushing
             # self.flushing_concentration_constraint = Constraint(
             #     expr=self.post_flushing_concentration
@@ -548,6 +569,10 @@ class CCRO1DData(ReverseOsmosis1DData):
                 self.pre_flushing_concentration,
                 self.eq_pre_flushing_concentration,
             )
+            calculate_variable_from_constraint(
+                self.mean_residence_time,
+                self.eq_mean_residence_time,
+            )
             # self.pre_flushing_concentration.fix()
             # self.post_flushing_concentration.unfix()
 
@@ -593,7 +618,7 @@ class CCRO1DData(ReverseOsmosis1DData):
         if self.config.cycle_phase == CyclePhase.filtration:
             super().calculate_scaling_factors()
         if self.config.cycle_phase == CyclePhase.flushing:
-            
+
             UnitModelBlockData.calculate_scaling_factors(self)
             iscale.constraint_scaling_transform(
                 self.eq_pre_flushing_concentration, 1e-1
@@ -672,9 +697,9 @@ class CCRO1DData(ReverseOsmosis1DData):
         # Generate the RTD profile for the flushing process
         rtd_profile = pd.DataFrame()
         time = np.linspace(0, 3 * 35, 100)
-        N= self.number_tanks_in_series
+        N = self.number_tanks_in_series
 
-        for t_m in np.linspace(0, 2*35, 5):
+        for t_m in np.linspace(0, 2 * 35, 5):
             scale = t_m / N
             F_t = gamma.cdf(time, a=N, scale=scale)
             df = pd.DataFrame({"time": time, "F_t": F_t})
@@ -705,7 +730,7 @@ class CCRO1DData(ReverseOsmosis1DData):
         self.surrogate = PysmoSurrogate.load_from_file(self.config.surrogate_model_file)
         self.surrogate_blk.build_model(
             self.surrogate,
-            input_vars=[self.flushing_time, self.mean_residence_time],  
+            input_vars=[self.flushing_time, self.mean_residence_time],
             output_vars=self.flushing_efficiency,
         )
 

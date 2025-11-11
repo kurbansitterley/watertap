@@ -184,22 +184,22 @@ class CCRO1DData(ReverseOsmosis1DData):
                 doc="Flushing efficiency of the system",
             )
 
-            self.flushing_time = Var(
-                initialize=20.0,
-                units=pyunits.s,
-                bounds=(0, None),
-                doc="Duration of flushing",
-            )
+            # self.flushing_time = Var(
+            #     initialize=20.0,
+            #     units=pyunits.s,
+            #     bounds=(0, None),
+            #     doc="Duration of flushing",
+            # )
 
             # If a surrogate model is passed, it is used to calculate the concentration
-            if self.config.surrogate_model_file is not None:
-                try:
-                    self.load_surrogate()
-                except Exception as e:
-                    err_msg = f"Error loading surrogate model: {e}"
-                    raise ConfigurationError(err_msg)
-            else:
-                self.create_surrogate_model()
+            # if self.config.surrogate_model_file is not None:
+            #     try:
+            #         self.load_surrogate()
+            #     except Exception as e:
+            #         err_msg = f"Error loading surrogate model: {e}"
+            #         raise ConfigurationError(err_msg)
+            # else:
+            #     self.create_surrogate_model()
 
         self.accumulation_time = Var(
             initialize=1,
@@ -576,17 +576,17 @@ class CCRO1DData(ReverseOsmosis1DData):
             # self.pre_flushing_concentration.fix()
             # self.post_flushing_concentration.unfix()
 
-            self.init_data = pd.DataFrame(
-                {
-                    "time": [value(self.flushing_time)],
-                    "mean_residence_time": [value(self.mean_residence_time)],
-                }
-            )
+            # self.init_data = pd.DataFrame(
+            #     {
+            #         "time": [value(self.flushing_time)],
+            #         "mean_residence_time": [value(self.mean_residence_time)],
+            #     }
+            # )
 
-            self.init_output = self.surrogate.evaluate_surrogate(self.init_data)
+            # self.init_output = self.surrogate.evaluate_surrogate(self.init_data)
 
             # Set initial values for model variables
-            self.flushing_efficiency.set_value(self.init_output["F_t"].values[0])
+            # self.flushing_efficiency.set_value(self.init_output["F_t"].values[0])
 
             # Solve unit
             # opt = get_solver(solver, optarg)

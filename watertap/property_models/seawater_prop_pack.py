@@ -64,13 +64,14 @@ import idaes.core.util.scaling as iscale
 from watertap.core.solvers import get_solver
 from watertap.core.util.scaling import transform_property_constraints
 from watertap.core.util.property_helpers import print_property_metadata
+from watertap.core.watertap_parameter_block import WaterTAPParameterBlockData
 
 # Set up logger
 _log = idaeslog.getLogger(__name__)
 
 
 @declare_process_block_class("SeawaterParameterBlock")
-class SeawaterParameterData(PhysicalParameterBlock):
+class SeawaterParameterData(WaterTAPParameterBlockData):
     """Parameter block for a seawater property package."""
 
     CONFIG = PhysicalParameterBlock.CONFIG()

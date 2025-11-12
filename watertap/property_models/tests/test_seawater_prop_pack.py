@@ -344,7 +344,7 @@ def test_list_properties(capsys):
 
     # clear any existing captured output, call list_properties, then capture its output
     capsys.readouterr()
-    m.fs.props.list_properties()
+    m.fs.props.print_property_metadata()
     captured = capsys.readouterr().out
     expected_output = """
 Property Description                 Model Attribute                Units          
@@ -376,3 +376,5 @@ Dynamic viscosity                    visc_d_phase                   Pa*s
 
     # Strip trailing spaces/newlines for comparison
     assert captured.strip() == expected_output.strip()
+
+    df = m.fs.props.print_property_metadata(return_df=True)

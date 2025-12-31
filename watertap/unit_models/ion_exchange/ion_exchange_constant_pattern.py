@@ -60,6 +60,7 @@ class IonExchangeCPData(IonExchangeBaseData):
         regen = self.regeneration_stream[0]
         comps = self.config.property_package.component_list
         target_component = self.config.target_component
+        self.reactive_component_set = Set(initialize=[target_component])
 
         inerts = comps - self.target_component_set
 
@@ -109,7 +110,6 @@ class IonExchangeCPData(IonExchangeBaseData):
             units=pyunits.dimensionless,
             doc="Dimensionless (relative) concentration [Ct/C0] of target ion",
         )
-        # if self.config.isotherm == IsothermType.langmuir:
 
         self.resin_max_capacity = Var(
             initialize=5,

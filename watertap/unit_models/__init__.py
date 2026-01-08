@@ -10,6 +10,7 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 
+from .air_stripping import AirStripping
 from .anaerobic_digester import AD
 from .reverse_osmosis_0D import ReverseOsmosis0D
 from .reverse_osmosis_1D import ReverseOsmosis1D

@@ -12,32 +12,26 @@ from idaes.core.util.model_diagnostics import DiagnosticsToolbox
 if __name__ == "__main__":
     # Get the directory where this script is located
     script_dir = Path(__file__).parent
-    price_data = pd.read_csv(script_dir / "sbce_pricesignal_short.csv")
+    price_data = pd.read_csv(script_dir / "wrd_pricesignal_august.csv")
     price_data["Energy Rate"] = (
-        price_data["electric_energy_0_2022-07-05_2022-07-14_0"]
-        + price_data["electric_energy_1_2022-07-05_2022-07-14_0"]
-        + price_data["electric_energy_2_2022-07-05_2022-07-14_0"]
-        + price_data["electric_energy_3_2022-07-05_2022-07-14_0"]
+        price_data["electric_energy_on_peak"]
+        + price_data["electric_energy_mid_peak"]
+        + price_data["electric_energy_off_peak"]
+        + price_data["electric_energy_super_off_peak"]
     )
-    price_data["Fixed Demand Rate"] = price_data[
-        "electric_demand_maximum_2022-07-05_2022-07-14_0"
-    ]
-    price_data["Var Demand Rate"] = price_data[
-        "electric_demand_peak-summer_2022-07-05_2022-07-14_0"
-    ]
+    price_data["Fixed Demand Rate"] = price_data["electric_demand_fixed_summer"]
+    price_data["Var Demand Rate"] = price_data["electric_demand_peak_adder_summer"]
     # units? + Don't really understand the Var demand rate... it's only applied at peak hours, but it's billed monthly? But so is the fixed demand rate, so is it in addition to that?
     price_data["Emissions Intensity"] = 0
-    price_data["Customer Cost"] = price_data[
-        "electric_customer_0_2022-07-05_2022-07-14_0"
-    ]
+    price_data["Customer Cost"] = price_data["electric_customer_fixed_charge"]
 
     m = PriceTakerModel()
 
     # Instantiate an object containing the model parameters
     m.params = FlexDesalParams(
-        start_date="2022-07-05 00:00:00",
-        end_date="2022-07-07 15:45:00",
-        annual_production_AF=100,
+        start_date="2021-08-19 00:00:00",
+        end_date="2021-08-19 23:45:00",
+        annual_production_AF=1000,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
     )
@@ -48,8 +42,8 @@ if __name__ == "__main__":
             "minimum_downtime": 4,  # hours
             "nominal_flowrate": 363.4,  # m3/hr #per skid
             "surrogate_type": "constant_energy_intensity",
-            # "surrogate_a": 1.0,
-            # "surrogate_b": 0.0,
+            "surrogate_a": 1.0,
+            "surrogate_b": 0.0,
             "nominal_recovery": 0.465,
             "num_ro_skids": 4,
         }

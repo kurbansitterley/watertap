@@ -97,6 +97,20 @@ def fix_recovery(m, recovery):
             ro_skid.calculate_energy_intensity.deactivate()
 
 
+def wrd_fix_recovery(m, recovery):
+    """Modifies the model for the fixed recovery case"""
+    # Compute the energy intensity
+    ro_skid = m.period[1, 1].reverse_osmosis.ro_skid[1]
+    energy_intensity = m.params.wrd_ro.get_energy_intensity(recovery)
+
+    for p in m.period:
+        for skid in m.period[p].reverse_osmosis.set_ro_skids:
+            ro_skid = m.period[p].reverse_osmosis.ro_skid[skid]
+            ro_skid.recovery.fix(recovery)
+            ro_skid.energy_intensity.fix(energy_intensity)
+            ro_skid.calculate_energy_intensity.deactivate()
+
+
 def update_recovery_bounds(m, lb, ub):
     """Updates the bounds on the recovery variable"""
     ro_skid = m.period[1, 1].reverse_osmosis.ro_skid[1]

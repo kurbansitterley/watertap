@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # Instantiate an object containing the model parameters
     m.params = FlexDesalParams(
         start_date="2022-07-05 00:00:00",
-        end_date="2022-07-07 15:45:00",
+        end_date="2022-07-05 02:15:00",
         annual_production_AF=3125,
         # fixed_monthly_cost = 10000,
         # customer_rate=price_data["Customer Cost"][1],  # acrft/yr
@@ -127,6 +127,9 @@ if __name__ == "__main__":
     dt = DiagnosticsToolbox(m)
     solver = get_solver()
     results = solver.solve(m)
+    # This don't work because no glpk installed
+    # solver = pyo.SolverFactory("mindtpy")
+    # results = solver.solve(m, mip_solver="glpk", nlp_solver="ipopt")
     pyo.assert_optimal_termination(results)
 
     # Write optimal values of all operational variables to a csv file

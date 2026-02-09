@@ -25,7 +25,10 @@ from pyomo.environ import (
 )
 from watertap.flowsheets.flex_desal import params as um_params
 from watertap.flowsheets.flex_desal import unit_models as um
-from watertap.flowsheets.flex_desal.wrd_ro import wrd_reverse_osmosis_operation_model
+from watertap.flowsheets.flex_desal.wrd_unit_models import (
+    wrd_reverse_osmosis_operation_model,
+    wrd_uf_operation_model,
+)
 
 
 def add_operational_cost_expressions(blk, params: um_params.FlexDesalParams):
@@ -114,6 +117,7 @@ def build_desal_flowsheet(blk, params: um_params.FlexDesalParams):
     params : object
         Object containing model parameters
     """
+
     # Build units
     blk.intake = OperationModel(
         model_func=um.intake_operation_model,
@@ -124,8 +128,8 @@ def build_desal_flowsheet(blk, params: um_params.FlexDesalParams):
         doc="Flowrate bypassed to brine discharge due to pretreatment shutdown",
     )
     blk.pretreatment = OperationModel(
-        model_func=um.pretreatment_operation_model,
-        model_args={"params": params.pretreatment},
+        model_func=wrd_uf_operation_model,
+        model_args={"params": params.wrd_uf},
     )
     blk.reverse_osmosis = OperationModel(
         model_func=wrd_reverse_osmosis_operation_model,

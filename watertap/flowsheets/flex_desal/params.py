@@ -269,6 +269,7 @@ class FlexDesalParams:
     def __post_init__(self):
         self.intake = IntakeParams()
         self.pretreatment = PretreatmentParams()
+        self.wrd_uf = WRD_UFParams()  ### ADDED
         self.wrd_ro = WRD_ROParams()  ### ADDED
         self.ro = ROParams()
         self.posttreatment = PosttreatmentParams()
@@ -304,6 +305,75 @@ class WRD_ROParams(UnitParams):
     minimum_recovery: float = 0.4  # Not used
     nominal_recovery: float = 0.465
     maximum_recovery: float = 0.55  # Not used
+    minimum_uptime: int = 1
+    minimum_downtime: int = 4
+    startup_delay: int = 8
+    allow_variable_recovery: bool = False
+
+    def __post_init__(self):
+        # self._surrogate = # load the surrogate model here.
+        self.surrogate_type: str = "constant_energy_intensity"
+        self.surrogate_a = (
+            1  # Not sure this input is being passed from the main script...
+        )
+        self.surrogate_b = 1
+
+    @property
+    def surrogate_coeffs(self):
+        """Returs the coefficients of the surrogate model as a dictionary"""
+        return {
+            "a": self.surrogate_a,
+            "b": self.surrogate_b,
+        }
+
+    def get_energy_intensity(self, flowrate):
+        """Returns the energy intensity for a given flowrate"""
+        # Placeholder implementation
+        coeffs = self.surrogate_coeffs
+        if self.surrogate_type == "constant_energy_intensity":
+            return coeffs["a"] + coeffs["b"] * flowrate
+
+        return None
+
+    def get_optimum_energy_intensity(self, flowrate_lb, flowrate_ub):
+        """
+        Returns the optimum energy intensity if it exists inside the
+        interval. Returns None is the optimum is at the bounds.
+        """
+        # No optimum exists inside the interval, because energy is constant.
+        return None
+
+    def get_energy_intensity_bounds(self, flowrate_lb=None, flowrate_ub=None):
+        """
+        Returns the bounds on energy intensity based on the bounds of
+        flowrate
+        """
+        if flowrate_lb is None:
+            flowrate_lb = self.minimum_flowrate
+        if flowrate_ub is None:
+            flowrate_ub = self.maximum_flowrate
+
+        ei_values = [
+            self.get_energy_intensity(flowrate=self.minimum_flowrate),
+            self.get_energy_intensity(flowrate=self.maximum_flowrate),
+            self.get_optimum_energy_intensity(flowrate_lb, flowrate_ub),
+        ]
+
+        ei_values = list(filter(None, ei_values))  # remove None, if it exists
+        return min(ei_values), max(ei_values)
+
+
+@dataclass
+class WRD_UFParams(UnitParams):
+    """Parameters for the UF unit"""
+
+    num_uf_pumps: int = 4
+    minimum_operating_pumps: int = 1
+    allow_shutdown: bool = True
+    minimum_flowrate: float = 0
+    nominal_flowrate: float = 337.670
+    maximum_flowrate: float = 1000
+    nominal_recovery: float = 1
     minimum_uptime: int = 1
     minimum_downtime: int = 4
     startup_delay: int = 8

@@ -128,7 +128,7 @@ def build_desal_flowsheet(blk, params: um_params.FlexDesalParams):
         doc="Flowrate bypassed to brine discharge due to pretreatment shutdown",
     )
     blk.pretreatment = OperationModel(
-        model_func=wrd_uf_operation_model,
+        model_func=um.pretreatment_operation_model,
         model_args={"params": params.wrd_uf},
     )
     blk.reverse_osmosis = OperationModel(

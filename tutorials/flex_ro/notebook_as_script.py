@@ -6,7 +6,6 @@ from watertap.flowsheets.flex_desal import flowsheet as fs
 from watertap.flowsheets.flex_desal import utils
 from watertap.flowsheets.flex_desal.params import FlexDesalParams
 from watertap.core.solvers import get_solver
-from idaes.core.util.model_diagnostics import DiagnosticsToolbox
 
 
 if __name__ == "__main__":
@@ -122,14 +121,11 @@ if __name__ == "__main__":
         sense=pyo.minimize,
     )
 
-    # Can't use gurobi because it requires a liciense for integer variables
-    # So going to use ipopt, but may need to look into this further
-    dt = DiagnosticsToolbox(m)
-    solver = get_solver()
-    results = solver.solve(m)
-    # This don't work because no glpk installed
-    # solver = pyo.SolverFactory("mindtpy")
-    # results = solver.solve(m, mip_solver="glpk", nlp_solver="ipopt")
+    mip_gap = 0.03
+    solver = pyo.SolverFactory("gurobi")
+    solver.options["MIPGap"] = mip_gap
+    results = solver.solve(m, tee=True)
+
     pyo.assert_optimal_termination(results)
 
     # Write optimal values of all operational variables to a csv file
@@ -145,8 +141,9 @@ if __name__ == "__main__":
             "num_skids_online",
         ],
     )
+
     fig.savefig("operation_profile.png")
+
     # Return the values of all variables and expressions that do not vary with time
     print(m.get_design_var_values())
-
     # OK this runs and solves at least

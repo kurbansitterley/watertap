@@ -122,7 +122,7 @@ if __name__ == "__main__":
     )
 
     mip_gap = 0.03
-    solver = pyo.SolverFactory("gurobi")
+    solver = pyo.SolverFactory("gurobi_direct")
     solver.options["MIPGap"] = mip_gap
     results = solver.solve(m, tee=True)
 

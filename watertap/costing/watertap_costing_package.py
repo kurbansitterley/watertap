@@ -9,7 +9,7 @@
 # information, respectively. These files are also available online at the URL
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
-
+from math import isclose
 import pyomo.environ as pyo
 
 from pyomo.util.calc_var_value import calculate_variable_from_constraint
@@ -686,6 +686,150 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         else:
             # all other cases are handled in the base class
             super().register_flow_type(flow_type, cost)
+
+    def create_LCOW_breakdown(self, lcow_name="LCOW"):
+
+        import matplotlib.pyplot as plt
+
+        capex_cvs = [
+            f"{lcow_name}_component_direct_capex",
+            f"{lcow_name}_component_indirect_capex",
+        ]
+
+        # Store CAPEX portion of LCOW
+        capex = dict(
+            zip(
+                getattr(self, f"{lcow_name}_component_direct_capex").keys(),
+                [0] * len(getattr(self, f"{lcow_name}_component_direct_capex")),
+            )
+        )
+
+        for cv in capex_cvs:
+            v = self.find_component(cv)
+            for k, v in v.items():
+                capex[k] += pyo.value(v)
+
+        # Store OPEX portion of LCOW
+        opex = dict(
+            zip(
+                getattr(self, f"{lcow_name}_component_fixed_opex").keys(),
+                [0] * len(getattr(self, f"{lcow_name}_component_fixed_opex")),
+            )
+        )
+
+        for k, v in getattr(self, f"{lcow_name}_component_fixed_opex").items():
+            opex[k] += pyo.value(v)
+
+        # Store aggregate flow contributions to LCOW (variable OPEX)
+        flows = dict(zip(self.used_flows, [0] * len(self.used_flows)))
+
+        for k, v in getattr(self, f"{lcow_name}_aggregate_variable_opex").items():
+            if k not in self.used_flows:
+                continue
+            flows[k] += pyo.value(v)
+
+        # Get unique units contributing to LCOW
+        units = set(
+            list(
+                x.replace("fs.", "")
+                for x in list(capex.keys())
+                + list(x.replace("fs.", "") for x in list(opex.keys()))
+            )
+        )
+
+        cmap = plt.get_cmap("tab20")
+
+        unique_components = list(units) + list(flows.keys())
+        colors = [
+            cmap(i / len(unique_components)) for i in range(len(unique_components))
+        ]
+        color_dict = dict(zip(unique_components, colors))
+
+        # Start plotting
+
+        fig, ax = plt.subplots()
+
+        hatch_dict = {
+            "CAPEX": "",
+            "OPEX": "\\\\",
+            "Flows": "..",
+        }
+
+        x = -1  # location of bar
+
+        # For checking calculations
+        lcow = 0
+        
+        for i, u in enumerate(units):
+            # print(f"Unit: {u}")
+            c = capex.get(f"fs.{u}", 0)
+            o = opex.get(f"fs.{u}", 0)
+            if i == 0:
+                ax.bar(
+                    [x],
+                    [c],
+                    hatch=hatch_dict["CAPEX"],
+                    color=color_dict[u],
+                    label=f"{u} CAPEX",
+                    width=0.5,
+                    edgecolor="black",
+                )
+                bottom = c
+            else:
+                ax.bar(
+                    [x],
+                    [c],
+                    bottom=bottom,
+                    hatch=hatch_dict["CAPEX"],
+                    color=color_dict[u],
+                    label=f"{u} CAPEX",
+                    edgecolor="black",
+                    width=0.5,
+                )
+                bottom += c
+            ax.bar(
+                [x],
+                [o],
+                bottom=bottom,
+                hatch=hatch_dict["OPEX"],
+                color=color_dict[u],
+                label=f"{u} OPEX",
+                edgecolor="black",
+                width=0.5,
+            )
+            bottom += o
+            lcow += c + o
+
+        for f in flows.keys():
+            v = flows[f]
+            ax.bar(
+                [x],
+                [v],
+                bottom=bottom,
+                hatch=hatch_dict["Flows"],
+                color=color_dict[f],
+                label=f,
+                width=0.5,
+                edgecolor="black",
+            )
+            bottom += v
+            lcow += v
+
+        ax.legend()
+        ax.set_xlim(-1.5, 0.5)
+        ax.set_xticks([])
+        ax.set_ylabel("LCOW Contribution ($/m3)")
+
+        # print(f"Calculated LCOW: {lcow}")
+        # print(f"Actual LCOW: {pyo.value(self.LCOW)}")
+        # import pytest
+        # assert pytest.approx(lcow, rel=1e-5) == pyo.value(self.LCOW)
+        rel = 1e-5
+        assert isclose(lcow, pyo.value(self.LCOW), rel_tol=rel)
+
+        plt.show()
+        fig.savefig("test.png", dpi=300)
+        return fig, ax
 
 
 @declare_process_block_class("WaterTAPCosting")

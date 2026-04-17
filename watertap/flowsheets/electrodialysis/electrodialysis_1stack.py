@@ -62,6 +62,7 @@ def main():
     print("\n***---Optimization results---***")
     m.fs.EDstack.report()
     display_model_metrics(m)
+    m.fs.costing.create_LCOW_breakdown()
 
 
 def build():

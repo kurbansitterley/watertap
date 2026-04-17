@@ -1363,3 +1363,4 @@ def display_performance_metrics(m):
 
 if __name__ == "__main__":
     m, results, sm = main(reactor_volume_equalities=True)
+    m.fs.costing.create_LCOW_breakdown()

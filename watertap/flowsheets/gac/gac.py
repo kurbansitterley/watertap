@@ -259,3 +259,4 @@ def optimize(m, solver=None):
 
 if __name__ == "__main__":
     m, results = main()
+    m.fs.costing.create_LCOW_breakdown()

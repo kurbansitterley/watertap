@@ -759,7 +759,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
 
         # For checking calculations
         lcow = 0
-        
+
         for i, u in enumerate(units):
             # print(f"Unit: {u}")
             c = capex.get(f"fs.{u}", 0)

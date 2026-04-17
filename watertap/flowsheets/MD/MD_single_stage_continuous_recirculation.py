@@ -665,7 +665,6 @@ def display_state(m):
     print_state("chiller out    ", m.fs.chiller.outlet)
 
 
-
 if __name__ == "__main__":
     m = main()
     m.fs.costing.create_LCOW_breakdown()

@@ -16,3 +16,4 @@ Property Models
    modified_ASM2D
    mc_aq_sol
    zo
+   air_water_equil

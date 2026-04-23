@@ -436,3 +436,4 @@ def add_hardness_constraint(stream):
 
 if __name__ == "__main__":
     m = main()
+    m.fs.costing.create_LCOW_breakdown()

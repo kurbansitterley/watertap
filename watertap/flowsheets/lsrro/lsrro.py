@@ -1868,3 +1868,4 @@ if __name__ == "__main__":
         number_of_RO_finite_elements=10,
         set_default_bounds_on_module_dimensions=True,
     )
+    m.fs.costing.create_LCOW_breakdown()

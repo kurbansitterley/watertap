@@ -1015,6 +1015,7 @@ def display_performance_metrics(m):
 
 if __name__ == "__main__":
     m, results, scaled_model = main(bio_P=True)
+    m.fs.costing.create_LCOW_breakdown()
 
     stream_table = create_stream_table_dataframe(
         {

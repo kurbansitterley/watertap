@@ -701,6 +701,7 @@ def add_costing(m, dye_revenue=False, brine_revenue=False):
     # Add specific energy consumption
     feed_flowrate = m.fs.feed.flow_vol[0]
     m.fs.zo_costing.add_electricity_intensity(feed_flowrate)
+    m.fs.zo_costing.add_LCOW(feed_flowrate)
 
     # RO Train
     # RO equipment is costed using more detailed costing package
@@ -728,6 +729,7 @@ def add_costing(m, dye_revenue=False, brine_revenue=False):
         m.fs.ro_costing.cost_process()
 
         m.fs.ro_costing.add_specific_energy_consumption(feed_flowrate)
+        m.fs.ro_costing.add_LCOW(feed_flowrate)
 
         m.fs.specific_energy_intensity = Expression(
             expr=(
@@ -1609,3 +1611,5 @@ if __name__ == "__main__":
         dye_revenue=False,
         brine_revenue=False,
     )
+
+    model.fs.zo_costing.create_LCOW_breakdown()

@@ -80,6 +80,9 @@ def main():
         costing_method_arguments={"cost_type": CrystallizerCostType.mass_basis},
     )
     m.fs.costing.cost_process()
+    m.fs.costing.add_LCOW(
+        m.fs.crystallizer.control_volume.properties_out[0].flow_vol_phase["Liq"]
+    )
 
     # solving
     m.fs.crystallizer.initialize(outlvl=idaeslog.DEBUG)
@@ -147,3 +150,4 @@ def main():
 
 if __name__ == "__main__":
     m = main()
+    m.fs.costing.create_LCOW_breakdown()

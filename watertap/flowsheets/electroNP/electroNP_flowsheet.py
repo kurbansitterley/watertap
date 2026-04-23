@@ -284,3 +284,4 @@ if __name__ == "__main__":
     )
     print(stream_table_dataframe_to_string(stream_table))
     display_costing(m)
+    m.fs.costing.create_LCOW_breakdown()

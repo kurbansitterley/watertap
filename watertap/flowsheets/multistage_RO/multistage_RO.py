@@ -269,7 +269,7 @@ def set_stage_bounds(stage):
     """
 
     for t, x, p, c in stage.RO.flux_mass_phase_comp:
-        if p == "H2O":
+        if c == "H2O":
             stage.RO.flux_mass_phase_comp[t, x, p, c].setlb(
                 0 * pyunits.kg / (pyunits.m**2 * pyunits.hr)
             )
@@ -623,7 +623,7 @@ def run_n_stage_system(*args, **kwargs):
 
 if __name__ == "__main__":
 
-    pump_dict = {1: True, 2: True, 3: True, 4: False, 5: True}
+    pump_dict = {1: True, 2: False, 3: True, 4: False, 5: True}
     m = run_n_stage_system(
         n_stages=3,
         salinity=95,

@@ -687,66 +687,102 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             # all other cases are handled in the base class
             super().register_flow_type(flow_type, cost)
 
-    def create_LCOW_breakdown(self, lcow_name="LCOW"):
+    def create_LCOW_breakdown(
+        self,
+        lcow_name="LCOW",
+        by="component",
+        fs_name="fs",
+        separate_flows=False,
+        colormap="tab20",
+        tol=1e-5,
+        rel=False,
+    ):
 
         import matplotlib.pyplot as plt
 
-        capex_cvs = [
-            f"{lcow_name}_component_direct_capex",
-            f"{lcow_name}_component_indirect_capex",
+        if self.find_component(lcow_name) is None:
+            msg = f"WaterTAPCosting does not have a component named {lcow_name}."
+            msg += " Use the add_LCOW method to add an LCOW Expression to the costing"
+            msg += " block before calling create_LCOW_breakdown."
+            raise RuntimeError(msg)
+
+        if rel:
+            d = pyo.value(self.find_component(lcow_name))
+        else:
+            d = 1
+
+        capex_comp_exprs = [
+            f"{lcow_name}_{by}_direct_capex",
+            f"{lcow_name}_{by}_indirect_capex",
         ]
 
         # Store CAPEX portion of LCOW
         capex = dict(
             zip(
-                getattr(self, f"{lcow_name}_component_direct_capex").keys(),
-                [0] * len(getattr(self, f"{lcow_name}_component_direct_capex")),
+                [
+                    x.replace(f"{fs_name}.", "")
+                    for x in self.find_component(
+                        f"{lcow_name}_{by}_direct_capex"
+                    ).keys()
+                ],
+                [0] * len(self.find_component(f"{lcow_name}_{by}_direct_capex")),
             )
         )
 
-        for cv in capex_cvs:
-            v = self.find_component(cv)
+        for ce in capex_comp_exprs:
+            v = self.find_component(ce)
             for k, v in v.items():
-                capex[k] += pyo.value(v)
+                capex[k.replace(f"{fs_name}.", "")] += pyo.value(v)
 
         # Store OPEX portion of LCOW
         opex = dict(
             zip(
-                getattr(self, f"{lcow_name}_component_fixed_opex").keys(),
-                [0] * len(getattr(self, f"{lcow_name}_component_fixed_opex")),
+                [
+                    x.replace(f"{fs_name}.", "")
+                    for x in self.find_component(f"{lcow_name}_{by}_fixed_opex").keys()
+                ],
+                [0] * len(self.find_component(f"{lcow_name}_{by}_fixed_opex")),
             )
         )
+        for k, v in self.find_component(f"{lcow_name}_{by}_fixed_opex").items():
+            opex[k.replace(f"{fs_name}.", "")] += pyo.value(v)
 
-        for k, v in getattr(self, f"{lcow_name}_component_fixed_opex").items():
-            opex[k] += pyo.value(v)
-
-        # Store aggregate flow contributions to LCOW (variable OPEX)
-        flows = dict(zip(self.used_flows, [0] * len(self.used_flows)))
-
-        for k, v in getattr(self, f"{lcow_name}_aggregate_variable_opex").items():
-            if k not in self.used_flows:
-                continue
-            flows[k] += pyo.value(v)
-
-        # Get unique units contributing to LCOW
+        # Unique units contributing to LCOW
         units = set(
             list(
-                x.replace("fs.", "")
+                x.replace(f"{fs_name}.", "")
                 for x in list(capex.keys())
-                + list(x.replace("fs.", "") for x in list(opex.keys()))
+                + list(x.replace(f"{fs_name}.", "") for x in list(opex.keys()))
             )
         )
 
-        cmap = plt.get_cmap("tab20")
+        if separate_flows:
+            # Separate aggregate flow contributions to LCOW (variable OPEX)
+            flows = dict(zip(self.used_flows, [0] * len(self.used_flows)))
 
+            for k, v in self.find_component(
+                f"{lcow_name}_aggregate_variable_opex"
+            ).items():
+                if k not in self.used_flows:
+                    continue
+                flows[k] += pyo.value(v)
+        else:
+            # Flows are included as part of variable OPEX
+            flows = {}
+            for k, v in self.find_component(f"{lcow_name}_{by}_variable_opex").items():
+                if k.replace(f"{fs_name}.", "") in units:
+                    opex[k.replace(f"{fs_name}.", "")] += pyo.value(v)
+
+        # Unique components contributing to LCOW
         unique_components = list(units) + list(flows.keys())
+
+        cmap = plt.get_cmap(colormap)
         colors = [
             cmap(i / len(unique_components)) for i in range(len(unique_components))
         ]
         color_dict = dict(zip(unique_components, colors))
 
         # Start plotting
-
         fig, ax = plt.subplots()
 
         hatch_dict = {
@@ -761,9 +797,8 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         lcow = 0
 
         for i, u in enumerate(units):
-            # print(f"Unit: {u}")
-            c = capex.get(f"fs.{u}", 0)
-            o = opex.get(f"fs.{u}", 0)
+            c = capex.get(u, 0) / d
+            o = opex.get(u, 0) / d
             if i == 0:
                 ax.bar(
                     [x],
@@ -797,11 +832,12 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 edgecolor="black",
                 width=0.5,
             )
+
             bottom += o
             lcow += c + o
 
         for f in flows.keys():
-            v = flows[f]
+            v = flows[f] / d
             ax.bar(
                 [x],
                 [v],
@@ -818,17 +854,21 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         ax.legend()
         ax.set_xlim(-1.5, 0.5)
         ax.set_xticks([])
-        ax.set_ylabel("LCOW Contribution ($/m3)")
+        ax.set_ylabel(
+            f"{lcow_name} (\\$/m$^3$)" if not rel else f"Relative {lcow_name}"
+        )
+        # ax.grid(visible=True)
 
-        # print(f"Calculated LCOW: {lcow}")
-        # print(f"Actual LCOW: {pyo.value(self.LCOW)}")
-        # import pytest
-        # assert pytest.approx(lcow, rel=1e-5) == pyo.value(self.LCOW)
-        rel = 1e-5
-        assert isclose(lcow, pyo.value(self.LCOW), rel_tol=rel)
+        if not isclose(lcow, pyo.value(self.LCOW / d), rel_tol=tol):
+            print(f"Calculated LCOW: {lcow}")
+            print(f"Actual LCOW: {pyo.value(self.LCOW / d)}")
+            raise ValueError(
+                f"Calculated LCOW and actual LCOW differ by more than tolerance ({tol})"
+            )
 
         plt.show()
         fig.savefig("test.png", dpi=300)
+
         return fig, ax
 
 

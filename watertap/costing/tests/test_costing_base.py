@@ -203,7 +203,7 @@ def test_plot_LCOW_breakdown():
                     relative=rel, by=by, separate_flows=separate_flows
                 )
                 assert not os.path.isfile(f"{here}/test_breakdown.png")
-                
+
                 m.fs.costing.plot_LCOW_breakdown(
                     relative=rel,
                     by=by,

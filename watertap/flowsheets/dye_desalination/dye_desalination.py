@@ -1611,5 +1611,3 @@ if __name__ == "__main__":
         dye_revenue=False,
         brine_revenue=False,
     )
-
-    model.fs.zo_costing.create_LCOW_breakdown()

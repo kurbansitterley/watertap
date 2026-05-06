@@ -747,4 +747,3 @@ def display_design(m):
 
 if __name__ == "__main__":
     m, _ = main()
-    m.fs.costing.create_LCOW_breakdown()

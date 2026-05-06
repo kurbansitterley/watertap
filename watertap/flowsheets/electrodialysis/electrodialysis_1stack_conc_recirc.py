@@ -487,4 +487,3 @@ def display_model_metrics(m):
 
 if __name__ == "__main__":
     m = main()
-    m.fs.costing.create_LCOW_breakdown()

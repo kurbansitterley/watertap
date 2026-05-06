@@ -330,6 +330,9 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             ),
         )
 
+    def add_SEC(self, flow_rate):
+        self.add_specific_energy_consumption(flow_rate, name="SEC")
+
     def add_electricity_intensity(self, flow_rate, name="electricity_intensity"):
         """
         Add calculation of overall electricity intensity to costing block.
@@ -883,6 +886,10 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         ax.set_ylabel(
             f"{lcow_name} (\\$/m$^3$)" if not relative else f"Relative {lcow_name} (%)"
         )
+        fig.tight_layout()
+
+        if save_as is not None:
+            fig.savefig(f"{save_as}.png", dpi=300, bbox_inches="tight")
 
         if not isclose(lcow_check, pyo.value(self.LCOW / d), rel_tol=tol):
             print(f"Calculated LCOW: {lcow_check}")
@@ -891,11 +898,110 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 f"Calculated LCOW and actual LCOW differ by more than tolerance ({tol})"
             )
 
-        plt.tight_layout()
-        # plt.show()
+        return fig, ax
+
+    def plot_SEC_breakdown(
+        self,
+        sec_name="specific_energy_consumption",
+        fs_name="fs",
+        relative=False,
+        colormap="tab20",
+        save_as=None,
+        tol=1e-5,
+    ):
+        """
+        This method creates a bar chart showing the breakdown of the specific energy consumption calculation
+        into its contributing components. The breakdown can be done by individual unit
+        models or by unit model type, and flows can be shown separately or included as
+        part of the total specific energy consumption.
+
+        Args:
+            sec_name: name of the specific energy consumption Expression to plot (default: "specific_energy_consumption")
+            fs_name: name of the flowsheet (default: "fs"
+            colormap: colormap to use for the plot (default: "tab20")
+            tol: tolerance for SEC calculation check (default: 1e-5)
+            relative: whether to plot as fraction of total SEC (default: False)
+            save_as: filename to save the plot (default: None)
+        """
+
+        import matplotlib.pyplot as plt
+        from matplotlib.patches import Patch
+
+        if self.find_component(sec_name) is None:
+            msg = f"WaterTAPCosting does not have a component named {sec_name}."
+            msg += " Use the add_specific_energy_consumption method to add a specific energy consumption Expression to the costing"
+            msg += " block before calling plot_SEC_breakdown."
+            raise RuntimeError(msg)
+
+        if relative:
+            d = pyo.value(self.find_component(sec_name)) * 1e-2
+        else:
+            d = 1
+
+        sec_expr = self.find_component(f"{sec_name}_component")
+        sec_comp = {
+            k.replace(f"{fs_name}.", ""): pyo.value(v) for k, v in sec_expr.items()
+        }
+
+        cmap = plt.get_cmap(colormap)
+        colors = [cmap(i / len(sec_comp.keys())) for i in range(len(sec_comp.keys()))]
+        color_dict = dict(zip(sec_comp.keys(), colors))
+
+        # Start plotting
+        fig, ax = plt.subplots()
+        x = -1  # location of bar
+
+        # Create legend
+        handles = []
+        labels = []
+
+        sec_check = 0
+
+        # Sort so plotting starts with negative contributions
+        sec_comp_sort = dict(
+            sorted(sec_comp.items(), key=lambda i: i[1], reverse=False)
+        )
+        bottom = (
+            sum(ec for ec in sec_comp_sort.values() if ec < 0) / d * 2
+        )  # start at lowest point
+        for u, v in sec_comp_sort.items():
+            ec = v / d
+
+            ax.bar(
+                [x],
+                [abs(ec)],
+                bottom=bottom,
+                color=color_dict[u],
+                edgecolor="black",
+                width=0.5,
+            )
+            bottom += abs(ec)
+            sec_check += ec
+
+            handles.append(Patch(facecolor=color_dict[u], edgecolor="k"))
+            labels.append(u)
+
+        ax.set_axisbelow(True)
+        ax.grid(visible=True)
+        ax.legend(handles=handles, labels=labels)
+        ax.set_xlim(-1.5, 0.5)
+        ax.set_xticks([])
+        ax.set_ylabel(f"SEC (kWh/m$^3$)" if not relative else f"Relative SEC (%)")
+        if any(ec < 0 for ec in sec_comp.values()):
+            ax.axhline(0, color="black", linewidth=1.5)
+        fig.tight_layout()
 
         if save_as is not None:
             fig.savefig(f"{save_as}.png", dpi=300, bbox_inches="tight")
+
+        if not isclose(
+            sec_check, pyo.value(self.find_component(sec_name) / d), rel_tol=tol
+        ):
+            print(f"Calculated SEC: {sec_check}")
+            print(f"Actual SEC: {pyo.value(self.find_component(sec_name) / d)}")
+            raise ValueError(
+                f"Calculated SEC and actual SEC differ by more than tolerance ({tol})"
+            )
 
         return fig, ax
 

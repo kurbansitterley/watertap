@@ -687,27 +687,56 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             # all other cases are handled in the base class
             super().register_flow_type(flow_type, cost)
 
-    def create_LCOW_breakdown(
+    def plot_LCOW_breakdown(
         self,
         lcow_name="LCOW",
-        by="component",
         fs_name="fs",
+        by="component",
         separate_flows=False,
+        relative=False,
         colormap="tab20",
+        save_as=None,
         tol=1e-5,
-        rel=False,
     ):
+        """
+        This method creates a bar chart showing the breakdown of the LCOW calculation
+        into its contributing components. The breakdown can be done by individual unit
+        models or by unit model type, and flows can be shown separately or included as
+        part of variable OPEX.
+
+        Args:
+            lcow_name: name of the LCOW Expression to plot (default: "LCOW")
+            by: breakdown by individual "component" unit or "aggregate" unit class (default: "component")
+            fs_name: name of the flowsheet (default: "fs")
+            separate_flows: whether to show flows separately (default: False)
+            colormap: colormap to use for the plot (default: "tab20")
+            tol: tolerance for LCOW calculation check (default: 1e-5)
+            relative: whether to plot as fraction of total LCOW (default: False)
+            save_as: filename to save the plot (default: None)
+
+        Returns:
+            fig, ax: matplotlib figure and axis objects for the plot
+        """
 
         import matplotlib.pyplot as plt
+        from matplotlib.patches import Patch
+
+        hatch_dict = {
+            "CAPEX": "",
+            "OPEX": "\\\\",
+        }
 
         if self.find_component(lcow_name) is None:
             msg = f"WaterTAPCosting does not have a component named {lcow_name}."
             msg += " Use the add_LCOW method to add an LCOW Expression to the costing"
-            msg += " block before calling create_LCOW_breakdown."
+            msg += " block before calling plot_LCOW_breakdown."
             raise RuntimeError(msg)
 
-        if rel:
-            d = pyo.value(self.find_component(lcow_name))
+        if by not in ("component", "aggregate"):
+            raise ValueError("'by' argument must be either 'component' or 'aggregate'.")
+
+        if relative:
+            d = pyo.value(self.find_component(lcow_name)) * 1e-2
         else:
             d = 1
 
@@ -716,12 +745,12 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             f"{lcow_name}_{by}_indirect_capex",
         ]
 
-        # Store CAPEX portion of LCOW
+        # CAPEX portion of LCOW
         capex = dict(
             zip(
                 [
-                    x.replace(f"{fs_name}.", "")
-                    for x in self.find_component(
+                    k.replace(f"{fs_name}.", "")
+                    for k in self.find_component(
                         f"{lcow_name}_{by}_direct_capex"
                     ).keys()
                 ],
@@ -729,35 +758,34 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             )
         )
 
+        # CAPEX = direct + indirect
         for ce in capex_comp_exprs:
-            v = self.find_component(ce)
-            for k, v in v.items():
+            expr = self.find_component(ce)
+            for k, v in expr.items():
                 capex[k.replace(f"{fs_name}.", "")] += pyo.value(v)
 
-        # Store OPEX portion of LCOW
+        # OPEX portion of LCOW
         opex = dict(
             zip(
                 [
-                    x.replace(f"{fs_name}.", "")
-                    for x in self.find_component(f"{lcow_name}_{by}_fixed_opex").keys()
+                    k.replace(f"{fs_name}.", "")
+                    for k in self.find_component(f"{lcow_name}_{by}_fixed_opex").keys()
                 ],
                 [0] * len(self.find_component(f"{lcow_name}_{by}_fixed_opex")),
             )
         )
+        # OPEX will always include fixed OPEX, but may or may not include variable OPEX depending on `separate_flows`
         for k, v in self.find_component(f"{lcow_name}_{by}_fixed_opex").items():
             opex[k.replace(f"{fs_name}.", "")] += pyo.value(v)
 
         # Unique units contributing to LCOW
         units = set(
-            list(
-                x.replace(f"{fs_name}.", "")
-                for x in list(capex.keys())
-                + list(x.replace(f"{fs_name}.", "") for x in list(opex.keys()))
-            )
+            list(k.replace(f"{fs_name}.", "") for k in capex.keys())
+            + list(k.replace(f"{fs_name}.", "") for k in opex.keys())
         )
 
         if separate_flows:
-            # Separate aggregate flow contributions to LCOW (variable OPEX)
+            # Aggregate flows are plotted separately from variable OPEX
             flows = dict(zip(self.used_flows, [0] * len(self.used_flows)))
 
             for k, v in self.find_component(
@@ -766,8 +794,10 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 if k not in self.used_flows:
                     continue
                 flows[k] += pyo.value(v)
+
+            hatch_dict["Flows"] = ".."
         else:
-            # Flows are included as part of variable OPEX
+            # Aggregate flows are included as part of variable OPEX
             flows = {}
             for k, v in self.find_component(f"{lcow_name}_{by}_variable_opex").items():
                 if k.replace(f"{fs_name}.", "") in units:
@@ -784,58 +814,20 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
 
         # Start plotting
         fig, ax = plt.subplots()
-
-        hatch_dict = {
-            "CAPEX": "",
-            "OPEX": "\\\\",
-            "Flows": "..",
-        }
-
         x = -1  # location of bar
+        bottom = 0
 
-        # For checking calculations
-        lcow = 0
+        # Create legend
+        handles = [
+            Patch(facecolor="white", edgecolor="k", label=k, hatch=v)
+            for k, v in hatch_dict.items()
+        ]
+        labels = list(hatch_dict.keys())
 
-        for i, u in enumerate(units):
-            c = capex.get(u, 0) / d
-            o = opex.get(u, 0) / d
-            if i == 0:
-                ax.bar(
-                    [x],
-                    [c],
-                    hatch=hatch_dict["CAPEX"],
-                    color=color_dict[u],
-                    label=f"{u} CAPEX",
-                    width=0.5,
-                    edgecolor="black",
-                )
-                bottom = c
-            else:
-                ax.bar(
-                    [x],
-                    [c],
-                    bottom=bottom,
-                    hatch=hatch_dict["CAPEX"],
-                    color=color_dict[u],
-                    label=f"{u} CAPEX",
-                    edgecolor="black",
-                    width=0.5,
-                )
-                bottom += c
-            ax.bar(
-                [x],
-                [o],
-                bottom=bottom,
-                hatch=hatch_dict["OPEX"],
-                color=color_dict[u],
-                label=f"{u} OPEX",
-                edgecolor="black",
-                width=0.5,
-            )
+        # For checking LCOW calculation
+        lcow_check = 0
 
-            bottom += o
-            lcow += c + o
-
+        # Starting from the bottom: add flows, then opex, then capex
         for f in flows.keys():
             v = flows[f] / d
             ax.bar(
@@ -844,30 +836,66 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 bottom=bottom,
                 hatch=hatch_dict["Flows"],
                 color=color_dict[f],
-                label=f,
                 width=0.5,
                 edgecolor="black",
             )
             bottom += v
-            lcow += v
+            lcow_check += v
 
-        ax.legend()
+            handles.append(Patch(facecolor=color_dict[f], edgecolor="k"))
+            labels.append(f)
+
+        for u in units:
+            o = opex.get(u, 0) / d
+            c = capex.get(u, 0) / d
+
+            ax.bar(
+                [x],
+                [o],
+                bottom=bottom,
+                hatch=hatch_dict["OPEX"],
+                color=color_dict[u],
+                edgecolor="black",
+                width=0.5,
+            )
+            bottom += o
+
+            ax.bar(
+                [x],
+                [c],
+                bottom=bottom,
+                hatch=hatch_dict["CAPEX"],
+                color=color_dict[u],
+                edgecolor="black",
+                width=0.5,
+            )
+            bottom += c
+            lcow_check += c + o
+
+            handles.append(Patch(facecolor=color_dict[u], edgecolor="k"))
+            labels.append(u)
+
+        ax.set_axisbelow(True)
+        ax.grid(visible=True)
+        ax.legend(handles=handles, labels=labels)
         ax.set_xlim(-1.5, 0.5)
         ax.set_xticks([])
         ax.set_ylabel(
-            f"{lcow_name} (\\$/m$^3$)" if not rel else f"Relative {lcow_name}"
+            f"{lcow_name} (\\$/m$^3$)" if not relative else f"Relative {lcow_name} (%)"
         )
-        # ax.grid(visible=True)
 
-        if not isclose(lcow, pyo.value(self.LCOW / d), rel_tol=tol):
-            print(f"Calculated LCOW: {lcow}")
+        if not isclose(lcow_check, pyo.value(self.LCOW / d), rel_tol=tol):
+            print(f"Calculated LCOW: {lcow_check}")
             print(f"Actual LCOW: {pyo.value(self.LCOW / d)}")
             raise ValueError(
                 f"Calculated LCOW and actual LCOW differ by more than tolerance ({tol})"
             )
 
+        plt.tight_layout()
         plt.show()
-        fig.savefig("test.png", dpi=300)
+
+        if save_as is not None:
+            fig.savefig(f"{save_as}.png", dpi=300, bbox_inches="tight")
 
         return fig, ax
 

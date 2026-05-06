@@ -16,6 +16,7 @@ The flowsheets below can be accessed at the
    electrodialysis_1stack
    crystallization
    ion_exchange
+   multistage_RO
    gac
    generic_desalination_train
    lsrro

@@ -650,4 +650,3 @@ def display_state(m):
 
 if __name__ == "__main__":
     m = main(erd_type=ERDtype.pump_as_turbine)
-    m.fs.costing.plot_LCOW_breakdown()

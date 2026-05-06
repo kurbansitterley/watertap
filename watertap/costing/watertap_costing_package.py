@@ -892,7 +892,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             )
 
         plt.tight_layout()
-        plt.show()
+        # plt.show()
 
         if save_as is not None:
             fig.savefig(f"{save_as}.png", dpi=300, bbox_inches="tight")

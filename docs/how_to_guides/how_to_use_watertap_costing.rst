@@ -701,8 +701,8 @@ If you are unsure, the units for costing variables (or any variable) can be acce
 Accessing System-Level Costing Results
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Costing results for all units with a costing block are aggregated to the system level and converted to be in the same currency year (as defined by ``base_currency``). Operating costs are likewise converted to be 
-in units of ``base_currency / base_period``. These results are found on the flowsheet costing block (``m.fs.costing``) and for this example include the following:
+Costing results for all units with a costing block are aggregated to the system level and converted to be in the same currency year (as defined by ``base_currency``). Operating costs are likewise converted to 
+units of ``base_currency / base_period``. These results are found on the flowsheet costing block (``m.fs.costing``) and for this example includes the following:
 
 - Total capital cost: ``m.fs.costing.total_capital_cost``
 - Total operating cost: ``m.fs.costing.total_operating_cost``
@@ -767,7 +767,7 @@ Further descriptions of these breakdowns, how each expression is indexed, and th
 
 Below is an example of how to display the LCOW and SEC breakdowns using the ``display()`` method on various expressions.
 
-.. testcode::
+.. code-block:: python
 
     print("Example LCOW breakdowns")
     m.fs.costing.LCOW.display()
@@ -790,7 +790,7 @@ The component-based LCOW breakdowns are indexed by each unit model on the flowsh
 the aggregation-based LCOW breakdowns are indexed by each unit model type and flow type. 
 
 Each registered flow appears in multiple places within the LCOW breakdowns. For example, for the ``LCOW_component_variable_opex`` breakdown, the electricity flow 
-is included in the results for the `fs.pump1`, `fs.pump2`, and `fs.ERD` indexes; the sum of these values (i.e., the total aggregation of electricity) equals the ``LCOW_aggregate_variable_opex['electricity']`` entry.
+is included in the results for the `fs.pump1`, `fs.pump2`, and `fs.ERD` indexes; the sum of these values (i.e., the total aggregation of electricity) equals the ``LCOW_aggregate_variable_opex["electricity"]`` entry.
 Additionally, ``LCOW_aggregate_variable_opex["Pump"]`` corresponds to the sum of the variable costs for all pump unit models. 
 For this reason, the system LCOW is the summation of all indexes in any of the component or aggregate expressions *except* those indexed by flow.
 
@@ -847,6 +847,3 @@ For this reason, the system LCOW is the summation of all indexes in any of the c
         Key              : Value
         fs.chem_addition :  5.555555555555555e-06
                 fs.RO : 0.00038333333333333324
-.. note::
-
-    :sup:`1` The contents of many Pyomo objects (e.g., ``ConcreteModel`` , ``FlowsheetBlock``, ``Block``, ``Var``) can be accessed with the ``display`` method. If the object is indexed, the ``display`` method will show all indices and their corresponding values, but this method cannot be used on individual indexes (i.e., ``m.fs.costing.aggregate_flow_costs["electricity"].display()`` will raise an error.). If the object is a block, the ``display`` method will recursively show the contents of all components within that block and all sub-blocks.

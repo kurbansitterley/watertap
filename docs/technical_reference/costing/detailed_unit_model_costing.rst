@@ -15,6 +15,7 @@ Default costing methods are provided for the unit models listed below. However, 
    cstr_injection
    cstr
    dewatering
+   electrocoagulation
    electrodialysis
    electrolyzer
    electroNP

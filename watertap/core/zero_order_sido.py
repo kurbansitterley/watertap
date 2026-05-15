@@ -41,7 +41,7 @@ def build_sido(self):
     with one inlet and two outlets.
 
     Three StateBlocks are added with corresponding Ports:
-        * properties_inlet
+        * properties_in
         * properties_treated
         * properties_byproduct
 

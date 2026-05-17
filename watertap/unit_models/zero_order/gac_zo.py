@@ -20,7 +20,6 @@ from idaes.core import declare_process_block_class
 from idaes.core.util.math import smooth_min
 from watertap.core import build_sido, ZeroOrderBaseData
 
-# Some more information about this module
 __author__ = "Adam Atia"
 
 
@@ -68,9 +67,9 @@ class GACZOData(ZeroOrderBaseData):
 
         @self.Constraint(doc="Electricity intensity based on empty bed contact time.")
         def electricity_intensity_constraint(b):
-            return (
-                b.energy_electric_flow_vol_inlet
-                == b.electricity_intensity_parameter * b.empty_bed_contact_time
+            return b.energy_electric_flow_vol_inlet == pyo.units.convert(
+                b.electricity_intensity_parameter * b.empty_bed_contact_time,
+                to_units=pyunits.kWh / pyunits.m**3,
             )
 
         @self.Constraint(

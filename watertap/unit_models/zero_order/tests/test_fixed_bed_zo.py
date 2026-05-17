@@ -23,6 +23,7 @@ from pyomo.environ import (
     Constraint,
     value,
     Var,
+    units as pyunits,
 )
 from pyomo.util.check_units import assert_units_consistent
 
@@ -363,7 +364,8 @@ db = Database()
 params = db._get_technology("fixed_bed")
 
 
-class TestIXZOsubtype:
+@pytest.mark.component
+class TestFixedBedZOsubtype:
     @pytest.fixture(scope="class")
     def model(self):
         m = ConcreteModel()
@@ -390,6 +392,21 @@ class TestIXZOsubtype:
 
 db = Database()
 params = db._get_technology("fixed_bed")
+lcow_dict = {
+    "default": 0.14163,
+    "pressure_vessel": 0.14163,
+    "gravity_basin": 0.13572,
+}
+sec_dict = {
+    "default": 0.08562,
+    "pressure_vessel": 0.085618,
+    "gravity_basin": 0.078498,
+}
+capex_dict = {
+    "default": 122783760.43,
+    "pressure_vessel": 122783760.43,
+    "gravity_basin": 97908968.91,
+}
 
 
 @pytest.mark.component
@@ -403,53 +420,69 @@ def test_costing(subtype):
     m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
 
     m.fs.costing = ZeroOrderCosting()
+    m.fs.costing.base_currency = pyunits.USD_2023
 
-    m.fs.unit1 = FixedBedZO(
+    m.fs.unit = FixedBedZO(
         property_package=m.fs.params, database=m.db, process_subtype=subtype
     )
 
-    m.fs.unit1.inlet.flow_mass_comp[0, "H2O"].fix(10000)
-    m.fs.unit1.inlet.flow_mass_comp[0, "sulfur"].fix(1)
-    m.fs.unit1.inlet.flow_mass_comp[0, "toc"].fix(2)
-    m.fs.unit1.inlet.flow_mass_comp[0, "tss"].fix(3)
-    m.fs.unit1.load_parameters_from_database(use_default_removal=True)
-    assert degrees_of_freedom(m.fs.unit1) == 0
+    m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(10000)
+    m.fs.unit.inlet.flow_mass_comp[0, "sulfur"].fix(1)
+    m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(2)
+    m.fs.unit.inlet.flow_mass_comp[0, "tss"].fix(3)
+    m.fs.unit.load_parameters_from_database(use_default_removal=True)
+    assert degrees_of_freedom(m.fs.unit) == 0
 
-    m.fs.unit1.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    assert_units_consistent(m.fs)
+    assert degrees_of_freedom(m.fs.unit) == 0
+    m.fs.costing.cost_process()
+    m.fs.costing.add_LCOW(m.fs.unit.properties_in[0].flow_vol)
+    m.fs.costing.add_specific_energy_consumption(
+        m.fs.unit.properties_in[0].flow_vol, name="SEC"
+    )
+
+    m.fs.unit.initialize()
+
+    results = solver.solve(m)
+    assert check_optimal_termination(results)
 
     assert isinstance(m.fs.costing.fixed_bed, Block)
     assert isinstance(m.fs.costing.fixed_bed.capital_a_parameter, Var)
     assert isinstance(m.fs.costing.fixed_bed.capital_b_parameter, Var)
     assert isinstance(m.fs.costing.fixed_bed.reference_state, Var)
 
-    assert isinstance(m.fs.unit1.costing.capital_cost, Var)
-    assert isinstance(m.fs.unit1.costing.capital_cost_constraint, Constraint)
+    assert isinstance(m.fs.unit.costing.capital_cost, Var)
+    assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
 
-    assert_units_consistent(m.fs)
-    assert degrees_of_freedom(m.fs.unit1) == 0
-
-    assert m.fs.unit1.electricity[0] in m.fs.costing._registered_flows["electricity"]
+    assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]
     assert (
-        m.fs.unit1.acetic_acid_demand[0]
-        in m.fs.costing._registered_flows["acetic_acid"]
+        m.fs.unit.acetic_acid_demand[0] in m.fs.costing._registered_flows["acetic_acid"]
     )
     assert (
-        m.fs.unit1.phosphoric_acid_demand[0]
+        m.fs.unit.phosphoric_acid_demand[0]
         in m.fs.costing._registered_flows["phosphoric_acid"]
     )
     assert (
-        m.fs.unit1.ferric_chloride_demand[0]
+        m.fs.unit.ferric_chloride_demand[0]
         in m.fs.costing._registered_flows["ferric_chloride"]
     )
     assert (
-        m.fs.unit1.activated_carbon_demand[0]
+        m.fs.unit.activated_carbon_demand[0]
         in m.fs.costing._registered_flows["activated_carbon"]
     )
-    assert m.fs.unit1.sand_demand[0] in m.fs.costing._registered_flows["sand"]
+    assert m.fs.unit.sand_demand[0] in m.fs.costing._registered_flows["sand"]
     assert (
-        m.fs.unit1.anthracite_demand[0] in m.fs.costing._registered_flows["anthracite"]
+        m.fs.unit.anthracite_demand[0] in m.fs.costing._registered_flows["anthracite"]
     )
     assert (
-        m.fs.unit1.cationic_polymer_demand[0]
+        m.fs.unit.cationic_polymer_demand[0]
         in m.fs.costing._registered_flows["cationic_polymer"]
+    )
+
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == lcow_dict[subtype]
+    assert pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == sec_dict[subtype]
+    assert (
+        pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3)
+        == capex_dict[subtype]
     )

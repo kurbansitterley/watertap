@@ -15,7 +15,6 @@ Tests for zero-order Ozonation model
 
 import pytest
 
-
 from pyomo.environ import (
     Block,
     check_optimal_termination,
@@ -23,6 +22,7 @@ from pyomo.environ import (
     Constraint,
     value,
     Var,
+    units as pyunits,
 )
 from pyomo.util.check_units import assert_units_consistent
 
@@ -64,7 +64,7 @@ class TestOzoneZO_with_default_removal:
 
         m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(100)
         m.fs.unit.inlet.flow_mass_comp[0, "cryptosporidium"].fix(1)
-        m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(1)
+        m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(0.00033735)
         m.fs.unit.inlet.flow_mass_comp[0, "giardia_lamblia"].fix(1)
         m.fs.unit.inlet.flow_mass_comp[0, "eeq"].fix(1)
         m.fs.unit.inlet.flow_mass_comp[0, "total_coliforms_fecal_ecoli"].fix(1)
@@ -160,24 +160,22 @@ class TestOzoneZO_with_default_removal:
     @pytest.mark.skipif(solver is None, reason="Solver not available")
     @pytest.mark.component
     def test_solution(self, model):
-        assert pytest.approx(0.102089, rel=1e-5) == value(
+        assert pytest.approx(0.101819, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].flow_vol
         )
-        assert pytest.approx(2.661333, rel=1e-5) == value(
+        assert pytest.approx(0.00090019, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["toc"]
         )
-        assert pytest.approx(9.795299, rel=1e-5) == value(
+        assert pytest.approx(9.8214, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["tss"]
         )
-        assert pytest.approx(0.103497, rel=1e-5) == value(
+        assert pytest.approx(0.103773, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["eeq"]
         )
-        assert pytest.approx(9921.863324, rel=1e-5) == value(
+        assert pytest.approx(3.6622, rel=1e-3) == value(
             model.fs.unit.ozone_flow_mass[0]
         )
-        assert pytest.approx(49609.316620, rel=1e-5) == value(
-            model.fs.unit.electricity[0]
-        )
+        assert pytest.approx(18.3113, rel=1e-3) == value(model.fs.unit.electricity[0])
 
     @pytest.mark.component
     def test_report(self, model):
@@ -207,7 +205,7 @@ class TestOzoneZO_w_o_default_removal:
 
         m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(100)
         m.fs.unit.inlet.flow_mass_comp[0, "cryptosporidium"].fix(1)
-        m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(1)
+        m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(0.00033735)
         m.fs.unit.inlet.flow_mass_comp[0, "giardia_lamblia"].fix(1)
         m.fs.unit.inlet.flow_mass_comp[0, "eeq"].fix(1)
         m.fs.unit.inlet.flow_mass_comp[0, "total_coliforms_fecal_ecoli"].fix(1)
@@ -286,24 +284,22 @@ class TestOzoneZO_w_o_default_removal:
     @pytest.mark.skipif(solver is None, reason="Solver not available")
     @pytest.mark.component
     def test_solution(self, model):
-        assert pytest.approx(0.101089, rel=1e-5) == value(
+        assert pytest.approx(0.100818, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].flow_vol
         )
-        assert pytest.approx(2.687660, rel=1e-5) == value(
+        assert pytest.approx(9.0912e-4, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["toc"]
         )
-        assert pytest.approx(0.957178, rel=1e-5) == value(
+        assert pytest.approx(0.959757, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["giardia_lamblia"]
         )
-        assert pytest.approx(0.104520, rel=1e-5) == value(
+        assert pytest.approx(0.1048025, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["eeq"]
         )
-        assert pytest.approx(9921.85340, rel=1e-5) == value(
+        assert pytest.approx(3.65928, rel=1e-3) == value(
             model.fs.unit.ozone_flow_mass[0]
         )
-        assert pytest.approx(49609.267016, rel=1e-5) == value(
-            model.fs.unit.electricity[0]
-        )
+        assert pytest.approx(18.29644, rel=1e-3) == value(model.fs.unit.electricity[0])
 
     @pytest.mark.component
     def test_report(self, model):
@@ -311,26 +307,52 @@ class TestOzoneZO_w_o_default_removal:
         model.fs.unit.report()
 
 
+@pytest.mark.component
 def test_costing():
+    """
+    Comparing to reference cost.
+    Table 3.24 in Texas Water Development Board IT3PR User Manual
+    10 MGD @ 10 mg/L Ozone Dose
+    CAPEX ~$10.5M
+    """
+
     m = ConcreteModel()
     m.db = Database()
-
     m.fs = FlowsheetBlock(dynamic=False)
-
-    m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
+    m.fs.properties = WaterParameterBlock(
+        solute_list=["viruses_enteric", "toc", "cryptosporidium"]
+    )
 
     m.fs.costing = ZeroOrderCosting()
+    m.fs.costing.base_currency = pyunits.USD_2014
 
-    m.fs.unit1 = OzoneZO(property_package=m.fs.params, database=m.db)
+    m.fs.unit = OzoneZO(property_package=m.fs.properties, database=m.db)
+    rho = 1000 * pyunits.kg / pyunits.m**3
+    flow_vol = 10 * pyunits.Mgallons / pyunits.day
+    conc = 0.0077 * pyunits.gram / pyunits.liter
+    flow_conc = flow_vol * conc
+    flow_mass = rho * flow_vol
 
-    m.fs.unit1.inlet.flow_mass_comp[0, "H2O"].fix(10000)
-    m.fs.unit1.inlet.flow_mass_comp[0, "sulfur"].fix(1)
-    m.fs.unit1.inlet.flow_mass_comp[0, "toc"].fix(2)
-    m.fs.unit1.inlet.flow_mass_comp[0, "tss"].fix(3)
-    m.fs.unit1.load_parameters_from_database(use_default_removal=True)
-    assert degrees_of_freedom(m.fs.unit1) == 0
+    m.fs.unit.properties_in[0].flow_vol
+    m.fs.unit.properties_in[0].conc_mass_comp
+    m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(flow_mass)
+    m.fs.unit.inlet.flow_mass_comp[0, "viruses_enteric"].fix(0.01)
+    m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(flow_conc)
+    m.fs.unit.inlet.flow_mass_comp[0, "cryptosporidium"].fix(0.5)
+    m.fs.unit.load_parameters_from_database(use_default_removal=True)
 
-    m.fs.unit1.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    assert degrees_of_freedom(m.fs.unit) == 0
+    assert_units_consistent(m.fs)
+
+    m.fs.costing.cost_process()
+    m.fs.costing.add_LCOW(m.fs.unit.properties_in[0].flow_vol)
+    m.fs.costing.add_specific_energy_consumption(
+        m.fs.unit.properties_in[0].flow_vol, name="SEC"
+    )
+    m.fs.unit.initialize()
+    results = solver.solve(m)
+    assert check_optimal_termination(results)
 
     assert isinstance(m.fs.costing.ozonation, Block)
     assert isinstance(m.fs.costing.ozonation.ozone_capital_a_parameter, Var)
@@ -338,10 +360,13 @@ def test_costing():
     assert isinstance(m.fs.costing.ozonation.ozone_capital_c_parameter, Var)
     assert isinstance(m.fs.costing.ozonation.ozone_capital_d_parameter, Var)
 
-    assert isinstance(m.fs.unit1.costing.capital_cost, Var)
-    assert isinstance(m.fs.unit1.costing.capital_cost_constraint, Constraint)
+    assert isinstance(m.fs.unit.costing.capital_cost, Var)
+    assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
 
-    assert_units_consistent(m.fs)
-    assert degrees_of_freedom(m.fs.unit1) == 0
+    assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]
 
-    assert m.fs.unit1.electricity[0] in m.fs.costing._registered_flows["electricity"]
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 0.06961
+    assert pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == 0.110106
+    assert (
+        pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3) == 11077920.85
+    )

@@ -16,7 +16,16 @@ Tests for zero-order chemical addition model
 import pytest
 
 
-from pyomo.environ import Block, ConcreteModel, Constraint, Param, value, Var
+from pyomo.environ import (
+    Block,
+    ConcreteModel,
+    Constraint,
+    Param,
+    assert_optimal_termination,
+    value,
+    Var,
+    units as pyunits,
+)
 from pyomo.util.check_units import assert_units_consistent
 
 from idaes.core import FlowsheetBlock
@@ -141,7 +150,7 @@ db = Database()
 params = db._get_technology("chemical_addition")
 
 
-class TestPumpZOsubtype:
+class TestChemicalAdditionZOsubtype:
     @pytest.fixture(scope="class")
     def model(self):
         m = ConcreteModel()
@@ -177,7 +186,32 @@ class TestPumpZOsubtype:
         )
 
 
-@pytest.mark.parametrize("subtype", [k for k in params.keys() if k != "default"])
+# For testing costing results
+lcow_dict = {
+    "alum": 0.0187833,
+    "ammonia": 0.0356566,
+    "anti-scalant": 0.046851,
+    "caustic_soda": 0.00338,
+    "hydrochloric_acid": 0.002389,
+    "lime": 0.007941,
+    "sodium_bisulfite": 0.004932,
+    "sulfuric_acid": 0.0017081,
+    "ferric_chloride": 0.02868,
+}
+capex_dict = {
+    "alum": 1253874.03,
+    "ammonia": 1650782.29,
+    "anti-scalant": 574376.43,
+    "caustic_soda": 1739411.41,
+    "hydrochloric_acid": 454738.60,
+    "lime": 23652691.68,
+    "sodium_bisulfite": 456634.69,
+    "sulfuric_acid": 407275.59,
+    "ferric_chloride": 2554719.71,
+}
+
+
+@pytest.mark.parametrize("subtype", [k for k in lcow_dict.keys()])
 def test_costing(subtype):
     print(subtype)
     m = ConcreteModel()
@@ -188,6 +222,7 @@ def test_costing(subtype):
     m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
 
     m.fs.costing = ZeroOrderCosting()
+    m.fs.costing.base_currency = pyunits.USD_2023
 
     m.fs.unit1 = ChemicalAdditionZO(
         property_package=m.fs.params, database=m.db, process_subtype=subtype
@@ -198,9 +233,16 @@ def test_costing(subtype):
     m.fs.unit1.inlet.flow_mass_comp[0, "toc"].fix(2)
     m.fs.unit1.inlet.flow_mass_comp[0, "tss"].fix(3)
     m.fs.unit1.load_parameters_from_database(use_default_removal=True)
-    assert degrees_of_freedom(m.fs.unit1) == 0
 
     m.fs.unit1.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.costing.cost_process()
+    m.fs.costing.add_LCOW(m.fs.unit1.properties[0].flow_vol)
+    assert_units_consistent(m.fs)
+    assert degrees_of_freedom(m.fs.unit1) == 0
+    m.fs.unit1.initialize()
+
+    results = solver.solve(m)
+    assert_optimal_termination(results)
 
     assert isinstance(m.fs.costing.chemical_addition, Block)
     assert isinstance(m.fs.costing.chemical_addition.capital_a_parameter, Var)
@@ -213,7 +255,11 @@ def test_costing(subtype):
     assert degrees_of_freedom(m.fs.unit1) == 0
 
     assert m.fs.unit1.electricity[0] in m.fs.costing._registered_flows["electricity"]
-
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == lcow_dict[subtype]
+    assert (
+        pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3)
+        == capex_dict[subtype]
+    )
     assert str(
         m.fs.unit1.chemical_dosage[0]
         * m.fs.unit1.properties[0].flow_vol

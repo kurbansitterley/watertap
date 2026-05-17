@@ -115,9 +115,16 @@ class ChemicalAdditionZOData(ZeroOrderBaseData):
             * blk.unit_model.properties[t0].flow_vol
             / blk.unit_model.ratio_in_solution
         )
-        sizing_term = blk.unit_model.chemical_flow_vol[t0] / (
-            pyo.units.gal / pyo.units.day
-        )
+
+        if chem_name in ["alum"]:
+            basis_units = pyo.units.gal / pyo.units.hr
+            sizing_term = blk.unit_model.chemical_flow_vol[t0] / basis_units
+        elif chem_name in ["lime"]:
+            basis_units = pyo.units.lb / pyo.units.day
+            sizing_term = chem_flow_mass / basis_units
+        else:
+            basis_units = pyo.units.gal / pyo.units.day
+            sizing_term = blk.unit_model.chemical_flow_vol[t0] / basis_units
 
         # Get parameter dict from database
         parameter_dict = blk.unit_model.config.database.get_unit_operation_parameters(

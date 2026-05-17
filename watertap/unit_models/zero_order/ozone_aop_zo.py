@@ -130,13 +130,25 @@ class OzoneAOPZOData(OzoneZOData, AOPAdditionMixin):
             doc="Capital cost of unit operation",
         )
 
+        total_capex_expr = 0
         # Get costing term for ozone addition
         expr = blk.unit_model._get_ozone_capital_cost(blk, A, B, C, D)
+        blk.ozone_system_capital_cost = pyo.Expression(expr=expr)
+        total_capex_expr += expr
 
         # Add costing term for AOP addition
-        expr += blk.unit_model._get_aop_capital_cost(blk, E, F)
+        expr = blk.unit_model._get_aop_capital_cost(blk, E, F)
+        blk.aop_capital_cost = pyo.Expression(expr=expr)
+        total_capex_expr += expr
 
-        blk.capital_cost_constraint = pyo.Constraint(expr=blk.capital_cost == expr)
+        # Determine if a costing factor is required
+        blk.costing_package.add_cost_factor(
+            blk, parameter_dict["capital_cost"]["cost_factor"]
+        )
+
+        blk.capital_cost_constraint = pyo.Constraint(
+            expr=blk.capital_cost == blk.cost_factor * total_capex_expr
+        )
 
         # Register flows
         blk.config.flowsheet_costing_block.cost_flow(

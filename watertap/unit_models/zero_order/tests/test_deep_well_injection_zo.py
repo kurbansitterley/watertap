@@ -134,6 +134,7 @@ class TestDeepWellInjectionZO:
 
         model.fs.unit.report()
 
+
 @pytest.mark.component
 def test_costing():
     m = ConcreteModel()

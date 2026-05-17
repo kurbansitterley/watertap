@@ -1,7 +1,4 @@
 default:
-  recovery_frac_mass_H2O:
-    value: 0.9999
-    units: dimensionless
   default_removal_frac_mass_comp:
     value: 0
     units: dimensionless
@@ -10,9 +7,11 @@ default:
     well_pump_cost:
       value: 16.9e6 # this is wells/pumps fixed capital AFTER applying TIC factor
       units: USD_2011
+      reference: Based on KBHDP case study without pipe costs
     pipe_cost_basis:
       value: 35000
       units: USD_2011/(miles*inches)
+      reference: Personal communication from WT3 member for produced water case studies
     flow_exponent:
       value: 0.7
       units: dimensionless

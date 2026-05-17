@@ -67,7 +67,6 @@ class TestCoagFlocZO:
             "polymer_dose",
             "anion_to_cation_polymer_ratio",
             "chemical_flow_mass",
-            "chemical_flow_mass",
             "rapid_mix_retention_time",
             "floc_retention_time",
             "rapid_mix_basin_vol",
@@ -89,7 +88,6 @@ class TestCoagFlocZO:
         cons = {
             "rapid_mix_basin_vol_constraint",
             "floc_basin_vol_constraint",
-            "chemical_flow_constraint",
             "chemical_flow_constraint",
             "rule_power_rapid_mix",
             "rule_power_floc",

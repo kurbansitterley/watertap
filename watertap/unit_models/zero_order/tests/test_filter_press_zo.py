@@ -10,11 +10,10 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 """
-Tests for zero-order filter press model
+Tests for zero-order filter belt press model
 """
 
 import pytest
-
 
 from pyomo.environ import (
     Block,
@@ -23,14 +22,14 @@ from pyomo.environ import (
     Constraint,
     value,
     Var,
+    units as pyunits,
 )
 from pyomo.util.check_units import assert_units_consistent
 
-from idaes.core import FlowsheetBlock
+from idaes.core import FlowsheetBlock, UnitModelCostingBlock
 from watertap.core.solvers import get_solver
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.testing import initialization_tester
-from idaes.core import UnitModelCostingBlock
 
 from watertap.unit_models.zero_order import FilterPressZO
 from watertap.core.wt_database import Database
@@ -65,8 +64,8 @@ class TestFilterPressZO:
         assert isinstance(model.fs.unit.electricity_a_parameter, Var)
         assert isinstance(model.fs.unit.electricity_b_parameter, Var)
         assert isinstance(model.fs.unit.filter_press_capacity, Var)
-        assert isinstance(model.fs.unit.fp_electricity, Constraint)
-        assert isinstance(model.fs.unit.fp_capacity, Constraint)
+        assert isinstance(model.fs.unit.filter_press_electricity_constraint, Constraint)
+        assert isinstance(model.fs.unit.filter_press_capacity_constraint, Constraint)
 
     @pytest.mark.component
     def test_load_parameters(self, model):
@@ -178,6 +177,7 @@ class TestFilterPressZO:
         model.fs.unit.report()
 
 
+@pytest.mark.component
 def test_costing():
 
     m = ConcreteModel()
@@ -185,16 +185,28 @@ def test_costing():
 
     m.fs = FlowsheetBlock(dynamic=False)
     m.fs.params = WaterParameterBlock(solute_list=["tss"])
+    m.fs.costing = ZeroOrderCosting()
+    m.fs.costing.base_currency = pyunits.USD_2023
 
     m.fs.unit = FilterPressZO(property_package=m.fs.params, database=m.db)
 
     m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(1)
     m.fs.unit.inlet.flow_mass_comp[0, "tss"].fix(23)
-
-    m.fs.costing = ZeroOrderCosting()
     m.fs.unit.load_parameters_from_database()
 
     m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.costing.cost_process()
+    m.fs.costing.add_LCOW(m.fs.unit.properties_in[0].flow_vol)
+    m.fs.costing.add_specific_energy_consumption(
+        m.fs.unit.properties_in[0].flow_vol, name="SEC"
+    )
+
+    m.fs.unit.initialize()
+    assert_units_consistent(m.fs)
+    assert degrees_of_freedom(m.fs.unit) == 0
+
+    results = solver.solve(m)
+    assert check_optimal_termination(results)
 
     assert isinstance(m.fs.costing.filter_press, Block)
     assert isinstance(m.fs.costing.filter_press.capital_a_parameter, Var)
@@ -203,7 +215,8 @@ def test_costing():
     assert isinstance(m.fs.unit.costing.capital_cost, Var)
     assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
 
-    assert_units_consistent(m.fs)
-    assert degrees_of_freedom(m.fs.unit) == 0
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 0.77185
+    assert pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == 1.81468
+    assert pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3) == 6024905.28
 
     assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]

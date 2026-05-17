@@ -23,6 +23,7 @@ from pyomo.environ import (
     Constraint,
     value,
     Var,
+    units as pyunits,
 )
 from pyomo.util.check_units import assert_units_consistent
 
@@ -269,7 +270,7 @@ class TestGACZO_w_default_removal:
         assert pytest.approx(0.49854, rel=1e-5) == value(
             model.fs.unit.properties_byproduct[0].conc_mass_comp["nonvolatile_toc"]
         )
-        assert pytest.approx(2.4927e-08, rel=1e-5) == value(
+        assert pytest.approx(4.598834e-14, rel=1e-5) == value(
             model.fs.unit.properties_byproduct[0].conc_mass_comp["foo"]
         )
         assert pytest.approx(638.051, rel=1e-5) == value(model.fs.unit.electricity[0])
@@ -295,6 +296,21 @@ class TestGACZO_w_default_removal:
 
 db = Database()
 params = db._get_technology("gac")
+lcow_dict = {
+    "default": 0.14163,
+    "pressure_vessel": 0.14163,
+    "gravity_basin": 0.13572,
+}
+sec_dict = {
+    "default": 0.08562,
+    "pressure_vessel": 0.085618,
+    "gravity_basin": 0.078498,
+}
+capex_dict = {
+    "default": 122783760.43,
+    "pressure_vessel": 122783760.43,
+    "gravity_basin": 97908968.91,
+}
 
 
 class TestGACZOsubtype:
@@ -322,13 +338,30 @@ class TestGACZOsubtype:
             assert v.value == data["removal_frac_mass_comp"][j]["value"]
 
 
-db = Database()
-params = db._get_technology("gac")
+lcow_dict = {
+    "default": 0.30242,
+    "pressure_vessel": 0.30031,
+    "gravity": 0.30149,
+}
+sec_dict = {
+    "default": 0.05315,
+    "pressure_vessel": 0.02608,
+    "gravity": 0.053155,
+}
+capex_dict = {
+    "default": 3927666.2,  # ~$6.11M from reference
+    "pressure_vessel": 3927666.256,  # ~$6.11M from reference
+    "gravity": 3805169,  # ~$5.92M from reference
+}
 
 
 @pytest.mark.component
 @pytest.mark.parametrize("subtype", [k for k in params.keys()])
 def test_costing(subtype):
+    """
+    Comparing against EPA-WBS model for GAC
+    7.365 MGD, 30 min EBCT
+    """
     m = ConcreteModel()
     m.db = Database()
 
@@ -337,19 +370,35 @@ def test_costing(subtype):
     m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
 
     m.fs.costing = ZeroOrderCosting()
+    m.fs.costing.base_currency = pyunits.USD_2023
 
-    m.fs.unit1 = GACZO(
+    m.fs.unit = GACZO(
         property_package=m.fs.params, database=m.db, process_subtype=subtype
     )
+    rho = 997 * pyunits.kg / pyunits.m**3
+    flow_vol = 7.365 * pyunits.Mgallons / pyunits.day
+    flow_mass = flow_vol * rho
+    m.fs.unit.properties_in[0].flow_vol
+    m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(flow_mass)
+    m.fs.unit.inlet.flow_mass_comp[0, "sulfur"].fix(1)
+    m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(2)
+    m.fs.unit.inlet.flow_mass_comp[0, "tss"].fix(3)
+    m.fs.unit.load_parameters_from_database(use_default_removal=True)
+    m.fs.unit.empty_bed_contact_time.fix(30 * pyunits.minute)
+    assert degrees_of_freedom(m.fs.unit) == 0
 
-    m.fs.unit1.inlet.flow_mass_comp[0, "H2O"].fix(10000)
-    m.fs.unit1.inlet.flow_mass_comp[0, "sulfur"].fix(1)
-    m.fs.unit1.inlet.flow_mass_comp[0, "toc"].fix(2)
-    m.fs.unit1.inlet.flow_mass_comp[0, "tss"].fix(3)
-    m.fs.unit1.load_parameters_from_database(use_default_removal=True)
-    assert degrees_of_freedom(m.fs.unit1) == 0
+    m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    assert_units_consistent(m.fs)
+    m.fs.costing.cost_process()
+    m.fs.costing.add_LCOW(m.fs.unit.properties_in[0].flow_vol)
+    m.fs.costing.add_specific_energy_consumption(
+        m.fs.unit.properties_in[0].flow_vol, name="SEC"
+    )
 
-    m.fs.unit1.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.unit.initialize()
+
+    results = solver.solve(m)
+    assert check_optimal_termination(results)
 
     assert isinstance(m.fs.costing.gac, Block)
     assert isinstance(m.fs.costing.gac.contactor_cost_coeff_0, Var)
@@ -362,14 +411,17 @@ def test_costing(subtype):
     assert isinstance(m.fs.costing.gac.other_cost_exp, Var)
     assert isinstance(m.fs.costing.gac.bed_mass_max_ref, Var)
 
-    assert isinstance(m.fs.unit1.costing.capital_cost, Var)
-    assert isinstance(m.fs.unit1.costing.capital_cost_constraint, Constraint)
+    assert isinstance(m.fs.unit.costing.capital_cost, Var)
+    assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
 
-    assert_units_consistent(m.fs)
-    assert degrees_of_freedom(m.fs.unit1) == 0
-
-    assert m.fs.unit1.electricity[0] in m.fs.costing._registered_flows["electricity"]
+    assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]
     assert (
-        m.fs.unit1.activated_carbon_demand[0]
+        m.fs.unit.activated_carbon_demand[0]
         in m.fs.costing._registered_flows["activated_carbon"]
+    )
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == lcow_dict[subtype]
+    assert pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == sec_dict[subtype]
+    assert (
+        pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3)
+        == capex_dict[subtype]
     )

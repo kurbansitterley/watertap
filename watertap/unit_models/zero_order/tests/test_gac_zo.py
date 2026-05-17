@@ -23,6 +23,7 @@ from pyomo.environ import (
     Constraint,
     value,
     Var,
+    units as pyunits,
 )
 from pyomo.util.check_units import assert_units_consistent
 
@@ -295,6 +296,21 @@ class TestGACZO_w_default_removal:
 
 db = Database()
 params = db._get_technology("gac")
+lcow_dict = {
+    "default": 0.14163,
+    "pressure_vessel": 0.14163,
+    "gravity_basin": 0.13572,
+}
+sec_dict = {
+    "default": 0.08562,
+    "pressure_vessel": 0.085618,
+    "gravity_basin": 0.078498,
+}
+capex_dict = {
+    "default": 122783760.43,
+    "pressure_vessel": 122783760.43,
+    "gravity_basin": 97908968.91,
+}
 
 
 class TestGACZOsubtype:
@@ -322,8 +338,21 @@ class TestGACZOsubtype:
             assert v.value == data["removal_frac_mass_comp"][j]["value"]
 
 
-db = Database()
-params = db._get_technology("gac")
+lcow_dict = {
+    "default": 0.31147,
+    "pressure_vessel": 0.14163,
+    "gravity_basin": 0.13572,
+}
+sec_dict = {
+    "default": 0.01772,
+    "pressure_vessel": 0.085618,
+    "gravity_basin": 0.078498,
+}
+capex_dict = {
+    "default": 173290.556,
+    "pressure_vessel": 122783760.43,
+    "gravity_basin": 97908968.91,
+}
 
 
 @pytest.mark.component
@@ -337,19 +366,35 @@ def test_costing(subtype):
     m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
 
     m.fs.costing = ZeroOrderCosting()
+    m.fs.costing.base_currency = pyunits.USD_2023
 
-    m.fs.unit1 = GACZO(
+    m.fs.unit = GACZO(
         property_package=m.fs.params, database=m.db, process_subtype=subtype
     )
+    flow_vol = 7.365
+    m.fs.unit.properties_in[0].flow_vol
+    m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(4.3815)
+    m.fs.unit.inlet.flow_mass_comp[0, "sulfur"].fix(1)
+    m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(2)
+    m.fs.unit.inlet.flow_mass_comp[0, "tss"].fix(3)
+    m.fs.unit.load_parameters_from_database(use_default_removal=True)
+    assert degrees_of_freedom(m.fs.unit) == 0
 
-    m.fs.unit1.inlet.flow_mass_comp[0, "H2O"].fix(10000)
-    m.fs.unit1.inlet.flow_mass_comp[0, "sulfur"].fix(1)
-    m.fs.unit1.inlet.flow_mass_comp[0, "toc"].fix(2)
-    m.fs.unit1.inlet.flow_mass_comp[0, "tss"].fix(3)
-    m.fs.unit1.load_parameters_from_database(use_default_removal=True)
-    assert degrees_of_freedom(m.fs.unit1) == 0
+    m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    assert_units_consistent(m.fs)
+    assert degrees_of_freedom(m.fs.unit) == 0
+    m.fs.costing.cost_process()
+    m.fs.costing.add_LCOW(m.fs.unit.properties_in[0].flow_vol)
+    m.fs.costing.add_specific_energy_consumption(
+        m.fs.unit.properties_in[0].flow_vol, name="SEC"
+    )
 
-    m.fs.unit1.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.unit.initialize()
+
+    results = solver.solve(m)
+    assert check_optimal_termination(results)
+
+    return m
 
     assert isinstance(m.fs.costing.gac, Block)
     assert isinstance(m.fs.costing.gac.contactor_cost_coeff_0, Var)
@@ -362,14 +407,32 @@ def test_costing(subtype):
     assert isinstance(m.fs.costing.gac.other_cost_exp, Var)
     assert isinstance(m.fs.costing.gac.bed_mass_max_ref, Var)
 
-    assert isinstance(m.fs.unit1.costing.capital_cost, Var)
-    assert isinstance(m.fs.unit1.costing.capital_cost_constraint, Constraint)
+    assert isinstance(m.fs.unit.costing.capital_cost, Var)
+    assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
 
-    assert_units_consistent(m.fs)
-    assert degrees_of_freedom(m.fs.unit1) == 0
-
-    assert m.fs.unit1.electricity[0] in m.fs.costing._registered_flows["electricity"]
+    assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]
     assert (
-        m.fs.unit1.activated_carbon_demand[0]
+        m.fs.unit.activated_carbon_demand[0]
         in m.fs.costing._registered_flows["activated_carbon"]
     )
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == lcow_dict[subtype]
+    assert pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == sec_dict[subtype]
+    assert (
+        pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3)
+        == capex_dict[subtype]
+    )
+
+
+for subtype in params.keys():
+    m = test_costing(subtype)
+    print(f"LCOW for {subtype}: {value(m.fs.costing.LCOW):.5f} USD/m3")
+    print(f"SEC for {subtype}: {value(m.fs.costing.SEC):.5f} kWh/m3")
+    print(
+        f"Total capital cost for {subtype}: {value(m.fs.costing.total_capital_cost):.3f} USD"
+    )
+    m.fs.unit.properties_in[0].flow_vol.display()
+    x = pyunits.convert(
+        m.fs.unit.properties_in[0].flow_vol, pyunits.Mgallons / pyunits.day
+    )
+    m.fs.unit.empty_bed_contact_time.display()
+    print(value(x))

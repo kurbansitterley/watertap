@@ -1,7 +1,4 @@
 default:
-  default_removal_frac_mass_comp:
-    value: 0
-    units: dimensionless
   capital_cost:
     cost_factor: None
     well_pump_cost:

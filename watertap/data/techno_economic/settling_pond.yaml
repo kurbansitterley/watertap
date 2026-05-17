@@ -5,6 +5,7 @@ default:
   capital_cost:
     basis: flow_vol
     cost_factor: None
+    reference: McGivney & Kawamura, Figure 5.5.24c, Cost Estimating Manual for Water Treatment Facilities
     reference_state:
       value: 5450.0
       units: m^3/hr

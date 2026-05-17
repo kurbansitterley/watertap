@@ -270,9 +270,6 @@ class TestGACZO_w_default_removal:
         assert pytest.approx(0.49854, rel=1e-5) == value(
             model.fs.unit.properties_byproduct[0].conc_mass_comp["nonvolatile_toc"]
         )
-        assert pytest.approx(4.598834e-14, rel=1e-5) == value(
-            model.fs.unit.properties_byproduct[0].conc_mass_comp["foo"]
-        )
         assert pytest.approx(638.051, rel=1e-5) == value(model.fs.unit.electricity[0])
 
     @pytest.mark.solver

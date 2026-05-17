@@ -6,12 +6,6 @@ default:
     basis: flow_vol
     cost_factor: None
     reference: Texas Water Board IT3PR, Figure 3.3
-    lower_bound:
-      value: 0.0
-      units: Mgallons/day
-    upper_bound:
-      value: 30
-      units: Mgallons/day
     reference_state:
       value: 4731.764235 # 30 MGD
       units: m^3/hr
@@ -21,6 +15,7 @@ default:
     capital_b_parameter:
       value: 0.586
       units: dimensionless
+      reference: Texas Water Board IT3PR, Figure 3.3
   recovery_frac_mass_H2O:
     value: 1
     units: dimensionless

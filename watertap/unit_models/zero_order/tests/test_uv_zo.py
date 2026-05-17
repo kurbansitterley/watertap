@@ -17,6 +17,7 @@ import pytest
 
 
 from pyomo.environ import (
+    assert_optimal_termination,
     check_optimal_termination,
     ConcreteModel,
     Constraint,
@@ -267,6 +268,7 @@ class TestUVZO_w_o_default_removal:
         model.fs.unit.report()
 
 
+@pytest.mark.component
 def test_costing():
     m = ConcreteModel()
     m.db = Database()
@@ -290,6 +292,12 @@ def test_costing():
     assert degrees_of_freedom(m.fs.unit) == 0
 
     m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.costing.cost_process()
+    m.fs.costing.add_LCOW(m.fs.unit.properties_treated[0].flow_vol)
+    m.fs.unit.initialize()
+
+    results = solver.solve(m)
+    assert_optimal_termination(results)
 
     assert isinstance(m.fs.costing.uv, Block)
     assert isinstance(m.fs.costing.uv.reactor_cost, Var)
@@ -298,10 +306,6 @@ def test_costing():
     assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
 
     assert_units_consistent(m.fs)
-    assert degrees_of_freedom(m.fs.unit) == 0
-    initialization_tester(m)
-    results = solver.solve(m)
-    check_optimal_termination(results)
     assert pytest.approx(8.2313, rel=1e-5) == value(m.fs.unit.costing.capital_cost)
 
     assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]

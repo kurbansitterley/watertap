@@ -35,8 +35,9 @@ default:
     value: 1  
     units: min
   concentration_time:  
-    value: 1
+    value: 0.3
     units: (mg*min)/L
+    reference: EPA Disinfectrion Profiling and Benchmarking - Appendix B, Table B-6 for 25 C
   mass_transfer_efficiency:
     value: 0.8      
     units: dimensionless

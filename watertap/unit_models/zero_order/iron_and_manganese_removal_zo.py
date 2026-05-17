@@ -18,7 +18,6 @@ from pyomo.environ import units as pyunits, Var
 from idaes.core import declare_process_block_class
 from watertap.core import build_sido, ZeroOrderBaseData
 
-# Some more information about this module
 __author__ = "Chenyu Wang"
 
 
@@ -142,7 +141,7 @@ class IronManganeseRemovalZOData(ZeroOrderBaseData):
             parameter_dict,
             blk.unit_model.config.process_subtype,
             [
-                "capital_blower_a_parameter",
+                "capital_blower",
                 "capital_backwash_a_parameter",
                 "capital_backwash_b_parameter",
                 "capital_filter_a_parameter",
@@ -151,15 +150,9 @@ class IronManganeseRemovalZOData(ZeroOrderBaseData):
             ],
         )
 
-        # Add cost variable and constraint
-        blk.capital_cost = pyo.Var(
-            initialize=1,
-            units=blk.config.flowsheet_costing_block.base_currency,
-            bounds=(0, None),
-            doc="Capital cost of unit operation",
+        cost_blower = pyo.units.convert(
+            A, to_units=blk.config.flowsheet_costing_block.base_currency
         )
-
-        cost_blower = A
 
         cost_backwash = B + C * pyo.units.convert(
             blk.unit_model.filter_surf_area, to_units=pyo.units.ft**2

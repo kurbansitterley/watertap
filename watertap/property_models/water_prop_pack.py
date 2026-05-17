@@ -1143,7 +1143,7 @@ class WaterStateBlockData(StateBlockData):
     def _specific_vol_sat_phase(self):
         self.specific_vol_sat_phase = Var(
             ["Vap"],
-            initialize=1e5,
+            initialize=0.2,
             bounds=(0, None),
             units=pyunits.m**3 / pyunits.kg,
             doc="Specific volume of saturated steam",

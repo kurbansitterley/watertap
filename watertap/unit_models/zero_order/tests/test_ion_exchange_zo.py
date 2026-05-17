@@ -15,7 +15,6 @@ Tests for zero-order Ion exchange model
 
 import pytest
 
-
 from pyomo.environ import (
     Block,
     check_optimal_termination,
@@ -24,6 +23,7 @@ from pyomo.environ import (
     value,
     Var,
     Param,
+    units as pyunits,
 )
 from pyomo.util.check_units import assert_units_consistent
 
@@ -302,6 +302,23 @@ class TestIXZOsubtype:
                 assert v.value == data["removal_frac_mass_comp"][j]["value"]
 
 
+lcow_dict = {
+    "default": 0.026765,
+    "cation_exchange": 0.03276,
+    "anion_exchange": 0.026765,
+}
+sec_dict = {
+    "default": 0.08050,
+    "cation_exchange": 0.08050,
+    "anion_exchange": 0.080503,
+}
+capex_dict = {
+    "default": 5047528.78,
+    "cation_exchange": 6274349.35,  # $5885981 from reference
+    "anion_exchange": 5047528.78,  # $4237262 from reference
+}
+
+
 @pytest.mark.parametrize("subtype", [k for k in params.keys() if k != "clinoptilolite"])
 @pytest.mark.component
 def test_costing_wt3(subtype):
@@ -310,26 +327,44 @@ def test_costing_wt3(subtype):
 
     m.fs = FlowsheetBlock(dynamic=False)
 
-    m.fs.params = WaterParameterBlock(
-        solute_list=["sulfur", "toc", "tds", "ammonium_as_nitrogen"]
-    )
+    m.fs.params = WaterParameterBlock(solute_list=["tds"])
 
     m.fs.costing = ZeroOrderCosting()
+    m.fs.costing.base_currency = pyunits.USD_2017
 
-    m.fs.unit1 = IonExchangeZO(
+    m.fs.unit = IonExchangeZO(
         property_package=m.fs.params, database=m.db, process_subtype=subtype
     )
 
-    m.fs.unit1.inlet.flow_mass_comp[0, "H2O"].fix(10000)
-    m.fs.unit1.inlet.flow_mass_comp[0, "sulfur"].fix(1)
-    m.fs.unit1.inlet.flow_mass_comp[0, "toc"].fix(2)
-    m.fs.unit1.inlet.flow_mass_comp[0, "tds"].fix(3)
-    m.fs.unit1.inlet.flow_mass_comp[0, "ammonium_as_nitrogen"].fix(1)
+    rho = 997 * pyunits.kg / pyunits.m**3
+    flow_vol = 22.614 * pyunits.Mgallons / pyunits.day
 
-    m.fs.unit1.load_parameters_from_database(use_default_removal=True)
-    assert degrees_of_freedom(m.fs.unit1) == 0
+    if subtype == "cation_exchange":
+        conc = 200 * pyunits.mg / pyunits.L
+    else:
+        conc = 100 * pyunits.mg / pyunits.L
+    flow_mass_water = flow_vol * rho
+    flow_mass_tds = flow_vol * conc
 
-    m.fs.unit1.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.unit.properties_in[0].flow_vol
+    m.fs.unit.properties_in[0].conc_mass_comp
+    m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(flow_mass_water)
+    m.fs.unit.inlet.flow_mass_comp[0, "tds"].fix(flow_mass_tds)
+
+    m.fs.unit.load_parameters_from_database(use_default_removal=True)
+    assert_units_consistent(m.fs)
+    assert degrees_of_freedom(m.fs.unit) == 0
+    m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.costing.cost_process()
+    m.fs.costing.add_LCOW(m.fs.unit.properties_in[0].flow_vol)
+    m.fs.costing.add_specific_energy_consumption(
+        m.fs.unit.properties_in[0].flow_vol, name="SEC"
+    )
+
+    m.fs.unit.initialize()
+
+    results = solver.solve(m)
+    assert check_optimal_termination(results)
 
     assert isinstance(m.fs.costing.ion_exchange, Block)
     assert isinstance(m.fs.costing.ion_exchange.capital_a_parameter, Var)
@@ -337,24 +372,27 @@ def test_costing_wt3(subtype):
     assert isinstance(m.fs.costing.ion_exchange.capital_c_parameter, Var)
     assert isinstance(m.fs.costing.ion_exchange.capital_d_parameter, Var)
 
-    assert isinstance(m.fs.unit1.costing.capital_cost, Var)
-    assert isinstance(m.fs.unit1.costing.capital_cost_constraint, Constraint)
+    assert isinstance(m.fs.unit.costing.capital_cost, Var)
+    assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
 
-    assert_units_consistent(m.fs)
-    assert degrees_of_freedom(m.fs.unit1) == 0
-
-    assert m.fs.unit1.electricity[0] in m.fs.costing._registered_flows["electricity"]
+    assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]
 
     assert (
-        m.fs.unit1.NaCl_flowrate[0] in m.fs.costing._registered_flows["sodium_chloride"]
+        m.fs.unit.NaCl_flowrate[0] in m.fs.costing._registered_flows["sodium_chloride"]
     )
     assert (
-        m.fs.unit1.resin_demand[0]
+        m.fs.unit.resin_demand[0]
         in m.fs.costing._registered_flows["ion_exchange_resin"]
     )
 
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == lcow_dict[subtype]
+    assert pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == sec_dict[subtype]
+    assert (
+        pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3)
+        == capex_dict[subtype]
+    )
 
-@pytest.mark.component
+
 def test_costing_clinoptilolite():
     m = ConcreteModel()
     m.db = Database()
@@ -365,27 +403,27 @@ def test_costing_clinoptilolite():
 
     m.fs.costing = ZeroOrderCosting()
 
-    m.fs.unit1 = IonExchangeZO(
+    m.fs.unit = IonExchangeZO(
         property_package=m.fs.params, database=m.db, process_subtype="clinoptilolite"
     )
 
-    m.fs.unit1.inlet.flow_mass_comp[0, "H2O"].fix(10000)
-    m.fs.unit1.inlet.flow_mass_comp[0, "ammonium_as_nitrogen"].fix(1)
+    m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(10000)
+    m.fs.unit.inlet.flow_mass_comp[0, "ammonium_as_nitrogen"].fix(1)
 
-    m.fs.unit1.load_parameters_from_database(use_default_removal=True)
-    assert degrees_of_freedom(m.fs.unit1) == 0
+    m.fs.unit.load_parameters_from_database(use_default_removal=True)
+    assert degrees_of_freedom(m.fs.unit) == 0
 
-    m.fs.unit1.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
 
     assert isinstance(m.fs.costing.ion_exchange, Block)
     assert isinstance(m.fs.costing.ion_exchange.unit_capex, Var)
     assert isinstance(m.fs.costing.ion_exchange.unit_opex, Var)
-    assert isinstance(m.fs.unit1.costing.capital_cost, Var)
-    assert isinstance(m.fs.unit1.costing.capital_cost_constraint, Constraint)
+    assert isinstance(m.fs.unit.costing.capital_cost, Var)
+    assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
     assert_units_consistent(m.fs)
-    assert degrees_of_freedom(m.fs.unit1) == 0
+    assert degrees_of_freedom(m.fs.unit) == 0
 
-    assert m.fs.unit1.electricity[0] in m.fs.costing._registered_flows["electricity"]
+    assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]
 
 
 @pytest.mark.unit

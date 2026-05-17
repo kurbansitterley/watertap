@@ -23,6 +23,7 @@ from pyomo.environ import (
     Constraint,
     value,
     Var,
+    units as pyunits,
 )
 from pyomo.util.check_units import assert_units_consistent
 
@@ -265,27 +266,56 @@ class TestEvaporationPondZO:
         model.fs.unit.report()
 
 
+@pytest.mark.component
 def test_costing():
+    """
+    Compare to costs from reference:
+        Section 10.6 Membrane Concentrate Disposal: Practices and Regulation (2006)
+            - 10 acre pond
+            - Liner thickness: 60 mil
+            - Land cost: $5000/acre
+            - Land clearing cost: $4000/acre
+    Total capital cost = $743,376 from worksheet in reference
+    """
     m = ConcreteModel()
     m.db = Database()
 
     m.fs = FlowsheetBlock(dynamic=False)
-    m.fs.params = WaterParameterBlock(
-        solute_list=["tds", "magnesium", "calcium", "nitrate", "sulfate", "tss"]
-    )
+    m.fs.params = WaterParameterBlock(solute_list=["tds", "tss"])
     m.fs.costing = ZeroOrderCosting()
+    m.fs.costing.base_currency = pyunits.USD_2007
     m.fs.unit = EvaporationPondZO(property_package=m.fs.params, database=m.db)
 
-    m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(10)
-    m.fs.unit.inlet.flow_mass_comp[0, "tds"].fix(123)
-    m.fs.unit.inlet.flow_mass_comp[0, "magnesium"].fix(456)
-    m.fs.unit.inlet.flow_mass_comp[0, "calcium"].fix(789)
-    m.fs.unit.inlet.flow_mass_comp[0, "nitrate"].fix(10)
-    m.fs.unit.inlet.flow_mass_comp[0, "sulfate"].fix(11)
-    m.fs.unit.inlet.flow_mass_comp[0, "tss"].fix(12)
+    flow_vol = 0.0488 * pyunits.Mgallons / pyunits.day
+    flow_mass = pyunits.convert(
+        1000 * pyunits.kg / pyunits.m**3 * flow_vol, to_units=pyunits.kg / pyunits.s
+    )
+    flow_mass_tds = pyunits.convert(
+        100 * pyunits.kg / pyunits.m**3 * flow_vol, to_units=pyunits.kg / pyunits.s
+    )
+    flow_mass_tss = pyunits.convert(
+        2 * pyunits.kg / pyunits.m**3 * flow_vol, to_units=pyunits.kg / pyunits.s
+    )
+    m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(flow_mass)
+    m.fs.unit.inlet.flow_mass_comp[0, "tds"].fix(flow_mass_tds)
+    m.fs.unit.inlet.flow_mass_comp[0, "tss"].fix(flow_mass_tss)
     m.fs.unit.load_parameters_from_database(use_default_removal=True)
 
     m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    # Test same costing conditions as reference
+    m.fs.unit.dike_height.fix(8 * pyunits.ft)
+    m.fs.costing.evaporation_pond.liner_thickness.fix(60 * pyunits.mil)
+    m.fs.costing.evaporation_pond.land_cost.fix(5000 * pyunits.acre**-1)
+    m.fs.costing.evaporation_pond.land_clearing_cost.fix(4000 * pyunits.acre**-1)
+    m.fs.costing.cost_process()
+    m.fs.costing.add_LCOW(m.fs.unit.properties_in[0].flow_vol)
+
+    m.fs.unit.initialize()
+    assert_units_consistent(m.fs)
+    assert degrees_of_freedom(m.fs.unit) == 0
+
+    results = solver.solve(m)
+    assert check_optimal_termination(results)
 
     assert isinstance(m.fs.costing.evaporation_pond, Block)
     assert isinstance(m.fs.costing.evaporation_pond.cost_per_acre_a_parameter, Var)
@@ -299,6 +329,8 @@ def test_costing():
 
     assert isinstance(m.fs.unit.costing.capital_cost, Var)
     assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
-
-    assert_units_consistent(m.fs)
-    assert degrees_of_freedom(m.fs.unit) == 0
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 0.82622
+    # Total capital cost = $743,376 from worksheet in reference
+    assert pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3) == 775457.78
+    assert pytest.approx(value(m.fs.unit.area[0]), rel=1e-3) == 10.006
+    assert pytest.approx(value(m.fs.unit.adj_area[0]), rel=1e-3) == 16.715

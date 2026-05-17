@@ -1,4 +1,6 @@
 default:
+  # reference_evaporation_rate: M. E. Jensen and H. R. Haise, "Estimating Evapotranspiration from Solar Irradiation". (1963).
+  # reference_evaporation_pond: Section 10. Membrane Concentrate Disposal: Practices and Regulation (2006)
   energy_electric_flow_vol_inlet:
     value: 0.0
     units: kWh/m^3
@@ -7,16 +9,16 @@ default:
     units: kelvin
   solar_radiation:
     value: 25
-    units: mJ/m^2
+    units: MJ/m^2/day
   evap_rate_calc_a_parameter:
     value: 0.41
-    units: mm/day
+    units: (mm*m^2)/MJ
   evap_rate_calc_b_parameter:
     value: 0.025
-    units: m^2/mJ
+    units: 1/kelvin
   evap_rate_calc_c_parameter:
     value: 0.078
-    units: m^2/mJ
+    units: dimensionless
   evaporation_rate_adj_factor:
     value: 0.7
     units: dimensionless
@@ -32,16 +34,17 @@ default:
   dike_height:
     value: 8
     units: ft
-  capital_cost:
+  capital_cost: 
     cost_factor: None
+    # reference: Section 10.6 Membrane Concentrate Disposal: Practices and Regulation (2006)
     liner_thickness:
-      value: 50
+      value: 60
       units: mil
     land_cost:
       value: 5000
       units: acre^-1 
     land_clearing_cost:
-      value: 1000
+      value: 4000
       units: acre^-1     
     cost_per_acre_a_parameter:
       value: 5406

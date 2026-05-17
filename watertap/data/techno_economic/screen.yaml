@@ -1,34 +1,112 @@
-default:
+default: # default is for wedge wire screen
   energy_electric_flow_vol_inlet:
     value: 0.0
     units: kWh/m^3
   capital_cost:
     basis: flow_vol
     cost_factor: None
+    reference: Voutchkov, N. (2018). Desalination Project Cost Estimating and Management. Figure 4.6
     reference_state:
-      value: 16666.66667
-      units: m^3/hr
+      value: 1
+      units: m^3/day
     capital_a_parameter:
-      value: 3.25e6
+      value: 10.526
       units: USD_2018
     capital_b_parameter:
-      value: 0.9
+      value: 0.9653
       units: dimensionless
   recovery_frac_mass_H2O:
     value: 0.9999
     units: dimensionless
-    reference: Voutchkov, N. (2018). Desalination Project Cost Estimating and Management.
-      Taylor & Francis, a CRC title, part of the Taylor & Francis imprint, a member
-      of the Taylor & Francis Group, the academic division of T&F Informa, plc.
   default_removal_frac_mass_comp:
     value: 0
     units: dimensionless
   removal_frac_mass_comp:
-    bod:
-      value: 0.3
-      units: dimensionless
-      constituent_longform: Biological Oxygen Demand (BOD)
     tss:
       value: 0.6
+      units: dimensionless
+      constituent_longform: Total Suspended Solids (TSS)
+drum: 
+  energy_electric_flow_vol_inlet:
+    value: 0.0
+    units: kWh/m^3
+  capital_cost:
+    basis: flow_vol
+    cost_factor: None
+    reference: Voutchkov, N. (2018). Desalination Project Cost Estimating and Management. Figure 4.5
+    reference_state:
+      value: 1
+      units: m^3/day
+    capital_a_parameter:
+      value: 13.184
+      units: USD_2018
+    capital_b_parameter:
+      value: 1
+      units: dimensionless
+  recovery_frac_mass_H2O:
+    value: 0.9999
+    units: dimensionless
+  default_removal_frac_mass_comp:
+    value: 0
+    units: dimensionless
+  removal_frac_mass_comp:
+    tss:
+      value: 0.6
+      units: dimensionless
+      constituent_longform: Total Suspended Solids (TSS)
+band: 
+  energy_electric_flow_vol_inlet:
+    value: 0.0
+    units: kWh/m^3
+  capital_cost:
+    basis: flow_vol
+    cost_factor: None
+    reference: Voutchkov, N. (2018). Desalination Project Cost Estimating and Management. Figure 4.5
+    reference_state:
+      value: 1
+      units: m^3/day
+    capital_a_parameter:
+      value: 10.321
+      units: USD_2018
+    capital_b_parameter:
+      value: 1
+      units: dimensionless
+  recovery_frac_mass_H2O:
+    value: 0.9999
+    units: dimensionless
+  default_removal_frac_mass_comp:
+    value: 0
+    units: dimensionless
+  removal_frac_mass_comp:
+    tss:
+      value: 0.6
+      units: dimensionless
+      constituent_longform: Total Suspended Solids (TSS)
+micro:
+  energy_electric_flow_vol_inlet:
+    value: 0.0
+    units: kWh/m^3
+  capital_cost:
+    basis: flow_vol
+    cost_factor: None
+    reference: Voutchkov, N. (2018). Desalination Project Cost Estimating and Management. Figure 4.7
+    reference_state:
+      value: 1
+      units: m^3/day
+    capital_a_parameter:
+      value: 15.598
+      units: USD_2018
+    capital_b_parameter:
+      value: 0.9586
+      units: dimensionless
+  recovery_frac_mass_H2O:
+    value: 0.99999
+    units: dimensionless
+  default_removal_frac_mass_comp:
+    value: 0
+    units: dimensionless
+  removal_frac_mass_comp:
+    tss:
+      value: 0.5 
       units: dimensionless
       constituent_longform: Total Suspended Solids (TSS)

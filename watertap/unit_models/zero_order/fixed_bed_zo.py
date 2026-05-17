@@ -10,8 +10,8 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 """
-This module contains a zero-order representation of a fixed bed unit
-operation.
+This module contains a zero-order representation of a biological
+fixed bed (bioreactor) unit operation.
 """
 
 from pyomo.environ import units as pyunits, Var

@@ -53,6 +53,7 @@ anion_exchange:  # TODO: add some differentiation between default, anion, and ca
     units: kg/m^3
   capital_cost:
     cost_factor: None
+    reference: Regressed from data from EPA-WBS Anion Exchange model 
     capital_a_parameter:
       value: 8.61434
       units: dimensionless
@@ -85,6 +86,7 @@ cation_exchange:
     units: kg/m^3
   capital_cost:
     cost_factor: None
+    reference: Regressed from data from EPA-WBS Cation Exchange model 
     capital_a_parameter:
       value: 9.97141
       units: dimensionless

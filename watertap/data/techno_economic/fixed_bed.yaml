@@ -5,7 +5,6 @@ default: # TODO: confirm any differentiation in removal across subtypes
   default_removal_frac_mass_comp:
     value: 0
     units: dimensionless
-    reference: 'EPA model: https://www.epa.gov/sdwa/drinking-water-treatment-technology-unit-cost-models'
   removal_frac_mass_comp:
     bod:
       value: 0.90  # adding this arbitrary default since no removal data provided
@@ -14,6 +13,7 @@ default: # TODO: confirm any differentiation in removal across subtypes
   capital_cost:
     basis: flow_vol
     cost_factor: None
+    reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using pressure vessels from 2017
     reference_state:
       value: 1
       units: m^3/hr
@@ -71,6 +71,7 @@ gravity_basin:
   capital_cost:
     basis: flow_vol
     cost_factor: None
+    reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
     reference_state:
       value: 1
       units: m^3/hr
@@ -113,7 +114,7 @@ gravity_basin:
   cationic_polymer_parameter_b:
     value: -0.241725
     units: dimensionless
-fixed bed:
+pressure_vessel:
   energy_electric_flow_vol_inlet:
     value: 0.085618
     units: kWh/m^3
@@ -128,6 +129,7 @@ fixed bed:
   capital_cost:
     basis: flow_vol
     cost_factor: None
+    reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using pressure vessels from 2017
     reference_state:
       value: 1
       units: m^3/hr

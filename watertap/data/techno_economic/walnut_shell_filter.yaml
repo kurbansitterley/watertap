@@ -5,6 +5,7 @@ default:
   capital_cost:
     basis: flow_vol
     cost_factor: None
+    reference: Texas Water Development Board IT3P Figure 3.3
     reference_state:
       value: 4731.764235
       units: m^3/hr

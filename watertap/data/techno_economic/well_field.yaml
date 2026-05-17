@@ -13,6 +13,7 @@ default:
     pipe_cost_basis:
       value: 35000
       units: USD_2018/(miles*inches)
+      reference: Personal communication from WT3 member for produced water case studies
   lift_height:
     value: 100
     units: ft

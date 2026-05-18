@@ -15,7 +15,6 @@ Tests for zero-order granular activated carbon model
 
 import pytest
 
-
 from pyomo.environ import (
     Block,
     check_optimal_termination,
@@ -28,7 +27,6 @@ from pyomo.environ import (
 from pyomo.util.check_units import assert_units_consistent
 
 from idaes.core import FlowsheetBlock
-from watertap.core.solvers import get_solver
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.testing import initialization_tester
 from idaes.core import UnitModelCostingBlock
@@ -37,6 +35,7 @@ from watertap.unit_models.zero_order import GACZO
 from watertap.core.wt_database import Database
 from watertap.core.zero_order_properties import WaterParameterBlock
 from watertap.costing.zero_order_costing import ZeroOrderCosting
+from watertap.core.solvers import get_solver
 
 solver = get_solver()
 
@@ -293,21 +292,6 @@ class TestGACZO_w_default_removal:
 
 db = Database()
 params = db._get_technology("gac")
-lcow_dict = {
-    "default": 0.14163,
-    "pressure_vessel": 0.14163,
-    "gravity_basin": 0.13572,
-}
-sec_dict = {
-    "default": 0.08562,
-    "pressure_vessel": 0.085618,
-    "gravity_basin": 0.078498,
-}
-capex_dict = {
-    "default": 122783760.43,
-    "pressure_vessel": 122783760.43,
-    "gravity_basin": 97908968.91,
-}
 
 
 class TestGACZOsubtype:
@@ -336,9 +320,9 @@ class TestGACZOsubtype:
 
 
 lcow_dict = {
-    "default": 0.30242,
-    "pressure_vessel": 0.30031,
-    "gravity": 0.30149,
+    "default": 0.215096,
+    "pressure_vessel": 0.213591,
+    "gravity": 0.214429,
 }
 sec_dict = {
     "default": 0.05315,
@@ -346,9 +330,9 @@ sec_dict = {
     "gravity": 0.053155,
 }
 capex_dict = {
-    "default": 3927666.2,  # ~$6.11M from reference
-    "pressure_vessel": 3927666.256,  # ~$6.11M from reference
-    "gravity": 3805169,  # ~$5.92M from reference
+    "default": 2793521.24,  # ~$6.11M from reference
+    "pressure_vessel": 2793521.24,  # ~$6.11M from reference
+    "gravity": 2706396.05,  # ~$5.92M from reference
 }
 
 
@@ -367,7 +351,7 @@ def test_costing(subtype):
     m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
 
     m.fs.costing = ZeroOrderCosting()
-    m.fs.costing.base_currency = pyunits.USD_2023
+    m.fs.costing.base_currency = pyunits.USD_2017
 
     m.fs.unit = GACZO(
         property_package=m.fs.params, database=m.db, process_subtype=subtype

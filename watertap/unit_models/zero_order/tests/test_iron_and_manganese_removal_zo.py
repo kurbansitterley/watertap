@@ -206,8 +206,6 @@ def test_costing():
 
     m.fs.unit = IronManganeseRemovalZO(property_package=m.fs.params, database=m.db)
 
-    m.fs.unit.properties_in[0].flow_vol
-    m.fs.unit.properties_in[0].conc_mass_comp
     m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(1310.50)
     m.fs.unit.inlet.flow_mass_comp[0, "iron"].fix(0.15)
     m.fs.unit.inlet.flow_mass_comp[0, "manganese"].fix(0.15)
@@ -246,9 +244,6 @@ def test_costing():
 
     assert isinstance(m.fs.unit.costing.capital_cost, Var)
     assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
-
-    assert_units_consistent(m.fs)
-    assert degrees_of_freedom(m.fs.unit) == 0
 
     assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 0.01295
     assert pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == 0.110508

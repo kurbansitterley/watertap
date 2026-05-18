@@ -64,6 +64,7 @@ class TestOzoneZO_with_default_removal:
 
         m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(100)
         m.fs.unit.inlet.flow_mass_comp[0, "cryptosporidium"].fix(1)
+        # TOC flow mass is set such that ozone_consumption is within valid bounds (1-25 mg/L)
         m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(0.00033735)
         m.fs.unit.inlet.flow_mass_comp[0, "giardia_lamblia"].fix(1)
         m.fs.unit.inlet.flow_mass_comp[0, "eeq"].fix(1)
@@ -102,6 +103,8 @@ class TestOzoneZO_with_default_removal:
         assert isinstance(model.fs.unit.ozone_consumption_constraint, Constraint)
         assert isinstance(model.fs.unit.ozone_flow_mass_constraint, Constraint)
         assert isinstance(model.fs.unit.electricity_constraint, Constraint)
+
+        assert model.fs.unit.ozone_consumption[0].bounds == (1, 25)
 
     @pytest.mark.component
     def test_load_parameters(self, model):
@@ -205,6 +208,7 @@ class TestOzoneZO_w_o_default_removal:
 
         m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(100)
         m.fs.unit.inlet.flow_mass_comp[0, "cryptosporidium"].fix(1)
+        # TOC flow mass is set such that ozone_consumption is within valid bounds (1-25 mg/L)
         m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(0.00033735)
         m.fs.unit.inlet.flow_mass_comp[0, "giardia_lamblia"].fix(1)
         m.fs.unit.inlet.flow_mass_comp[0, "eeq"].fix(1)
@@ -227,6 +231,8 @@ class TestOzoneZO_w_o_default_removal:
         assert isinstance(model.fs.unit.ozone_consumption_constraint, Constraint)
         assert isinstance(model.fs.unit.ozone_flow_mass_constraint, Constraint)
         assert isinstance(model.fs.unit.electricity_constraint, Constraint)
+
+        assert model.fs.unit.ozone_consumption[0].bounds == (1, 25)
 
     @pytest.mark.component
     def test_load_parameters(self, model):
@@ -340,6 +346,7 @@ def test_costing():
     m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(flow_conc)
     m.fs.unit.inlet.flow_mass_comp[0, "cryptosporidium"].fix(0.5)
     m.fs.unit.load_parameters_from_database(use_default_removal=True)
+    assert m.fs.unit.ozone_consumption[0].bounds == (1, 25)
 
     m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
     assert degrees_of_freedom(m.fs.unit) == 0

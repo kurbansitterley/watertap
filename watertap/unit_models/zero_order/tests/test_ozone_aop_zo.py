@@ -64,6 +64,7 @@ class TestOzoneAOPZO_with_default_removal:
 
         m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(100)
         m.fs.unit.inlet.flow_mass_comp[0, "cryptosporidium"].fix(1)
+        # TOC flow mass is set such that ozone_consumption is within valid bounds (1-25 mg/L)
         m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(0.00033735)
         m.fs.unit.inlet.flow_mass_comp[0, "giardia_lamblia"].fix(1)
         m.fs.unit.inlet.flow_mass_comp[0, "eeq"].fix(1)
@@ -109,6 +110,7 @@ class TestOzoneAOPZO_with_default_removal:
         assert isinstance(model.fs.unit.ozone_flow_mass_constraint, Constraint)
         assert isinstance(model.fs.unit.electricity_constraint, Constraint)
         assert isinstance(model.fs.unit.chemical_flow_mass_constraint, Constraint)
+        assert model.fs.unit.ozone_consumption[0].bounds == (1, 25)
 
     @pytest.mark.component
     def test_load_parameters(self, model):
@@ -219,6 +221,7 @@ class TestOzoneAOPZO_w_o_default_removal:
 
         m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(100)
         m.fs.unit.inlet.flow_mass_comp[0, "cryptosporidium"].fix(1)
+        # TOC flow mass is set such that ozone_consumption is within valid bounds (1-25 mg/L)
         m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(0.00033735)
         m.fs.unit.inlet.flow_mass_comp[0, "giardia_lamblia"].fix(2)
         m.fs.unit.inlet.flow_mass_comp[0, "eeq"].fix(1)
@@ -262,6 +265,7 @@ class TestOzoneAOPZO_w_o_default_removal:
         assert isinstance(model.fs.unit.ozone_flow_mass_constraint, Constraint)
         assert isinstance(model.fs.unit.electricity_constraint, Constraint)
         assert isinstance(model.fs.unit.chemical_flow_mass_constraint, Constraint)
+        assert model.fs.unit.ozone_consumption[0].bounds == (1, 25)
 
     @pytest.mark.component
     def test_load_parameters(self, model):
@@ -407,6 +411,7 @@ def test_costing():
     assert isinstance(m.fs.costing.ozone_aop.ozone_capital_d_parameter, Var)
     assert isinstance(m.fs.costing.ozone_aop.aop_capital_a_parameter, Var)
     assert isinstance(m.fs.costing.ozone_aop.aop_capital_b_parameter, Var)
+    assert m.fs.unit.ozone_consumption[0].bounds == (1, 25)
 
     assert isinstance(m.fs.unit.costing.capital_cost, Var)
     assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)

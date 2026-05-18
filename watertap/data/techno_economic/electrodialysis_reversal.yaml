@@ -23,7 +23,7 @@ default:
   recovery_frac_mass_H2O:
     value: 0.9214
     units: dimensionless
-    reference: Texas Water Development Board IT3PR User Manual
+    reference: Based on costs from Fort Irwin / Irwin Water Works case study
   default_removal_frac_mass_comp:
     value: 0
     units: dimensionless

@@ -10,7 +10,7 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 """
-Tests for zero-order well field model
+Tests for zero-order deep well injection model
 """
 
 import pytest

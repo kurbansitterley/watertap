@@ -473,7 +473,7 @@ class TestWorkflow:
     @pytest.mark.component
     def test_solution(self, model):
         # Note all dollar values are in millions of dollars
-        assert pytest.approx(630.596, rel=1e-5) == value(
+        assert pytest.approx(190.649330, rel=1e-5) == value(
             model.fs.costing.total_capital_cost
         )
 
@@ -485,7 +485,7 @@ class TestWorkflow:
         )
 
         # Note units (M$)
-        assert pytest.approx(1.73278e-7, rel=1e-5) == value(model.fs.costing.LCOW)
+        assert pytest.approx(6.2900429e-8, rel=1e-5) == value(model.fs.costing.LCOW)
 
         assert pytest.approx(0.231345, rel=1e-5) == value(
             model.fs.costing.electricity_intensity

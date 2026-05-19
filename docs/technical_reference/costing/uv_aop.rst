@@ -58,6 +58,7 @@ References
 
 | Costing relationships and parameters were developed from data in the UV System Cost Analysis Tool (UVCAT)
 | https://www.nyserda.ny.gov/About/Publications/Energy-Analysis-Reports-and-Studies/Water-and-Wastewater-Technical-Reports/Optimization-of-UV-Disinfection
+| Prepared by Carollo for NYSERDA; Appendix A
 
 | Wright, H., Gaithuma, D., Greene, D., Aieta, M. (2006) 
 | Integration of validation, design, and operation provides optimal implementation of UV disinfection.

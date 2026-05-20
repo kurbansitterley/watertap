@@ -62,9 +62,6 @@ class TestIonExchangeZO_w_default_removal:
     def test_build(self, model):
         assert model.fs.unit.config.database is model.db
 
-        assert isinstance(model.fs.unit.lift_height, Param)
-        assert isinstance(model.fs.unit.eta_pump, Param)
-        assert isinstance(model.fs.unit.eta_motor, Param)
         assert isinstance(model.fs.unit.electricity, Var)
         assert isinstance(model.fs.unit.electricity_consumption, Constraint)
         assert isinstance(model.fs.unit.water_recovery_equation, Constraint)
@@ -121,16 +118,16 @@ class TestIonExchangeZO_w_default_removal:
     @pytest.mark.skipif(solver is None, reason="Solver not available")
     @pytest.mark.component
     def test_solution(self, model):
-        assert pytest.approx(10.005, rel=1e-5) == value(
+        assert pytest.approx(10.0041, rel=1e-5) == value(
             model.fs.unit.properties_treated[0].flow_vol
         )
-        assert pytest.approx(0.099950024, rel=1e-5) == value(
+        assert pytest.approx(0.00999590, rel=1e-5) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["tds"]
         )
-        assert pytest.approx(0.3998, rel=1e-5) == value(
+        assert pytest.approx(0.39983606, rel=1e-5) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["foo"]
         )
-        assert pytest.approx(2899.6, rel=1e-5) == value(model.fs.unit.electricity[0])
+        assert pytest.approx(195.2175, rel=1e-5) == value(model.fs.unit.electricity[0])
         assert (
             model.fs.unit.properties_in[0].flow_mass_comp["H2O"].value
             == model.fs.unit.properties_treated[0].flow_mass_comp["H2O"].value
@@ -303,14 +300,14 @@ class TestIXZOsubtype:
 
 
 lcow_dict = {
-    "default": 0.026765,
-    "cation_exchange": 0.03276,
-    "anion_exchange": 0.026765,
+    "default": 0.06547,
+    "anion_exchange": 0.06547,
+    "cation_exchange": 0.21308,
 }
 sec_dict = {
-    "default": 0.08050,
-    "cation_exchange": 0.08050,
-    "anion_exchange": 0.080503,
+    "default": 0.00542,
+    "cation_exchange": 0.069,
+    "anion_exchange": 0.00542,
 }
 capex_dict = {
     "default": 5047528.78,

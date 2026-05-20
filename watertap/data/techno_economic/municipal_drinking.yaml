@@ -2,13 +2,20 @@ default:
   capital_cost:
     basis: flow_vol
     cost_factor: TPEC
-    reference_state:
-      value: 1
-      units: Mgallons/day
-      reference: McGivney & Kawamura Figure 5.5.35b, Cost Estimating Manual for Water Treatment Facilities
+    reference: McGivney & Kawamura Figure 5.5.35b
+    validity_range:
+      lower_bound:
+        value: 0
+        units: Mgallons/day
+      upper_bound:
+        value: 300
+        units: Mgallons/day
     capital_a_parameter:
       value: 40299
       units: USD_2007
     capital_b_parameter:
       value: 0.8657
       units: dimensionless
+    reference_state:
+      value: 1
+      units: Mgallons/day

@@ -6,6 +6,17 @@ default:
     basis: flow_vol
     cost_factor: TIC
     reference: McGivney & Kawamura, Figure 5.5.24c, Cost Estimating Manual for Water Treatment Facilities
+    validity_range:
+      # validity range presented here for completeness,
+      # but WaterTAP model is a function of flow rate, not basin area, so cannot determine 
+      # validity range for model
+      basin_area:
+        lower_bound:
+          value: 0
+          units: ft^2 # of basin surface area
+        upper_bound:
+          value: 160000
+          units: ft^2 # of basin surface area
     reference_state:
       value: 5450.0
       units: m^3/hr

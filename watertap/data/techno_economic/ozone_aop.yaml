@@ -18,6 +18,7 @@ default:  # default aop is for hydrogen peroxide
     reference: B. Mundy et al. (2018) doi.org/10.1080/01919512.2018.1467187 - Energy consumption 
       for ozone generator, ozone destruct, nitrogen feed system, cooling water pumps, and other misc. energy uses.
   capital_cost:
+    cost_factor: None
     ozone_capital_cost:
       reference: Texas Water Development Board IT3P Table 3.24
       validity_range:

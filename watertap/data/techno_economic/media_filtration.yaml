@@ -5,7 +5,7 @@ default:
   capital_cost:
     basis: flow_vol
     cost_factor: None
-    reference: Texas Water Development Board IT3P Figure 3.3
+    reference: Texas Water Development Board IT3PR version 2.0, Figure 3.3
     validity_range:
       lower_bound:
         value: 0

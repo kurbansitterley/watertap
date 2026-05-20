@@ -45,7 +45,6 @@ class IonExchangeZOData(ZeroOrderBaseData):
 
         if self.config.process_subtype == "clinoptilolite":
             pump_electricity(self, self._Q)
-            pass
         else:
             constant_intensity(self)
 

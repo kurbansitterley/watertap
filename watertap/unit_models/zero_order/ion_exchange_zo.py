@@ -17,7 +17,12 @@ operation.
 import pyomo.environ as pyo
 from pyomo.environ import Reference, units as pyunits, Var
 from idaes.core import declare_process_block_class
-from watertap.core import build_sido, constant_intensity, pump_electricity, ZeroOrderBaseData
+from watertap.core import (
+    build_sido,
+    constant_intensity,
+    pump_electricity,
+    ZeroOrderBaseData,
+)
 
 __author__ = "Adam Atia"
 

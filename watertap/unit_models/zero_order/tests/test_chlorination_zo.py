@@ -259,6 +259,7 @@ class TestChlorinationZO_w_o_default_removal:
 
         model.fs.unit.report()
 
+
 @pytest.mark.component
 def test_costing():
     m = ConcreteModel()

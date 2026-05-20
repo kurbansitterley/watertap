@@ -21,7 +21,6 @@ from idaes.core import declare_process_block_class
 from watertap.core import build_pt, ZeroOrderBaseData
 from watertap.custom_exceptions import FrozenPipes
 
-# Some more information about this module
 __author__ = "Adam Atia"
 
 
@@ -305,9 +304,6 @@ class CoagulationFlocculationZOData(ZeroOrderBaseData):
             ],
         )
 
-        # Determine if a costing factor is required
-        factor = parameter_dict["capital_cost"]["cost_factor"]
-
         # Add cost variable and constraint
         blk.capital_cost = pyo.Var(
             initialize=1,
@@ -316,53 +312,67 @@ class CoagulationFlocculationZOData(ZeroOrderBaseData):
             doc="Capital cost of unit operation",
         )
 
-        cost_rapid_mix = (
-            A
-            * pyo.units.convert(
-                blk.unit_model.rapid_mix_basin_vol, to_units=pyo.units.gallons
+        blk.cost_rapid_mix = pyo.Expression(
+            expr=(
+                A
+                * pyo.units.convert(
+                    blk.unit_model.rapid_mix_basin_vol, to_units=pyo.units.gallons
+                )
+                + B
             )
-            + B
-        ) * blk.unit_model.num_rapid_mix_processes
+            * blk.unit_model.num_rapid_mix_processes
+        )
 
-        cost_floc = (
-            C
-            * pyo.units.convert(
-                blk.unit_model.floc_basin_vol, to_units=pyo.units.Mgallons
+        blk.cost_floc = pyo.Expression(
+            expr=(
+                C
+                * pyo.units.convert(
+                    blk.unit_model.floc_basin_vol, to_units=pyo.units.Mgallons
+                )
+                + D
             )
-            + D
-        ) * blk.unit_model.num_floc_processes
+            * blk.unit_model.num_floc_processes
+        )
 
-        cost_coag_inj = (
-            E
-            * pyo.units.convert(
-                blk.unit_model.chemical_flow_mass[t0, "alum"],
-                to_units=(pyo.units.lb / pyo.units.hr),
+        blk.cost_coag_inj = pyo.Expression(
+            expr=(
+                E
+                * pyo.units.convert(
+                    blk.unit_model.chemical_flow_mass[t0, "alum"],
+                    to_units=(pyo.units.lb / pyo.units.hour),
+                )
+                + F
             )
-            + F
-        ) * blk.unit_model.num_coag_processes
+            * blk.unit_model.num_coag_processes
+        )
 
-        cost_floc_inj = (
-            G
-            * pyo.units.convert(
-                blk.unit_model.chemical_flow_mass[t0, "polymer"],
-                to_units=(pyo.units.lb / pyo.units.day),
+        blk.cost_floc_inj = pyo.Expression(
+            expr=(
+                G
+                * pyo.units.convert(
+                    blk.unit_model.chemical_flow_mass[t0, "polymer"],
+                    to_units=(pyo.units.lb / pyo.units.day),
+                )
+                + H
             )
-            + H
-        ) * blk.unit_model.num_floc_injection_processes
+            * blk.unit_model.num_floc_injection_processes
+        )
 
         expr = (
             pyo.units.convert(
-                cost_rapid_mix,
+                blk.cost_rapid_mix,
                 to_units=blk.config.flowsheet_costing_block.base_currency,
             )
             + pyo.units.convert(
-                cost_floc, to_units=blk.config.flowsheet_costing_block.base_currency
+                blk.cost_floc, to_units=blk.config.flowsheet_costing_block.base_currency
             )
             + pyo.units.convert(
-                cost_coag_inj, to_units=blk.config.flowsheet_costing_block.base_currency
+                blk.cost_coag_inj,
+                to_units=blk.config.flowsheet_costing_block.base_currency,
             )
             + pyo.units.convert(
-                cost_floc_inj, to_units=blk.config.flowsheet_costing_block.base_currency
+                blk.cost_floc_inj,
+                to_units=blk.config.flowsheet_costing_block.base_currency,
             )
         )
 

@@ -5,7 +5,7 @@ default:
   capital_cost:
     basis: flow_vol
     cost_factor: None
-    reference: Texas Water Development Board IT3P Table 3.21
+    reference: Texas Water Development Board IT3PR Table 3.21
     reference_state:
       value: 1
       units: Mgallons/day

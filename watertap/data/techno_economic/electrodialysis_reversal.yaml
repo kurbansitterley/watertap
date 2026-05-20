@@ -2,11 +2,25 @@ default:
   elec_coeff_1:
     value: 0.2534
     units: kWh/m^3
-    reference: Membrane Technology and Applications, by Richard W. Baker. Fit to data from Figure 10.11
+    reference: Membrane Technology and Applications; R. W. Baker (2012) DOI- 10.1002/9781118359686. Fit to data from Figure 10.11
+    validity_range:
+      lower_bound:
+        value: 0
+        units: mg/L
+      upper_bound:
+        value: 20000
+        units: mg/L
   elec_coeff_2:
     value: 5.149E-4
     units: L/mg*kWh/m^3
-    reference: Membrane Technology and Applications, by Richard W. Baker. Fit to data from Figure 10.11
+    reference: Membrane Technology and Applications; R. W. Baker (2012) DOI- 10.1002/9781118359686. Fit to data from Figure 10.11
+    validity_range:
+      lower_bound:
+        value: 0
+        units: mg/L
+      upper_bound:
+        value: 20000
+        units: mg/L
   capital_cost:
     basis: flow_vol
     cost_factor: None

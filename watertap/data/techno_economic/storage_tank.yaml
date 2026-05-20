@@ -29,6 +29,13 @@ treated_storage:
   capital_cost:
     cost_factor: None
     reference: Process Equipment Cost Estimation Final Report (2002) "Cone Roof Tank"
+    validity_range:
+      lower_bound:
+        value: 191.2
+        units: m^3
+      upper_bound:
+        value: 37854.1
+        units: m^3
     capital_a_parameter:
       value: 3.44e3
       units: USD_1998

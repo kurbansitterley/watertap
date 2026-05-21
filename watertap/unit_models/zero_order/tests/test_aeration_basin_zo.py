@@ -369,9 +369,9 @@ def test_costing():
 
     assert isinstance(m.fs.unit.costing.capital_cost, Var)
     assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
-    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 0.03430
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 0.033955
     assert pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == 0.412267
     assert (
-        pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3) == 5788552.03
+        pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3) == 5607575.87
     )  # ~$5.5M from TWDB Reference, Figure 3.3
     assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]

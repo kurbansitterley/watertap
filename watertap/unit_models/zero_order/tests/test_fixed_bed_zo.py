@@ -10,7 +10,7 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 """
-Tests for zero-order fixed bed model
+Tests for zero-order biological fixed bed (bioreactor) model
 """
 
 import pytest
@@ -202,7 +202,7 @@ class TestFixedBedZO_w_o_default_removal:
         assert pytest.approx(9.9999e-3, rel=1e-5) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["bod"]
         )
-        assert pytest.approx(3082.56, rel=1e-5) == value(model.fs.unit.electricity[0])
+        assert pytest.approx(2495.049, rel=1e-5) == value(model.fs.unit.electricity[0])
         assert (
             model.fs.unit.properties_in[0].flow_mass_comp["H2O"].value
             == model.fs.unit.properties_treated[0].flow_mass_comp["H2O"].value
@@ -348,7 +348,7 @@ class TestFixedBedZO_w_default_removal:
         assert pytest.approx(0.39984, rel=1e-5) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["foo"]
         )
-        assert pytest.approx(3083.79, rel=1e-5) == value(model.fs.unit.electricity[0])
+        assert pytest.approx(2496.04, rel=1e-5) == value(model.fs.unit.electricity[0])
         assert (
             model.fs.unit.properties_in[0].flow_mass_comp["H2O"].value
             == model.fs.unit.properties_treated[0].flow_mass_comp["H2O"].value
@@ -393,19 +393,19 @@ class TestFixedBedZOsubtype:
 db = Database()
 params = db._get_technology("fixed_bed")
 lcow_dict = {
-    "default": 0.13718,
-    "pressure_vessel": 0.13718,
-    "gravity_basin": 0.14424,
+    "default": 0.136606,
+    "gravity_basin": 0.141516,
+    "pressure_vessel": 0.136606,
 }
 sec_dict = {
-    "default": 0.08562,
-    "pressure_vessel": 0.085618,
-    "gravity_basin": 0.078498,
+    "default": 0.0693,
+    "gravity_basin": 0.069612,
+    "pressure_vessel": 0.0693,
 }
 capex_dict = {
-    "default": 7101262.42,  # ~$6.4M from source
-    "pressure_vessel": 7101262.42,  # ~$6.4M from source
-    "gravity_basin": 7839017.16,  # ~$7.1M from source
+    "default": 7021566.29,  # ~$6.4M from source
+    "gravity_basin": 7762382.22,  # ~$7.1M from source
+    "pressure_vessel": 7021566.29,  # ~$6.4M from source
 }
 
 
@@ -417,7 +417,7 @@ def test_costing(subtype):
 
     m.fs = FlowsheetBlock(dynamic=False)
 
-    m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
+    m.fs.params = WaterParameterBlock(solute_list=["tss"])
 
     m.fs.costing = ZeroOrderCosting()
     m.fs.costing.base_currency = pyunits.USD_2017
@@ -429,9 +429,7 @@ def test_costing(subtype):
     flow_vol = 7.365 * pyunits.Mgallons / pyunits.day
     flow_mass = flow_vol * rho
     m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(flow_mass)
-    m.fs.unit.inlet.flow_mass_comp[0, "sulfur"].fix(1)
-    m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(2)
-    m.fs.unit.inlet.flow_mass_comp[0, "tss"].fix(3)
+    m.fs.unit.inlet.flow_mass_comp[0, "tss"].fix(1)
     m.fs.unit.load_parameters_from_database(use_default_removal=True)
     assert degrees_of_freedom(m.fs.unit) == 0
 

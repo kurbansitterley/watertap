@@ -320,19 +320,19 @@ class TestGACZOsubtype:
 
 
 lcow_dict = {
-    "default": 0.215096,
-    "pressure_vessel": 0.213591,
-    "gravity": 0.214429,
+    "default": 0.2008221,
+    "pressure_vessel": 0.200446,
+    "gravity": 0.19947,
 }
 sec_dict = {
-    "default": 0.05315,
-    "pressure_vessel": 0.02608,
-    "gravity": 0.053155,
+    "default": 0.013288,
+    "pressure_vessel": 0.00652,
+    "gravity": 0.01328,
 }
 capex_dict = {
-    "default": 2793521.24,  # ~$6.11M from reference
-    "pressure_vessel": 2793521.24,  # ~$6.11M from reference
-    "gravity": 2706396.05,  # ~$5.92M from reference
+    "default": 1219387.58,  # ~$1.348M from reference
+    "pressure_vessel": 1219387.58,  # ~$1.348M from reference
+    "gravity": 1043115.65,  # ~$1.45M from reference
 }
 
 
@@ -341,7 +341,7 @@ capex_dict = {
 def test_costing(subtype):
     """
     Comparing against EPA-WBS model for GAC
-    7.365 MGD, 30 min EBCT
+    7.365 MGD, 7.5 min EBCT
     """
     m = ConcreteModel()
     m.db = Database()
@@ -365,10 +365,13 @@ def test_costing(subtype):
     m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(2)
     m.fs.unit.inlet.flow_mass_comp[0, "tss"].fix(3)
     m.fs.unit.load_parameters_from_database(use_default_removal=True)
-    m.fs.unit.empty_bed_contact_time.fix(30 * pyunits.minute)
+    m.fs.unit.empty_bed_contact_time.fix(7.5 * pyunits.minute)
     assert degrees_of_freedom(m.fs.unit) == 0
 
-    m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.unit.costing = UnitModelCostingBlock(
+        flowsheet_costing_block=m.fs.costing,
+        costing_method_arguments={"number_of_parallel_units": 2},
+    )
     assert_units_consistent(m.fs)
     m.fs.costing.cost_process()
     m.fs.costing.add_LCOW(m.fs.unit.properties_in[0].flow_vol)

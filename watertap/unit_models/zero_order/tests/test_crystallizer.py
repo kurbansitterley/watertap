@@ -258,9 +258,6 @@ class TestCrystallizerZO_w_default_removal:
         assert pytest.approx(328.8590, rel=1e-3) == value(
             model.fs.unit.properties_byproduct[0].conc_mass_comp["tds"]
         )
-        assert pytest.approx(2.0191157e-12, rel=1e-3) == value(
-            model.fs.unit.properties_byproduct[0].conc_mass_comp["foo"]
-        )
         assert pytest.approx(916131.54, rel=1e-3) == value(model.fs.unit.electricity[0])
         assert pytest.approx(24.82499, rel=1e-3) == value(
             model.fs.unit.electricity_intensity

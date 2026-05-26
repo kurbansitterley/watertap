@@ -21,7 +21,7 @@ This function will estimate the operating pressure of a unit model based on the 
     * ``salt_passage``: The mass-based fraction of inlet salt that becomes permeate (default=0)
     * ``solver``: Solver object to be used (default=None)
 
-An separate model of the provided ``state_block`` is created and the operating pressure is calculated based on the provided ``water_recovery_mass`` and ``salt_passage`` values. 
+A separate model of the provided ``state_block`` is created and the operating pressure is calculated based on the provided ``water_recovery_mass`` and ``salt_passage`` values. 
 The calculated operating pressure is returned in Pascals.
 
 An example usage is provided below.

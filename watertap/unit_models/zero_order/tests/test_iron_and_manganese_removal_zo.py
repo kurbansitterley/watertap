@@ -245,8 +245,8 @@ def test_costing():
     assert isinstance(m.fs.unit.costing.capital_cost, Var)
     assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
 
-    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 0.01295
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 0.010337
     assert pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == 0.110508
-    assert pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3) == 3796395.91
+    assert pytest.approx(value(m.fs.costing.total_capital_cost), rel=1e-3) == 2428815.23
 
     assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]

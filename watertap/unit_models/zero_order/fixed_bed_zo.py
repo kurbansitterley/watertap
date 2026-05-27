@@ -10,15 +10,14 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 """
-This module contains a zero-order representation of a fixed bed unit
-operation.
+This module contains a zero-order representation of a biological
+fixed bed (bioreactor) unit operation.
 """
 
 from pyomo.environ import units as pyunits, Var
 from idaes.core import declare_process_block_class
 from watertap.core import build_siso, constant_intensity, ZeroOrderBaseData
 
-# Some more information about this module
 __author__ = "Adam Atia"
 
 

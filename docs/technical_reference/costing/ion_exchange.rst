@@ -94,7 +94,7 @@ And the total capital cost for the ion exchange system is the summation of these
 .. math::
     C_{tot} = ((C_{resin} + C_{col}) (n_{op} + n_{red}) + C_{bw} + C_{regen}) f_{TIC}
 
-A total installed cost (:math:`f_{TIC}`) factor of 1.65 is applied to account for installation costs. 
+A total installed cost (:math:`f_{TIC}`) factor with a default value of 2 is applied to account for installation costs. 
 
 .. note::
     If using ``single_use`` option for ``regenerant`` configuration keyword, the capital for the regeneration tank is zero.

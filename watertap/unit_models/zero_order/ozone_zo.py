@@ -19,7 +19,6 @@ from idaes.core.util.exceptions import ConfigurationError
 from idaes.core import declare_process_block_class
 from watertap.core import build_siso, ZeroOrderBaseData
 
-# Some more information about this module
 __author__ = "Kurban Sitterley"
 
 
@@ -82,7 +81,7 @@ class OzoneZOData(ZeroOrderBaseData):
         self.ozone_consumption = Var(
             self.flowsheet().time,
             initialize=1,
-            bounds=(0, None),
+            bounds=(1, 25),  # costs only valid for 1-25 mg/L
             units=pyunits.mg / pyunits.liter,
             doc="Ozone consumption",
         )

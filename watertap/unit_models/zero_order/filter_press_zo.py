@@ -10,7 +10,7 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 """
-This module contains a zero-order representation of a filter press unit
+This module contains a zero-order representation of a belt filter press unit
 operation.
 """
 
@@ -20,14 +20,13 @@ from idaes.core import declare_process_block_class
 
 from watertap.core import build_sido, ZeroOrderBaseData
 
-# Some more information about this module
 __author__ = "Kurban Sitterley"
 
 
 @declare_process_block_class("FilterPressZO")
 class FilterPressZOData(ZeroOrderBaseData):
     """
-    Zero-Order model for a filter press unit operation.
+    Zero-Order model for a belt filter press unit operation.
     """
 
     CONFIG = ZeroOrderBaseData.CONFIG()
@@ -51,7 +50,7 @@ class FilterPressZOData(ZeroOrderBaseData):
 
         self.electricity_a_parameter = Var(
             self.flowsheet().time,
-            units=pyunits.kWh / (pyunits.year * pyunits.ft**3),
+            units=pyunits.kW / pyunits.ft**3,
             doc="Parameter A for electricity calculation",
         )
 
@@ -81,32 +80,32 @@ class FilterPressZOData(ZeroOrderBaseData):
         )
 
         @self.Constraint(self.flowsheet().time, doc="Filter press capacity constraint")
-        def fp_capacity(b, t):
+        def filter_press_capacity_constraint(b, t):
             Q = b.properties_in[t].flow_vol
             return b.filter_press_capacity[t] == pyunits.convert(
-                Q, to_units=pyunits.ft**3 / pyunits.day
-            ) / (b.hours_per_day_operation[t] / b.cycle_time[t])
+                pyunits.convert(Q, to_units=pyunits.ft**3 / pyunits.day)
+                / (b.hours_per_day_operation[t] / b.cycle_time[t]),
+                to_units=pyunits.ft**3,
+            )
 
+        # Regressed from data in Fig 4 Chap 17 of "Biosolids Treatment Processes" for 6% solids;
+        # doi: 10.1007/978-1-59259-996-7
         @self.Constraint(
             self.flowsheet().time, doc="Filter press electricity constraint"
         )
-        def fp_electricity(b, t):
+        def filter_press_electricity_constraint(b, t):
             Q = b.properties_in[t].flow_vol
             A = pyunits.convert(
-                b.electricity_a_parameter[t]
-                / (pyunits.kWh / (pyunits.year * pyunits.ft**3)),
+                b.electricity_a_parameter[t] / (pyunits.kW / pyunits.ft**3),
                 to_units=pyunits.dimensionless,
             )
             fp_cap = pyunits.convert(
                 b.filter_press_capacity[t] / pyunits.ft**3,
                 to_units=pyunits.dimensionless,
             )
-            return b.electricity[t] == (A * fp_cap ** b.electricity_b_parameter[t]) * (
-                pyunits.kWh / pyunits.year
-            ) / pyunits.convert(
-                Q, to_units=pyunits.m**3 / pyunits.yr
-            ) * pyunits.convert(
-                Q, to_units=pyunits.m**3 / pyunits.hr
+            return (
+                b.electricity[t]
+                == (A * fp_cap ** b.electricity_b_parameter[t]) * pyunits.kW
             )
 
         self._perf_var_dict["Filter Press Capacity (ft3)"] = self.filter_press_capacity
@@ -156,7 +155,10 @@ class FilterPressZOData(ZeroOrderBaseData):
             A * Q + B, to_units=blk.config.flowsheet_costing_block.base_currency
         )
 
-        blk.capital_cost_constraint = pyo.Constraint(expr=blk.capital_cost == expr)
+        blk.costing_package.add_cost_factor(blk, factor)
+        blk.capital_cost_constraint = pyo.Constraint(
+            expr=blk.capital_cost == blk.cost_factor * expr
+        )
 
         # Register flows
         blk.config.flowsheet_costing_block.cost_flow(

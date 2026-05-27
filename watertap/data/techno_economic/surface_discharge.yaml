@@ -13,6 +13,7 @@ default:
     pipe_cost_basis:
       value: 35000
       units: USD_2020/(miles*inches)
+      reference: Produced water case studies
   lift_height:
     value: 100
     units: ft
@@ -38,6 +39,7 @@ emwd:
     pipe_cost_basis:
       value: 35000
       units: USD_2020/(miles*inches)
+      reference: Produced water case studies
   lift_height:
     value: 100
     units: ft

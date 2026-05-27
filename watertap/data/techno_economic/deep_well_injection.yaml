@@ -1,10 +1,4 @@
 default:
-  recovery_frac_mass_H2O:
-    value: 0.9999
-    units: dimensionless
-  default_removal_frac_mass_comp:
-    value: 0
-    units: dimensionless
   capital_cost:
     cost_factor: None
     well_pump_cost:
@@ -12,7 +6,8 @@ default:
       units: USD_2011
     pipe_cost_basis:
       value: 35000
-      units: USD_2011/(miles*inches)
+      units: USD_2020/(miles*inches)
+      reference: Produced water case studies
     flow_exponent:
       value: 0.7
       units: dimensionless

@@ -434,6 +434,7 @@ Below is a build function to create the flowsheet.
         m.fs.product = Product(property_package=m.fs.properties)
         m.fs.brine = Product(property_package=m.fs.properties)
 
+        # Add the WaterTAP costing package to the flowsheet
         m.fs.costing = WaterTAPCosting()
 
         return m
@@ -592,6 +593,7 @@ The following snippet shows how to add costing to the unit models on our flowshe
     def add_costing(m):
 
         # Add unit model costing blocks 
+        # The system costing block (m.fs.costing) is passed as the flowsheet costing block to each unit model costing block
         m.fs.pump1.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
         m.fs.RO.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
         m.fs.pump2.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)

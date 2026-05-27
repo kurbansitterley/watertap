@@ -359,7 +359,7 @@ For this guide, we will consider a flowsheet with these units in the following o
 - Pump 1
 - Chemical addition unit
 - Pump 2 
-- Reverse osmosis unit
+- Reverse osmosis unit with custom chemical addition
 - ERD unit
 - Product block
 - Brine block
@@ -381,12 +381,17 @@ Below is a build function to create the flowsheet.
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = SeawaterParameterBlock()
 
+        # Add unit models to flowsheet
         m.fs.feed = Feed(property_package=m.fs.properties)
         m.fs.pump1 = Pump(property_package=m.fs.properties)
 
         m.fs.chem_addition = ChemicalAdditionZO(
             property_package=m.fs.properties, process_subtype="default"
         )
+
+        # Create an expression for the mass flow of the chemical on the unit model block.
+        # This will be used in our custom costing method.
+
         m.fs.chem_addition.chem_mass_flow = Expression(
             expr=pyunits.convert(
                 m.fs.chem_addition.chemical_dosage[0]
@@ -396,6 +401,8 @@ Below is a build function to create the flowsheet.
             doc="Mass flow of chemical addition",
         )
 
+        # Create a unit model that has also uses a chemical that we want to track
+        # for costing purposes.
         m.fs.RO = ReverseOsmosis1D(
             property_package=m.fs.properties,
             has_pressure_change=True,
@@ -449,7 +456,7 @@ This is the general structure of all :ref:`costing methods for existing WaterTAP
 
     def build_chem_addition_cost_param_block(blk):
 
-        # blk = m.fs.costing.chem_addition
+        # In this example, blk = m.fs.costing.chem_addition
 
         blk.chemical_capex_slope = Var(
             initialize=1.23e4,
@@ -472,7 +479,7 @@ This is the general structure of all :ref:`costing methods for existing WaterTAP
 
     def build_bazchem_cost_param_block(blk):
 
-        # blk = m.fs.costing.bazchem
+        # In this example, blk = m.fs.costing.bazchem
 
         blk.unit_cost = Var(
             initialize=0.089,
@@ -483,7 +490,8 @@ This is the general structure of all :ref:`costing methods for existing WaterTAP
         costing_pkg = blk.parent_block()
         costing_pkg.register_flow_type("bazchem", blk.unit_cost)
 
-
+    # Create costing parameter blocks for chemical addition (unit model) and bazchem (chemical flow type)
+    # and register them to be built on the flowsheet costing block via the @register_costing_parameter_block decorator
     @register_costing_parameter_block(
         build_rule=build_chem_addition_cost_param_block,
         parameter_block_name="chem_addition",
@@ -494,7 +502,7 @@ This is the general structure of all :ref:`costing methods for existing WaterTAP
     )
     def chem_addition_costing(blk):
 
-        # blk = m.fs.chem_addition.costing 
+        # In this example, blk = m.fs.chem_addition.costing 
 
         make_capital_cost_var(blk)
         blk.costing_package.add_cost_factor(blk, "TIC")
@@ -518,6 +526,8 @@ This is the general structure of all :ref:`costing methods for existing WaterTAP
             == blk.costing_package.chem_addition.factor_equip_replacement * blk.capital_cost
         )
 
+        # Cost the flow of bazchem for chemical addition with the cost_flow method. 
+        # Note that the flow passed to cost_flow must be convertable to units of cost/time.
         blk.costing_package.cost_flow(blk.unit_model.chem_mass_flow, "bazchem")
 
 Custom costing methods generally consist of two functions:

@@ -67,7 +67,6 @@ class TestCoagFlocZO:
             "polymer_dose",
             "anion_to_cation_polymer_ratio",
             "chemical_flow_mass",
-            "chemical_flow_mass",
             "rapid_mix_retention_time",
             "floc_retention_time",
             "rapid_mix_basin_vol",
@@ -89,7 +88,6 @@ class TestCoagFlocZO:
         cons = {
             "rapid_mix_basin_vol_constraint",
             "floc_basin_vol_constraint",
-            "chemical_flow_constraint",
             "chemical_flow_constraint",
             "rule_power_rapid_mix",
             "rule_power_floc",
@@ -244,29 +242,44 @@ def test_costing():
 
     m.fs = FlowsheetBlock(dynamic=False)
 
-    m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
+    m.fs.params = WaterParameterBlock(solute_list=["tss"])
 
     m.fs.costing = ZeroOrderCosting()
+    m.fs.costing.base_currency = pyunits.USD_2007
 
-    m.fs.unit1 = CoagulationFlocculationZO(property_package=m.fs.params, database=m.db)
+    m.fs.unit = CoagulationFlocculationZO(property_package=m.fs.params, database=m.db)
+    rho = 1000 * pyunits.kg / pyunits.m**3
+    flow_vol = 26736 * pyunits.gallon / pyunits.minute
+    flow_mass = flow_vol * rho
+    m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(flow_mass)
+    m.fs.unit.inlet.flow_mass_comp[0, "tss"].fix(0.1)
+    m.fs.unit.load_parameters_from_database(use_default_removal=True)
+    m.fs.unit.alum_dose.fix(10)
+    assert degrees_of_freedom(m.fs.unit) == 0
+    assert_units_consistent(m.fs)
 
-    m.fs.unit1.inlet.flow_mass_comp[0, "H2O"].fix(10000)
-    m.fs.unit1.inlet.flow_mass_comp[0, "sulfur"].fix(1)
-    m.fs.unit1.inlet.flow_mass_comp[0, "toc"].fix(2)
-    m.fs.unit1.inlet.flow_mass_comp[0, "tss"].fix(3)
-    m.fs.unit1.load_parameters_from_database(use_default_removal=True)
-    assert degrees_of_freedom(m.fs.unit1) == 0
+    m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.costing.cost_process()
+    m.fs.costing.add_LCOW(m.fs.unit.properties[0].flow_vol)
+    m.fs.costing.add_specific_energy_consumption(
+        m.fs.unit.properties[0].flow_vol, name="SEC"
+    )
 
-    m.fs.unit1.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
+    m.fs.unit.initialize()
+
+    results = solver.solve(m)
+    assert_optimal_termination(results)
 
     assert isinstance(m.fs.costing.coag_and_floc, Block)
     assert isinstance(m.fs.costing.coag_and_floc.capital_mix_a_parameter, Var)
     assert isinstance(m.fs.costing.coag_and_floc.capital_mix_b_parameter, Var)
 
-    assert isinstance(m.fs.unit1.costing.capital_cost, Var)
-    assert isinstance(m.fs.unit1.costing.capital_cost_constraint, Constraint)
+    assert isinstance(m.fs.unit.costing.capital_cost, Var)
+    assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
 
-    assert_units_consistent(m.fs)
-    assert degrees_of_freedom(m.fs.unit1) == 0
+    assert pytest.approx(value(m.fs.unit.costing.cost_rapid_mix), rel=1e-5) == 50625.12
+    assert pytest.approx(value(m.fs.unit.costing.cost_floc), rel=1e-5) == 966149.15
+    assert pytest.approx(value(m.fs.unit.costing.cost_coag_inj), rel=1e-5) == 101650.73
+    assert pytest.approx(value(m.fs.unit.costing.cost_floc_inj), rel=1e-5) == 459842.62
 
-    assert m.fs.unit1.electricity[0] in m.fs.costing._registered_flows["electricity"]
+    assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]

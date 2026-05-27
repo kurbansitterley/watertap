@@ -18,7 +18,11 @@ from idaes.core.util.model_statistics import degrees_of_freedom
 import idaes.core.util.scaling as iscale
 
 from watertap.unit_models.mvc.components import Evaporator
-from watertap.property_models import SeawaterParameterBlock, WaterParameterBlock
+from watertap.property_models import (
+    MCASParameterBlock,
+    SeawaterParameterBlock,
+    WaterParameterBlock,
+)
 from watertap.core.solvers import get_solver
 
 solver = get_solver()
@@ -102,7 +106,7 @@ def test_evaporator_with_MCAS_mass_flow():
         diffusivity_data={("Liq", "Na_+"): 1.33e-9, ("Liq", "Cl_-"): 2.03e-9},
         material_flow_basis="mass",
     )
-    m.fs.properties_vapor = props_w.WaterParameterBlock()
+    m.fs.properties_vapor = WaterParameterBlock()
     m.fs.evaporator = Evaporator(
         property_package_feed=m.fs.properties_feed,
         property_package_vapor=m.fs.properties_vapor,
@@ -179,7 +183,7 @@ def test_evaporator_with_MCAS_mole_flow():
         solute_list=["Na_+", "Cl_-"],
         diffusivity_data={("Liq", "Na_+"): 1.33e-9, ("Liq", "Cl_-"): 2.03e-9},
     )
-    m.fs.properties_vapor = props_w.WaterParameterBlock()
+    m.fs.properties_vapor = WaterParameterBlock()
     m.fs.evaporator = Evaporator(
         property_package_feed=m.fs.properties_feed,
         property_package_vapor=m.fs.properties_vapor,

@@ -1,5 +1,5 @@
-Brine Concentrator (ZO)
-=======================
+Crystallizer (ZO)
+=================
 
 Model Type
 ----------

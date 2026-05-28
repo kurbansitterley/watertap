@@ -91,13 +91,11 @@ class TestIronManganeseRemovalZO_w_default_removal:
             else:
                 assert v.value == data["removal_frac_mass_comp"][j]["value"]
 
-        assert model.fs.unit.air_water_ratio[0].fixed
-        assert (
-            model.fs.unit.air_water_ratio[0].value == data["air_water_ratio"]["value"]
-        )
+        assert model.fs.unit.air_water_ratio.fixed
+        assert model.fs.unit.air_water_ratio.value == data["air_water_ratio"]["value"]
 
-        assert model.fs.unit.flow_basis[0].fixed
-        assert model.fs.unit.flow_basis[0].value == data["flow_basis"]["value"]
+        assert model.fs.unit.flow_basis.fixed
+        assert model.fs.unit.flow_basis.value == data["flow_basis"]["value"]
 
         assert model.fs.unit.electricity_intensity_parameter.fixed
         assert (

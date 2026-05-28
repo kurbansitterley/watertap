@@ -92,7 +92,7 @@ class TestOzoneZO_with_default_removal:
     @pytest.mark.unit
     def test_build(self, model):
         assert model.fs.unit.config.database is model.db
-        assert model.fs.unit._tech_type == "ozonation"
+        assert model.fs.unit._tech_type == "ozone"
         assert isinstance(model.fs.unit.contact_time, Var)
         assert isinstance(model.fs.unit.concentration_time, Var)
         assert isinstance(model.fs.unit.mass_transfer_efficiency, Var)
@@ -104,11 +104,11 @@ class TestOzoneZO_with_default_removal:
         assert isinstance(model.fs.unit.ozone_flow_mass_constraint, Constraint)
         assert isinstance(model.fs.unit.electricity_constraint, Constraint)
 
-        assert model.fs.unit.ozone_consumption[0].bounds == (1, 25)
+        assert model.fs.unit.ozone_consumption.bounds == (1, 25)
 
     @pytest.mark.component
     def test_load_parameters(self, model):
-        data = model.db.get_unit_operation_parameters("ozonation")
+        data = model.db.get_unit_operation_parameters("ozone")
         model.fs.unit.load_parameters_from_database(use_default_removal=True)
         assert model.fs.unit.recovery_frac_mass_H2O[0].fixed
         assert model.fs.unit.recovery_frac_mass_H2O[0].value == 1
@@ -120,21 +120,21 @@ class TestOzoneZO_with_default_removal:
             else:
                 assert v.value == data["removal_frac_mass_comp"][j]["value"]
 
-        assert model.fs.unit.contact_time[0].fixed
-        assert model.fs.unit.contact_time[0].value == data["contact_time"]["value"]
-        assert model.fs.unit.concentration_time[0].fixed
+        assert model.fs.unit.contact_time.fixed
+        assert model.fs.unit.contact_time.value == data["contact_time"]["value"]
+        assert model.fs.unit.concentration_time.fixed
         assert (
-            model.fs.unit.concentration_time[0].value
+            model.fs.unit.concentration_time.value
             == data["concentration_time"]["value"]
         )
-        assert model.fs.unit.mass_transfer_efficiency[0].fixed
+        assert model.fs.unit.mass_transfer_efficiency.fixed
         assert (
-            model.fs.unit.mass_transfer_efficiency[0].value
+            model.fs.unit.mass_transfer_efficiency.value
             == data["mass_transfer_efficiency"]["value"]
         )
-        assert model.fs.unit.specific_energy_coeff[0].fixed
+        assert model.fs.unit.specific_energy_coeff.fixed
         assert (
-            model.fs.unit.specific_energy_coeff[0].value
+            model.fs.unit.specific_energy_coeff.value
             == data["specific_energy_coeff"]["value"]
         )
 
@@ -175,9 +175,7 @@ class TestOzoneZO_with_default_removal:
         assert pytest.approx(0.103773, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["eeq"]
         )
-        assert pytest.approx(3.6622, rel=1e-3) == value(
-            model.fs.unit.ozone_flow_mass[0]
-        )
+        assert pytest.approx(3.6622, rel=1e-3) == value(model.fs.unit.ozone_flow_mass)
         assert pytest.approx(18.3113, rel=1e-3) == value(model.fs.unit.electricity[0])
 
     @pytest.mark.component
@@ -220,7 +218,7 @@ class TestOzoneZO_w_o_default_removal:
     @pytest.mark.unit
     def test_build(self, model):
         assert model.fs.unit.config.database is model.db
-        assert model.fs.unit._tech_type == "ozonation"
+        assert model.fs.unit._tech_type == "ozone"
         assert isinstance(model.fs.unit.contact_time, Var)
         assert isinstance(model.fs.unit.concentration_time, Var)
         assert isinstance(model.fs.unit.mass_transfer_efficiency, Var)
@@ -232,11 +230,11 @@ class TestOzoneZO_w_o_default_removal:
         assert isinstance(model.fs.unit.ozone_flow_mass_constraint, Constraint)
         assert isinstance(model.fs.unit.electricity_constraint, Constraint)
 
-        assert model.fs.unit.ozone_consumption[0].bounds == (1, 25)
+        assert model.fs.unit.ozone_consumption.bounds == (1, 25)
 
     @pytest.mark.component
     def test_load_parameters(self, model):
-        data = model.db.get_unit_operation_parameters("ozonation")
+        data = model.db.get_unit_operation_parameters("ozone")
         model.fs.unit.load_parameters_from_database()
         assert model.fs.unit.recovery_frac_mass_H2O[0].value == 1
 
@@ -247,21 +245,21 @@ class TestOzoneZO_w_o_default_removal:
             else:
                 assert v.value == data["removal_frac_mass_comp"][j]["value"]
 
-        assert model.fs.unit.contact_time[0].fixed
-        assert model.fs.unit.contact_time[0].value == data["contact_time"]["value"]
-        assert model.fs.unit.concentration_time[0].fixed
+        assert model.fs.unit.contact_time.fixed
+        assert model.fs.unit.contact_time.value == data["contact_time"]["value"]
+        assert model.fs.unit.concentration_time.fixed
         assert (
-            model.fs.unit.concentration_time[0].value
+            model.fs.unit.concentration_time.value
             == data["concentration_time"]["value"]
         )
-        assert model.fs.unit.mass_transfer_efficiency[0].fixed
+        assert model.fs.unit.mass_transfer_efficiency.fixed
         assert (
-            model.fs.unit.mass_transfer_efficiency[0].value
+            model.fs.unit.mass_transfer_efficiency.value
             == data["mass_transfer_efficiency"]["value"]
         )
-        assert model.fs.unit.specific_energy_coeff[0].fixed
+        assert model.fs.unit.specific_energy_coeff.fixed
         assert (
-            model.fs.unit.specific_energy_coeff[0].value
+            model.fs.unit.specific_energy_coeff.value
             == data["specific_energy_coeff"]["value"]
         )
 
@@ -302,9 +300,7 @@ class TestOzoneZO_w_o_default_removal:
         assert pytest.approx(0.1048025, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["eeq"]
         )
-        assert pytest.approx(3.65928, rel=1e-3) == value(
-            model.fs.unit.ozone_flow_mass[0]
-        )
+        assert pytest.approx(3.65928, rel=1e-3) == value(model.fs.unit.ozone_flow_mass)
         assert pytest.approx(18.29644, rel=1e-3) == value(model.fs.unit.electricity[0])
 
     @pytest.mark.component
@@ -346,7 +342,7 @@ def test_costing():
     m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(flow_conc)
     m.fs.unit.inlet.flow_mass_comp[0, "cryptosporidium"].fix(0.5)
     m.fs.unit.load_parameters_from_database(use_default_removal=True)
-    assert m.fs.unit.ozone_consumption[0].bounds == (1, 25)
+    assert m.fs.unit.ozone_consumption.bounds == (1, 25)
 
     m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
     assert degrees_of_freedom(m.fs.unit) == 0
@@ -361,11 +357,11 @@ def test_costing():
     results = solver.solve(m)
     assert check_optimal_termination(results)
 
-    assert isinstance(m.fs.costing.ozonation, Block)
-    assert isinstance(m.fs.costing.ozonation.ozone_capital_a_parameter, Var)
-    assert isinstance(m.fs.costing.ozonation.ozone_capital_b_parameter, Var)
-    assert isinstance(m.fs.costing.ozonation.ozone_capital_c_parameter, Var)
-    assert isinstance(m.fs.costing.ozonation.ozone_capital_d_parameter, Var)
+    assert isinstance(m.fs.costing.ozone, Block)
+    assert isinstance(m.fs.costing.ozone.ozone_capital_a_parameter, Var)
+    assert isinstance(m.fs.costing.ozone.ozone_capital_b_parameter, Var)
+    assert isinstance(m.fs.costing.ozone.ozone_capital_c_parameter, Var)
+    assert isinstance(m.fs.costing.ozone.ozone_capital_d_parameter, Var)
 
     assert isinstance(m.fs.unit.costing.capital_cost, Var)
     assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)

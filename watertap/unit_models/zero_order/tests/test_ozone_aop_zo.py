@@ -110,7 +110,7 @@ class TestOzoneAOPZO_with_default_removal:
         assert isinstance(model.fs.unit.ozone_flow_mass_constraint, Constraint)
         assert isinstance(model.fs.unit.electricity_constraint, Constraint)
         assert isinstance(model.fs.unit.chemical_flow_mass_constraint, Constraint)
-        assert model.fs.unit.ozone_consumption[0].bounds == (1, 25)
+        assert model.fs.unit.ozone_consumption.bounds == (1, 25)
 
     @pytest.mark.component
     def test_load_parameters(self, model):
@@ -126,25 +126,25 @@ class TestOzoneAOPZO_with_default_removal:
             else:
                 assert v.value == data["removal_frac_mass_comp"][j]["value"]
 
-        assert model.fs.unit.contact_time[0].fixed
-        assert model.fs.unit.contact_time[0].value == data["contact_time"]["value"]
-        assert model.fs.unit.concentration_time[0].fixed
+        assert model.fs.unit.contact_time.fixed
+        assert model.fs.unit.contact_time.value == data["contact_time"]["value"]
+        assert model.fs.unit.concentration_time.fixed
         assert (
-            model.fs.unit.concentration_time[0].value
+            model.fs.unit.concentration_time.value
             == data["concentration_time"]["value"]
         )
-        assert model.fs.unit.mass_transfer_efficiency[0].fixed
+        assert model.fs.unit.mass_transfer_efficiency.fixed
         assert (
-            model.fs.unit.mass_transfer_efficiency[0].value
+            model.fs.unit.mass_transfer_efficiency.value
             == data["mass_transfer_efficiency"]["value"]
         )
-        assert model.fs.unit.specific_energy_coeff[0].fixed
+        assert model.fs.unit.specific_energy_coeff.fixed
         assert (
-            model.fs.unit.specific_energy_coeff[0].value
+            model.fs.unit.specific_energy_coeff.value
             == data["specific_energy_coeff"]["value"]
         )
         assert (
-            model.fs.unit.oxidant_ozone_ratio[0].value
+            model.fs.unit.oxidant_ozone_ratio.value
             == data["oxidant_ozone_ratio"]["value"]
         )
 
@@ -185,9 +185,7 @@ class TestOzoneAOPZO_with_default_removal:
         assert pytest.approx(0.103773, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["eeq"]
         )
-        assert pytest.approx(3.6622, rel=1e-3) == value(
-            model.fs.unit.ozone_flow_mass[0]
-        )
+        assert pytest.approx(3.6622, rel=1e-3) == value(model.fs.unit.ozone_flow_mass)
         assert pytest.approx(18.3113, rel=1e-3) == value(model.fs.unit.electricity[0])
         assert pytest.approx(1.8457e-4, rel=1e-3) == value(
             model.fs.unit.chemical_flow_mass[0]
@@ -265,7 +263,7 @@ class TestOzoneAOPZO_w_o_default_removal:
         assert isinstance(model.fs.unit.ozone_flow_mass_constraint, Constraint)
         assert isinstance(model.fs.unit.electricity_constraint, Constraint)
         assert isinstance(model.fs.unit.chemical_flow_mass_constraint, Constraint)
-        assert model.fs.unit.ozone_consumption[0].bounds == (1, 25)
+        assert model.fs.unit.ozone_consumption.bounds == (1, 25)
 
     @pytest.mark.component
     def test_load_parameters(self, model):
@@ -281,25 +279,25 @@ class TestOzoneAOPZO_w_o_default_removal:
             else:
                 assert v.value == data["removal_frac_mass_comp"][j]["value"]
 
-        assert model.fs.unit.contact_time[0].fixed
-        assert model.fs.unit.contact_time[0].value == data["contact_time"]["value"]
-        assert model.fs.unit.concentration_time[0].fixed
+        assert model.fs.unit.contact_time.fixed
+        assert model.fs.unit.contact_time.value == data["contact_time"]["value"]
+        assert model.fs.unit.concentration_time.fixed
         assert (
-            model.fs.unit.concentration_time[0].value
+            model.fs.unit.concentration_time.value
             == data["concentration_time"]["value"]
         )
-        assert model.fs.unit.mass_transfer_efficiency[0].fixed
+        assert model.fs.unit.mass_transfer_efficiency.fixed
         assert (
-            model.fs.unit.mass_transfer_efficiency[0].value
+            model.fs.unit.mass_transfer_efficiency.value
             == data["mass_transfer_efficiency"]["value"]
         )
-        assert model.fs.unit.specific_energy_coeff[0].fixed
+        assert model.fs.unit.specific_energy_coeff.fixed
         assert (
-            model.fs.unit.specific_energy_coeff[0].value
+            model.fs.unit.specific_energy_coeff.value
             == data["specific_energy_coeff"]["value"]
         )
         assert (
-            model.fs.unit.oxidant_ozone_ratio[0].value
+            model.fs.unit.oxidant_ozone_ratio.value
             == data["oxidant_ozone_ratio"]["value"]
         )
 
@@ -340,9 +338,7 @@ class TestOzoneAOPZO_w_o_default_removal:
         assert pytest.approx(0.104702, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["eeq"]
         )
-        assert pytest.approx(3.6622, rel=1e-3) == value(
-            model.fs.unit.ozone_flow_mass[0]
-        )
+        assert pytest.approx(3.6622, rel=1e-3) == value(model.fs.unit.ozone_flow_mass)
         assert pytest.approx(18.31132, rel=1e-3) == value(model.fs.unit.electricity[0])
         assert pytest.approx(1.84575e-4, rel=1e-3) == value(
             model.fs.unit.chemical_flow_mass[0]
@@ -380,8 +376,6 @@ def test_costing():
     flow_conc = flow_vol * conc
     flow_mass = rho * flow_vol
 
-    m.fs.unit.properties_in[0].flow_vol
-    m.fs.unit.properties_in[0].conc_mass_comp
     m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(flow_mass)
     m.fs.unit.inlet.flow_mass_comp[0, "viruses_enteric"].fix(0.01)
     m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(flow_conc)
@@ -411,7 +405,7 @@ def test_costing():
     assert isinstance(m.fs.costing.ozone_aop.ozone_capital_d_parameter, Var)
     assert isinstance(m.fs.costing.ozone_aop.aop_capital_a_parameter, Var)
     assert isinstance(m.fs.costing.ozone_aop.aop_capital_b_parameter, Var)
-    assert m.fs.unit.ozone_consumption[0].bounds == (1, 25)
+    assert m.fs.unit.ozone_consumption.bounds == (1, 25)
 
     assert isinstance(m.fs.unit.costing.capital_cost, Var)
     assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)

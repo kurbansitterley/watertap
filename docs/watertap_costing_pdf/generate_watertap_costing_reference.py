@@ -31,6 +31,8 @@ from reportlab.platypus import Image
 import matplotlib.pyplot as plt
 
 here = os.path.dirname(os.path.abspath(__file__))
+docs_path = os.path.dirname(here)
+repo_path = os.path.dirname(docs_path)
 
 # for when auto-formatting doesn't look good
 u_name_dict = {
@@ -104,8 +106,8 @@ def scrape_zo_params(repo_path=None):
     Parse watertap/data/techno_economic/*.yaml for zero-order costing
     parameters (A, B, energy, recovery).  Returns list[dict].
     """
-    if repo_path is None:
-        repo_path = here
+    # if repo_path is None:
+    #     repo_path = repo_path_default
     yaml_dir = os.path.join(repo_path, "watertap", "data", "techno_economic")
 
     # these units don't follow C = A*x**b for capex
@@ -825,11 +827,11 @@ def create_zo_costing_story(story):
     return story
 
 
-def create_watertap_costing_reference(repo_path, output_path):
+def create_watertap_costing_reference(save_as):
     """Build the two-page costing reference PDF."""
 
     doc = SimpleDocTemplate(
-        output_path,
+        save_as,
         pagesize=letter,
         topMargin=0.5 * inch,
         bottomMargin=0.5 * inch,
@@ -842,12 +844,12 @@ def create_watertap_costing_reference(repo_path, output_path):
     story = create_zo_costing_story(story)
 
     doc.build(story)
-    print(f"\nWaterTAP costing reference created here:\n{output_path}")
+
+    print(f"\nWaterTAP costing reference saved here:\n{save_as}")
 
 
 if __name__ == "__main__":
 
-    output_path = "/Users/ksitterl/Documents/Python/watertap/watertap/docs/kurby/watertap_costing_reference.pdf"
-    repo_path = "/Users/ksitterl/Documents/Python/watertap/watertap/"
+    save_as = f"{here}/DRAFT_watertap_costing_reference.pdf"
 
-    create_watertap_costing_reference(repo_path, output_path)
+    create_watertap_costing_reference(save_as) 

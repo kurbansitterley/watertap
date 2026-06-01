@@ -619,11 +619,12 @@ def combine_results():
     all_res.set_index(
         ["unit_class", "unit", "subtype", "flow_mgd"], inplace=True, drop=True
     )
-    all_res.to_csv(os.path.join(res_path, "all_results.csv"), index=True)
+    # all_res.to_csv(os.path.join(res_path, "all_results.csv"), index=True)
+    all_res.to_csv(f"{here}/all_costing_results.csv", index=True)
 
 
 if __name__ == "__main__":
     combine_results()
-    all_res = pd.read_csv(f"{res_path}/all_results.csv")
+    all_res = pd.read_csv(f"{here}/all_costing_results.csv")
     save_as = f"{here}/DRAFT_watertap_cost_curves_doc.pdf"
     create_watertap_cost_curve_doc(save_as)

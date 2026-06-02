@@ -63,10 +63,11 @@ categories = {
             "well_field",
         ],
         "hue_col": "unit",
-        "mask": {"flow_mgd": (0.1, 15)},
+        "mask": {"flow_mgd": (0.1, 20)},
         "unit_mask": {
             "water_pumping_station": {"subtype": "raw"},
             "screen": {"subtype": ["micro"]},
+            "well_field": {"subtype": ["default"], "pipe_distance": 1},
         },
     },
     "pretreatment": {
@@ -132,11 +133,12 @@ categories = {
             "ultra_filtration",
             "microfiltration",
             "reverse_osmosis",
-            "electrodialysis_reversal",
+            # "electrodialysis_reversal",
         ],
         "hue_col": "unit",
+        "mask": {"flow_mgd": (0.1, 20), "subtype": ["default"]},
     },
-    "media_filtration_": {
+    "media_filtration_technologies": {
         "pretty_name": "Media Filtration",
         "units": [
             "dual_media_filtration",
@@ -184,13 +186,14 @@ categories = {
     },
     "brine_management": {
         "pretty_name": "Brine Management",
-        "units": ["brine_concentrator", "crystallizer", "evaporation_pond"],
+        "units": ["brine_concentrator", "crystallizer", "evaporation_pond", "deep_well_injection"],
         "hue_col": "unit",
         "mask": {"flow_mgd": (0.01, 1)},
         "unit_mask": {
             "brine_concentrator": {"tds": 60000},
             "crystallizer": {"tds": 145000},
             "evaporation_pond": {"solar_radiation": 25},
+            "deep_well_injection": {"pipe_distance": 25},
         },
         # "ycols": ["fs.costing.LCOW", "fs.costing.total_capital_cost", "fs.costing.SEC"],
     },
@@ -209,6 +212,8 @@ def brine_management_footer(lines):
     line = "These results are for a feed salinity of 60,000 mg/L TDS for the concentrator and 145,000 mg/L TDS for the crystallizer."
     lines.append(line)
     line = "Evaporation pond costs are a function of inlet flow rate and solar radiation, with results shown for 25 MJ/m²/day."
+    lines.append(line)
+    line = "Deep well injection costs are a function of inlet flow rate and pipe distance, with results shown for a pipe distance of 25 miles."
     lines.append(line)
     return lines
 
@@ -492,7 +497,6 @@ def plot_page(
             handles.append(line)
         else:
             hues = rd[hue_col].unique()
-            # color_list = [cmap(i) for i in np.linspace(0, 1, 20)]
 
             for i, hue in enumerate(hues):
                 if hue == "default" and skip_default:
@@ -607,13 +611,10 @@ def plot_page(
 
 def combine_results():
 
+    print(f"Combining results from {res_path}...")
     csvs = glob.glob(os.path.join(res_path, "*.csv"))
     all_res = pd.DataFrame()
     for csv in csvs:
-        if "all_results" in csv:
-            continue
-        if "ALL_zo_flow_sweep" in csv:
-            continue
         df = pd.read_csv(csv)
         all_res = pd.concat([all_res, df], ignore_index=True)
     all_res.set_index(

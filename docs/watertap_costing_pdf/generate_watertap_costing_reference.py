@@ -6,10 +6,10 @@ Scrapes default costing parameters from the WaterTAP repository
 a two-page reference PDF.
 
 Requirements:
-- watertap-dev environment + reportlab (pip) + pyyaml (pip)
+- watertap-dev environment + reportlab (pip) + pyyaml (pip) + pypdf (pip)
 """
 
-import argparse
+import pypdf
 import os
 import pprint
 import re
@@ -848,8 +848,26 @@ def create_watertap_costing_reference(save_as):
     print(f"\nWaterTAP costing reference saved here:\n{save_as}")
 
 
+def generate_combined_pdf(cost_curves_path, costing_ref_path, save_as):
+    """Combine costing reference with cost curves doc."""
+
+    merger = pypdf.PdfWriter()
+    merger.append(cost_curves_path)
+    merger.append(costing_ref_path)
+    with open(save_as, "wb") as f_out:
+        merger.write(f_out)
+
+    merger.close()
+
+
 if __name__ == "__main__":
 
     save_as = f"{here}/DRAFT_watertap_costing_reference.pdf"
 
-    create_watertap_costing_reference(save_as) 
+    create_watertap_costing_reference(save_as)
+
+    # cost_curves_path = f"{here}/DRAFT_watertap_cost_curves_doc.pdf"
+    # costing_ref_path = f"{here}/DRAFT_watertap_costing_reference.pdf"
+    # save_as = f"{here}/DRAFT_watertap_cost_curves_and_reference.pdf"
+
+    # generate_combined_pdf(cost_curves_path, costing_ref_path, save_as)

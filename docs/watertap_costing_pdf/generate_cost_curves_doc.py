@@ -9,6 +9,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.lines import Line2D
+
 matplotlib.use("Agg")
 from datetime import datetime
 
@@ -186,7 +187,12 @@ categories = {
     },
     "brine_management": {
         "pretty_name": "Brine Management",
-        "units": ["brine_concentrator", "crystallizer", "evaporation_pond", "deep_well_injection"],
+        "units": [
+            "brine_concentrator",
+            "crystallizer",
+            "evaporation_pond",
+            "deep_well_injection",
+        ],
         "hue_col": "unit",
         "mask": {"flow_mgd": (0.01, 1)},
         "unit_mask": {

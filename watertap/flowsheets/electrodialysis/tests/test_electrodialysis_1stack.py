@@ -42,7 +42,7 @@ __author__ = "Xiangyu Bi"
 class TestElectrodialysisVoltageConst:
     @pytest.fixture(scope="class")
     def electrodialysis_1D1stack(self):
-        m = edfs.build()
+        m = edfs.build(ED_1D=True)
         return m
 
     @pytest.mark.unit
@@ -199,5 +199,9 @@ class TestElectrodialysisVoltageConst:
         assert value(m.fs.costing.LCOW) == pytest.approx(0.42547, rel=1e-3)
 
     @pytest.mark.unit
-    def test_main_fun(self, electrodialysis_1D1stack):
-        edfs.main()
+    def test_main_1D(self):
+        edfs.main(ED_1D=True)
+
+    @pytest.mark.unit
+    def test_main_0D(self):
+        edfs.main(ED_1D=False)

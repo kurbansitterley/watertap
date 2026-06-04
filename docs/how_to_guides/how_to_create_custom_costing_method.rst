@@ -8,26 +8,33 @@ Overview
 
 This guide provides an example of how to create a custom costing method for a new or existing unit model. 
 This how-to guide uses a generic chemical addition unit model as an example, but the same approach can be used to create custom costing methods for any unit model.
-The custom unit model costing method presented here is also used in :ref:`how to use WaterTAP costing<how_to_use_watertap_costing>`
+The custom unit model costing method presented here is also used in :ref:`how to use WaterTAP costing<how_to_use_watertap_costing>`. 
 
 How to
 ******
 
 
-The code below shows an example of how to build a custom costing method for a chemical addition unit model:sup:`1` that adds the chemical called "bazchem". 
-This method will create the parameters and constraints needed to calculate capital and operating costs for the chemical addition unit, and also register the "bazchem" flow type with the costing package to calculate variable operating costs based on the mass flow of bazchem:sup:`2`.
+The code below shows an example of how to build a custom costing method for a new chemical addition unit model :sup:`1` that adds the chemical called "bazchem". 
+This method will create the parameters and constraints needed to calculate capital and operating costs for the chemical addition unit, and also register the "bazchem" flow type with the costing package to calculate variable operating costs based on the mass flow of bazchem :sup:`2`.
 This is the general structure of all :ref:`costing methods for existing WaterTAP unit models<detailed_unit_model_costing>` that are in the *watertap/costing/unit_models* directory.
 
 Consider you have a flowsheet with a new chemical addition unit model without a defined costing method:
 
 .. code-block:: python
     
+    # Create model, flowsheet, and add new chemical addition unit model without a costing method
     m = ConcreteModel()
     m.fs = FlowsheetBlock(dynamic=False)
     m.fs.unit = NewChemAddition()
 
+Prior to adding the unit model costing block, we will create a custom costing method for the chemical addition unit model.
+We need to define the parameter block for the new chemical addition unit model and the parameter block for the "bazchem" flow type.
+
+Here we create the function that will create the parameter block for the unit model:
+
 .. testcode::
 
+    # Function to create costing parameters for chemical addition unit model
     def build_chem_addition_cost_param_block(blk):
 
         # In this example, blk = m.fs.costing.chem_addition
@@ -50,7 +57,11 @@ Consider you have a flowsheet with a new chemical addition unit model without a 
             doc="Fraction of chemical addition equipment replaced per year",
         )
 
+Then we create the function that will create the parameter block for the "bazchem" flow type and register the flow type with the costing package:
 
+.. testcode::
+
+    # Function to create costing parameters for bazchem flow type and register bazchem flow type with the costing package
     def build_bazchem_cost_param_block(blk):
 
         # In this example, blk = m.fs.costing.bazchem
@@ -62,8 +73,13 @@ Consider you have a flowsheet with a new chemical addition unit model without a 
         )
 
         costing_pkg = blk.parent_block()
+        # Register the bazchem flow type with the costing package
         costing_pkg.register_flow_type("bazchem", blk.unit_cost)
 
+Then create the costing model for the chemical addition unit that uses those parameters to calculate capital and operating costs.
+
+.. testcode::
+    
     # Create costing parameter blocks for chemical addition (unit model) and bazchem (chemical flow type)
     # and register them to be built on the flowsheet costing block via the @register_costing_parameter_block decorator
     @register_costing_parameter_block(
@@ -104,6 +120,21 @@ Consider you have a flowsheet with a new chemical addition unit model without a 
         # Note that the flow passed to cost_flow must be convertable to units of cost/time.
         blk.costing_package.cost_flow(blk.unit_model.chem_mass_flow, "bazchem")
 
+After creating the custom costing method, it is used in a flowsheet by passing the function name to the ``costing_method`` argument when creating the costing block on the flowsheet. 
+For example, if the custom costing method function is named ``chem_addition_costing``, then we would create the costing block on the flowsheet with the line of code below.
+
+.. code-block:: python
+
+    m.fs.costing = WaterTAPCosting()
+    m.fs.unit.costing = UnitModelCostingBlock(
+        flowsheet_costing_block=m.fs.costing, costing_method=chem_addition_costing
+    )
+
+
+Explanation
+*************
+
+
 Custom costing methods generally consist of two functions:
 
 1. A function to build the costing parameter block(s) (``build_chem_addition_cost_param_block`` and ``build_bazchem_cost_param_block``). These functions define the parameters needed for the costing method and registers any flow types needed for variable cost calculations. In this example, there is one function to build costing parameters for the chemical addition unit and a separate function to build costing parameters for the "bazchem" flow type. Though not strictly necessary, convention is to have separate parameter blocks for unique flow types and unit processes. These two functions will:
@@ -126,15 +157,7 @@ Custom costing methods generally consist of two functions:
     - The ``cost_flow`` method is used to aggregate flows of the same type across multiple units (most commonly this is done with chemical and electricty flows).
     - Costing methods that calculate capital costs must provide a capital cost factor to be used to calculate direct and indirect capital costs.
 
-After creating the custom costing method, it is used in a flowsheet by passing the function name to the ``costing_method`` argument when creating the costing block on the flowsheet. 
-For example, if the custom costing method function is named ``chem_addition_costing``, then we would create the costing block on the flowsheet with the line of code below.
 
-.. code-block:: python
-
-    m.fs.costing = FlowsheetCostingBlock(costing_method=chem_addition_costing)
-    m.fs.unit.costing = UnitModelCostingBlock(
-        flowsheet_costing_block=m.fs.costing, costing_method=chem_addition_costing
-    )
 
 .. important::
 

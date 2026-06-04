@@ -451,7 +451,7 @@ Like the other unit models on this flowsheet, the chemical addition unit model h
 For illustrative purposes, consider that we want to create a custom costing method for the chemical addition unit model :sup:`1`.
 
 The code below shows an example of how to build a custom costing method. 
-This is the general structure of all :ref:`costing methods for existing WaterTAP unit models<detailed_unit_model_costing>` that are in the *watertap/costing/unit_models* directory.
+This is the general structure of all costing methods for existing WaterTAP unit models that are in the *watertap/costing/unit_models* directory.
 
 .. testcode::
 
@@ -752,7 +752,6 @@ Costs for these flows are accessed via the ``aggregate_flow_costs`` indexed vari
 
 
 LCOW and SEC are further broken down into the contributions from each unit model, unit model class, and flow type in the following expressions.
-.. Further descriptions of these breakdowns, how each expression is indexed, and the equations are presented in the :ref:`LCOW <aggregate_metric_LCOW>` and :ref:`SEC <aggregate_metric_SEC>` sections of the :ref:`costing package<watertap_costing>` documentation.
 
 - Direct capital expenditures by flowsheet component: ``m.fs.costing.LCOW_component_direct_capex``
 - Indirect capital expenditures by flowsheet component: ``m.fs.costing.LCOW_component_indirect_capex``

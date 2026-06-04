@@ -6,6 +6,7 @@ How To Guides
 
    how_to_run_models_in_a_py_script
    how_to_use_watertap_costing
+   how_to_create_custom_costing_method
    how_to_run_zero_order_model
    how_to_use_a_property_model
    how_to_setup_simple_RO

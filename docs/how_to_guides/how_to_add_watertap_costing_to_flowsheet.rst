@@ -9,13 +9,7 @@ The steps presented here is also used in :ref:`how to use WaterTAP costing<how_t
 How to
 *******
 
-Adding the WaterTAP costing package to a flowsheet can be done at any point in the flowsheet build prior to adding the unit model costing blocks. 
-
-
-
-
-
-Adding WaterTAP costing to a flowsheet consists of two steps:
+Adding the WaterTAP costing package to a flowsheet can be done at any point in the flowsheet build prior to adding the unit model costing blocks and`` consists of two steps:
 1. Create a costing block on the flowsheet.
 2. Add costing blocks to unit models and specify the costing method to use for each unit model and specify the costing method to use (if not using the default WaterTAP costing method)
 
@@ -46,7 +40,7 @@ This is referred to as the "flowsheet costing block" (contrasted with a "unit mo
 
 At this point, the flowsheet costing block only contains instructions to aggregate the costs from the individual unit model costing blocks into overall flowsheet-level costs.
 To get costing results, we need to add the unit model costing block.
-This is done by adding a ``UnitModelCostingBlock`` to the unit model and specifying the costing method to use for that unit model. 
+This is done by adding a ``UnitModelCostingBlock`` to the unit model. 
 If we want to use the default WaterTAP costing method, we can simply add the costing block without specifying a costing method. 
 
 .. code-block:: python
@@ -59,6 +53,28 @@ If we want to use a custom costing method, we can specify the function name of t
 
     m.fs.unit.costing = UnitModelCostingBlock(
         flowsheet_costing_block=m.fs.costing, costing_method=custom_costing_method
+    )
+
+In either case, if the costing method can accept keyword arguments, we can pass those as a dictionary when creating the costing block via the ``costing_method_arguments`` argument.
+
+.. code-block:: python
+
+    costing_method_arguments = {
+        "arg1": value_1,
+        "arg2": value_2
+    }
+
+    # If using a default costing method that accepts keyword arguments
+    m.fs.unit.costing = UnitModelCostingBlock(
+        flowsheet_costing_block=m.fs.costing,
+        costing_method_arguments=costing_method_arguments,
+    )
+
+    # If using a custom costing method that accepts keyword arguments
+    m.fs.unit.costing = UnitModelCostingBlock(
+        flowsheet_costing_block=m.fs.costing,
+        costing_method=custom_costing_method,
+        costing_method_arguments=costing_method_arguments,
     )
 
 The same steps can be followed if using the :ref:`zero order costing model<zero_order_costing>`.

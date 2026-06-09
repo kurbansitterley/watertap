@@ -6,7 +6,8 @@ How to use the WaterTAP costing package
 Overview
 --------
 
-This guide shows you how to add the WaterTAP costing package, add unit model costing, create a custom costing model, and access costing results.
+This guide will demonstrate how to use the WaterTAP costing package for a full flowsheet. It pulls together the smaller steps from other how-to guides, including
+how to :ref:`add the costing packages<how_to_add_watertap_costing_to_flowsheet>`, :ref:`create a custom costing method<how_to_create_custom_costing_method>`, and :ref:`access costing results<how_to_access_costing_results>`.
 Additional details on the WaterTAP costing package, including equations and default parameter values, can be found in the :ref:`official documentation<WaterTAPCostingBlockData>`.
 
 How To
@@ -370,7 +371,7 @@ How-To Add WaterTAP Costing to a Flowsheet
 
 This section applies the steps outlined in the :ref:`how to add WaterTAP costing to a flowsheet guide<how_to_add_watertap_costing_to_flowsheet>` for all unit models on the flowsheet.
 
-Adding the WaterTAP costing package to a flowsheet can be done at any point in the flowsheet build prior to adding any unit model costing blocks. 
+Adding the WaterTAP costing package to a flowsheet can be done at any point in the flowsheet build prior to adding unit model costing blocks. 
 Below is a build function to create the flowsheet.
 
 
@@ -403,7 +404,7 @@ Below is a build function to create the flowsheet.
             doc="Mass flow of chemical addition",
         )
 
-        # Create a unit model that has also uses a chemical that we want to track
+        # Create a unit model that also uses a chemical that we want to track
         # for costing purposes.
         m.fs.RO = ReverseOsmosis1D(
             property_package=m.fs.properties,
@@ -442,8 +443,11 @@ Below is a build function to create the flowsheet.
         return m
 
 
-Adding the WaterTAP costing package to the flowsheet is done by simply by creating an instance of the ``WaterTAPCosting`` class and assigning it to a flowsheet attribute. Convention is to name this attribute ``m.fs.costing``. In the ``build`` function above, this is done on the last line.
-This is referred to as the "flowsheet costing block" (contrasted with a "unit model costing block" discussed later). At this point, the flowsheet costing block only contains instructions to aggregate the costs from the individual unit model costing blocks into overall flowsheet-level costs.
+Adding the WaterTAP costing package to the flowsheet is done by simply by creating an instance of the ``WaterTAPCosting`` class and assigning it to a flowsheet attribute. 
+Convention is to name this attribute ``m.fs.costing``. 
+In the ``build`` function above, this is done on the last line.
+This is referred to as the "flowsheet costing block" (contrasted with a "unit model costing block" discussed later). 
+At this point, the flowsheet costing block only contains instructions to aggregate the costs from the individual unit model costing blocks into overall flowsheet-level costs.
 To get costing results, we need to add costing blocks to each unit model.
 
 How-To Create Custom Costing Method 
@@ -535,7 +539,8 @@ How-To Access Costing Results
 ******************************
 
 After building the costing model and solving the optimization problem, system-level costing results are on the flowsheet costing block (``m.fs.costing``) and unit-level costing results are on the ``costing`` attribute of each unit model (e.g. ``m.fs.chem_addition.costing``).
-Accessing the values for any variable, expression, parameter, etc. can be done using the ``value`` function from Pyomo *or* by "calling" the component directly (i.e., placing ``()`` after the component). Examples of both of these approaches are presented below.
+Accessing the values for any variable, expression, parameter, etc. can be done using the ``value`` function from Pyomo *or* by "calling" the component directly (i.e., placing ``()`` after the component name). 
+Examples of both of these approaches are presented below.
 
 Alternatively, users can use the ``display`` method :sup:`1` on these components to view their values directly. In addition to the value of the component, 
 the ``display`` method will also show additional information such as units, bounds, and other metadata associated with the modeling component.

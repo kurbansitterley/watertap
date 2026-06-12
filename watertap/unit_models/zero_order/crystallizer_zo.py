@@ -151,8 +151,6 @@ class CrystallizerZOData(ZeroOrderBaseData):
             ],
         )
 
-        # recovery_term =
-
         # Add cost variable and constraint
         blk.capital_cost = pyo.Var(
             initialize=1,

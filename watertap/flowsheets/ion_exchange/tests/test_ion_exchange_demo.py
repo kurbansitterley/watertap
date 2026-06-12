@@ -10,7 +10,9 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 
+import math
 import pytest
+
 from pyomo.environ import (
     ConcreteModel,
     value,
@@ -35,8 +37,6 @@ from watertap.unit_models import (
 from watertap.property_models import MCASParameterBlock
 from watertap.core.solvers import get_solver
 import watertap.flowsheets.ion_exchange.ion_exchange_demo as ixf
-
-import math
 
 __author__ = "Kurban Sitterley"
 

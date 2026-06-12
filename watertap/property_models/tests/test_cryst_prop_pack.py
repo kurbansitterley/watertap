@@ -57,12 +57,12 @@ class TestDefaultCrystWaterProperty:
     m.fs.cv.add_energy_balances()
     m.fs.cv.add_momentum_balances()
 
-    # Create instance of PropertyTesthARNESS class and add attributes needed for tests
+    # Create instance of PropertyTestHarness class and add attributes needed for tests
     xv = PropertyTestHarness()
 
     xv.stateblock_statistics = {
-        "number_variables": 43,
-        "number_total_constraints": 37,
+        "number_variables": 44,
+        "number_total_constraints": 38,
         "number_unused_variables": 0,
         "default_degrees_of_freedom": 6,
     }
@@ -198,6 +198,7 @@ class TestCrystPropertySolution_1(PropertyRegressionTest):
             ("cp_mass_phase", "Liq"): 3940.03,
             ("enth_mass_solvent", "Liq"): 104.92e3,
             ("enth_mass_phase", "Liq"): 99.45e3,
+            ("specific_vol_sat_phase", "Vap"): 43.3245,
         }
 
 
@@ -241,6 +242,7 @@ class TestCrystPropertySolution_2(PropertyRegressionTest):
             ("cp_mass_phase", "Liq"): 3276.56,
             ("enth_mass_solvent", "Liq"): 104.92e3,
             ("enth_mass_phase", "Liq"): 68.78e3,
+            ("specific_vol_sat_phase", "Vap"): 43.3245,
         }
 
 
@@ -285,6 +287,7 @@ class TestCrystPropertySolution_3(PropertyRegressionTest):
             ("cp_mass_phase", "Liq"): 4180.98,
             ("enth_mass_solvent", "Liq"): 104.92e3,
             ("enth_mass_phase", "Liq"): 104.40e3,
+            ("specific_vol_sat_phase", "Vap"): 43.3245,
         }
 
 
@@ -317,7 +320,7 @@ class TestCrystPropertySolution_4(PropertyRegressionTest):
             ("mass_frac_phase_comp", ("Sol", "NaCl")): 1.0,
             ("dens_mass_solute", "Sol"): 2115,
             ("cp_mass_solute", "Sol"): 864.16,
-            ("flow_vol_phase", "Sol"): 1 / 2115,  # mass floe / density
+            ("flow_vol_phase", "Sol"): 1 / 2115,  # mass flow / density
             ("cp_mass_solute", "Sol"): 864.16,
             ("enth_mass_solute", "Sol"): 21.474e3,
             ("dh_crystallization_mass_comp", "NaCl"): -520e3,
@@ -421,6 +424,7 @@ class TestCrystPropertySolution_6(PropertyRegressionTest):
             ("mole_frac_phase_comp", ("Liq", "NaCl")): 0.0932,
             ("mole_frac_phase_comp", ("Sol", "NaCl")): 1.0,
             ("mole_frac_phase_comp", ("Vap", "H2O")): 1.0,
+            ("specific_vol_sat_phase", "Vap"): 12.0240,
         }
 
 
@@ -482,6 +486,7 @@ class TestCrystPropertySolution_7(PropertyRegressionTest):
             ("mole_frac_phase_comp", ("Liq", "NaCl")): 3.084e-4,
             ("mole_frac_phase_comp", ("Sol", "NaCl")): 1.0,
             ("mole_frac_phase_comp", ("Vap", "H2O")): 1.0,
+            ("specific_vol_sat_phase", "Vap"): 12.0240,
         }
 
 
@@ -552,6 +557,7 @@ class TestCrystPropertySolution_8(PropertyRegressionTest):
             ("mole_frac_phase_comp", ("Sol", "NaCl")): 1.0,
             ("mole_frac_phase_comp", ("Vap", "H2O")): 1.0,
             ("flow_mass_phase_comp", ("Liq", "NaCl")): 4.96,
+            ("specific_vol_sat_phase", "Vap"): 57.743,
         }
 
 
@@ -622,6 +628,7 @@ class TestCrystPropertySolution_9(PropertyRegressionTest):
             ("mole_frac_phase_comp", ("Sol", "NaCl")): 1.0,
             ("mole_frac_phase_comp", ("Vap", "H2O")): 1.0,
             ("flow_mass_phase_comp", ("Liq", "NaCl")): 4.96,
+            ("specific_vol_sat_phase", "Vap"): 9.5626,
         }
 
 

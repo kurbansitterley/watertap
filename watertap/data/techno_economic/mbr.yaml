@@ -29,7 +29,7 @@ default:
     reference: Texas Water Development Board IT3PR version 2.0, Figure 3.3
     validity_range:
       lower_bound:
-        value: 0
+        value: 1
         units: Mgallons/day
       upper_bound:
         value: 30

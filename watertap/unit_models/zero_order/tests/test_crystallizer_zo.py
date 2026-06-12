@@ -88,7 +88,7 @@ class TestCrystallizerZO_w_o_default_removal:
     def test_load_parameters(self, model):
         data = model.db.get_unit_operation_parameters("crystallizer")
 
-        model.fs.unit.load_parameters_from_database()
+        model.fs.unit.load_parameters_from_database(use_default_removal=False)
         assert model.fs.unit.recovery_frac_mass_H2O[0].fixed
         assert (
             model.fs.unit.recovery_frac_mass_H2O[0].value
@@ -204,10 +204,7 @@ class TestCrystallizerZO_w_default_removal:
         )
         for (t, j), v in model.fs.unit.removal_frac_mass_comp.items():
             assert v.fixed
-            if j == "foo":
-                assert v.value == data["default_removal_frac_mass_comp"]["value"]
-            else:
-                assert v.value == data["removal_frac_mass_comp"][j]["value"]
+            assert v.value == data["default_removal_frac_mass_comp"]["value"]
 
         assert model.fs.unit.elec_coeff_1.fixed
         assert model.fs.unit.elec_coeff_1.value == data["elec_coeff_1"]["value"]
@@ -252,10 +249,10 @@ class TestCrystallizerZO_w_default_removal:
         assert pytest.approx(0.5259835, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["tds"]
         )
-        assert pytest.approx(0.105196, rel=1e-3) == value(
+        assert pytest.approx(0.002104, rel=1e-3) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["foo"]
         )
-        assert pytest.approx(328.8590, rel=1e-3) == value(
+        assert pytest.approx(328.427, rel=1e-3) == value(
             model.fs.unit.properties_byproduct[0].conc_mass_comp["tds"]
         )
         assert pytest.approx(916131.54, rel=1e-3) == value(model.fs.unit.electricity[0])

@@ -41,7 +41,7 @@ default:
     units: kWh/m^3
   elec_coeff_2:
     value: 1.83E-5
-    units: L/mg*kWh/m^3
+    units: kWh/m^3/(mg/L)
   elec_coeff_3:
     value: -9.47
     units: kWh/m^3

@@ -146,9 +146,6 @@ class BrineConcentratorZOData(ZeroOrderBaseData):
             ],
         )
 
-        # Determine if a costing factor is required
-        factor = parameter_dict["capital_cost"]["cost_factor"]
-
         # Add cost variable and constraint
         blk.capital_cost = pyo.Var(
             initialize=1,

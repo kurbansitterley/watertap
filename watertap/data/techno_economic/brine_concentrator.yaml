@@ -58,5 +58,5 @@ default:
     tds:
       value: 0.98
       units: dimensionless
-      constituent_longform: aluminum
+      constituent_longform: Total Dissolved Solids
       

@@ -51,8 +51,7 @@ default:
   recovery_frac_mass_H2O:
     value: 0.95
     units: dimensionless
-    reference: Default value based on 5% purge fraction per source. Survey of High-Recovery
-      and Zero Liquid Discharge Technologies for Water Utilities (2008).
+    reference: Default value based on 5% purge fraction per source. Survey of High-Recovery and Zero Liquid Discharge Technologies for Water Utilities (2008).
   default_removal_frac_mass_comp:
     value: 0
     units: dimensionless
@@ -60,4 +59,4 @@ default:
     tds:
       value: 0.98
       units: dimensionless
-      constituent_longform: aluminum
+      constituent_longform: Total Dissolved Solids

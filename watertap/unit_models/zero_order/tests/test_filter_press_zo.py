@@ -209,7 +209,7 @@ def test_costing(subtype):
     conc = 100 * pyunits.mg / pyunits.L
     flow_mass = rho * flow_vol
     flow_conc = conc * flow_vol
-    
+
     m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(flow_mass)
     m.fs.unit.inlet.flow_mass_comp[0, "tss"].fix(flow_conc)
 

@@ -19,7 +19,7 @@ from idaes.core import declare_process_block_class
 
 from watertap.core import build_sido, ZeroOrderBaseData
 
-__author__ = "Adam Atia"
+__author__ = "Adam Atia, Kurban Sitterley"
 
 
 @declare_process_block_class("CrystallizerZO")

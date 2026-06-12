@@ -318,9 +318,9 @@ def test_costing():
     assert_units_consistent(m.fs)
     assert degrees_of_freedom(m.fs.unit) == 0
     m.fs.costing.cost_process()
-    m.fs.costing.add_LCOW(m.fs.unit.properties_in[0].flow_vol)
+    m.fs.costing.add_LCOW(m.fs.unit.properties_treated[0].flow_vol)
     m.fs.costing.add_specific_energy_consumption(
-        m.fs.unit.properties_in[0].flow_vol, name="SEC"
+        m.fs.unit.properties_treated[0].flow_vol, name="SEC"
     )
 
     m.fs.unit.initialize()
@@ -341,7 +341,7 @@ def test_costing():
         == 134656099.12  # ~$127.4M from reference
     )
     assert (
-        pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == 20.5647
+        pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == 21.770
     )  # ~19.8 kWh/m3 from reference
-    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 1.82366
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 1.9306
     assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]

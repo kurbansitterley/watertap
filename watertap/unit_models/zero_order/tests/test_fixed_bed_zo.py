@@ -201,7 +201,7 @@ class TestFixedBedZO_w_o_default_removal:
         assert pytest.approx(9.9999e-3, rel=1e-5) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["bod"]
         )
-        assert pytest.approx(2495.049, rel=1e-5) == value(model.fs.unit.electricity[0])
+        assert pytest.approx(1111.0710, rel=1e-5) == value(model.fs.unit.electricity[0])
         assert (
             model.fs.unit.properties_in[0].flow_mass_comp["H2O"].value
             == model.fs.unit.properties_treated[0].flow_mass_comp["H2O"].value
@@ -347,7 +347,7 @@ class TestFixedBedZO_w_default_removal:
         assert pytest.approx(0.39984, rel=1e-5) == value(
             model.fs.unit.properties_treated[0].conc_mass_comp["foo"]
         )
-        assert pytest.approx(2496.04, rel=1e-5) == value(model.fs.unit.electricity[0])
+        assert pytest.approx(1111.515, rel=1e-5) == value(model.fs.unit.electricity[0])
         assert (
             model.fs.unit.properties_in[0].flow_mass_comp["H2O"].value
             == model.fs.unit.properties_treated[0].flow_mass_comp["H2O"].value
@@ -390,12 +390,12 @@ class TestFixedBedZOsubtype:
 
 
 lcow_dict = {
-    "default": 0.136606,
-    "gravity_basin": 0.143994,
+    "default": 0.134469,
+    "gravity_basin": 0.141832,
 }
 sec_dict = {
-    "default": 0.0693,
-    "gravity_basin": 0.069612,
+    "default": 0.03086,
+    "gravity_basin": 0.03072,
 }
 capex_dict = {
     "default": 7021566.29,  # ~$6.4M from source
@@ -450,27 +450,23 @@ def test_costing(subtype):
     assert isinstance(m.fs.unit.costing.capital_cost_constraint, Constraint)
 
     assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]
+    assert m.fs.unit.acetic_acid_demand in m.fs.costing._registered_flows["acetic_acid"]
     assert (
-        m.fs.unit.acetic_acid_demand[0] in m.fs.costing._registered_flows["acetic_acid"]
-    )
-    assert (
-        m.fs.unit.phosphoric_acid_demand[0]
+        m.fs.unit.phosphoric_acid_demand
         in m.fs.costing._registered_flows["phosphoric_acid"]
     )
     assert (
-        m.fs.unit.ferric_chloride_demand[0]
+        m.fs.unit.ferric_chloride_demand
         in m.fs.costing._registered_flows["ferric_chloride"]
     )
     assert (
-        m.fs.unit.activated_carbon_demand[0]
+        m.fs.unit.activated_carbon_demand
         in m.fs.costing._registered_flows["activated_carbon"]
     )
-    assert m.fs.unit.sand_demand[0] in m.fs.costing._registered_flows["sand"]
+    assert m.fs.unit.sand_demand in m.fs.costing._registered_flows["sand"]
+    assert m.fs.unit.anthracite_demand in m.fs.costing._registered_flows["anthracite"]
     assert (
-        m.fs.unit.anthracite_demand[0] in m.fs.costing._registered_flows["anthracite"]
-    )
-    assert (
-        m.fs.unit.cationic_polymer_demand[0]
+        m.fs.unit.cationic_polymer_demand
         in m.fs.costing._registered_flows["cationic_polymer"]
     )
 

@@ -1,6 +1,6 @@
 default: # default is for pressure_vessel
   energy_electric_flow_vol_inlet:
-    value: 0.0693
+    value: 0.03086
     units: kWh/m^3
     reference: Average from standard designs for EPA-WBS Biological Treatment with Fixed Bed using pressure vessels from 2017
   default_removal_frac_mass_comp:
@@ -77,8 +77,9 @@ default: # default is for pressure_vessel
     reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using pressure vessels from 2017
 gravity_basin:
   energy_electric_flow_vol_inlet:
-    value: 0.0696120
+    value: 0.0307120
     units: kWh/m^3
+    reference: Average from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
   default_removal_frac_mass_comp:
     value: 0
     units: dimensionless
@@ -110,33 +111,44 @@ gravity_basin:
   acetic_acid_dose:
     value: 0.0499676
     units: kg/m^3
+    reference: Average from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
   phosphoric_acid_dose:
     value: 0.00422660
     units: kg/m^3
+    reference: Average from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
   ferric_chloride_dose:
     value: 0.00999352
     units: kg/m^3
+    reference: Average from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
   activated_carbon_parameter_a:
     value: 0.004066
     units: kg/m^3
+    reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
   activated_carbon_parameter_b:
     value: -0.089575
     units: dimensionless
+    reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
   sand_parameter_a:
     value: 0.004501
     units: kg/m^3
+    reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
   sand_parameter_b:
     value: -0.088486
     units: dimensionless
+    reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
   anthracite_parameter_a:
     value: 0.00449
     units: kg/m^3
+    reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
   anthracite_parameter_b:
     value: -0.08849
     units: dimensionless
+    reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
   cationic_polymer_parameter_a:
     value: 0.027354
     units: kg/m^3
+    reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017
   cationic_polymer_parameter_b:
     value: -0.241725
     units: dimensionless
+    reference: Regressed from standard designs for EPA-WBS Biological Treatment with Fixed Bed using open gravity basins from 2017

@@ -180,3 +180,11 @@ def test_seawater_RO_desalination_pump_as_turbine():
     )
 
     assert value(m.LCOW) == pytest.approx(1.111589, rel=1e-5)
+
+    @pytest.mark.component
+    def test_main_0D(self):
+        main(erd_type="pressure_exchanger", RO_1D=False)
+
+    @pytest.mark.component
+    def test_main_1D(self):
+        main(erd_type="pressure_exchanger", RO_1D=True)

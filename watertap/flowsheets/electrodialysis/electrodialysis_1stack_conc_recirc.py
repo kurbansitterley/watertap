@@ -123,13 +123,13 @@ def main(ED_1D=True):
     m.fs.EDstack.cell_pair_num.setlb(10)
     m.fs.EDstack.cell_pair_num.setub(1000)
     m.fs.EDstack.cell_length.unfix()
-    m.fs.prod.properties[0].conc_mol_phase_comp["Liq", "Na_+"].fix(
-        1.7094
-    )  # Corresponding to C_product = 100 ppm
-    m.fs.prod.properties[0].conc_mol_phase_comp
-    iscale.calculate_scaling_factors(m)
+    # m.fs.prod.properties[0].conc_mol_phase_comp["Liq", "Na_+"].fix(
+    #     1.7094
+    # )  # Corresponding to C_product = 100 ppm
     m.fs.objective = Objective(expr=m.fs.costing.LCOW)
+    initialize_system(m, solver=solver, ED_1D=ED_1D)
     solve(m, solver=solver, tee=True)
+    m.fs.prod.properties[0].conc_mol_phase_comp["Liq", "Na_+"].fix(1.7094)
     m.fs.EDstack.cell_pair_num.fix(round(m.fs.EDstack.cell_pair_num.value))
     solve(m, solver=solver, tee=True)
     print("\n***---Optimization results, Product conc = 100 ppb---***")
@@ -406,6 +406,8 @@ def initialize_system(m, solver=None, ED_1D=True):
     iscale.set_scaling_factor(m.fs.EDstack.cell_pair_num, 0.1)
     iscale.set_scaling_factor(m.fs.pump0.control_volume.work, 1)
     iscale.set_scaling_factor(m.fs.pump1.control_volume.work, 1)
+    # m.fs.prod.properties[0].conc_mol_phase_comp
+    # iscale.calculate_scaling_factors(m)
     iscale.calculate_scaling_factors(m)
     iscale.constraint_scaling_transform(
         m.fs.eq_recovery_vol_H2O,
@@ -577,4 +579,7 @@ def display_model_metrics(m, ED_1D=True):
 
 
 if __name__ == "__main__":
-    m = main(ED_1D=True)
+    m = main(ED_1D=False)
+    from watertap.kurby import *
+
+    check_scaling(m)

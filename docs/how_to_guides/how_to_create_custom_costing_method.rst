@@ -25,7 +25,7 @@ We need to define the parameter block for the new unit model and the parameter b
 
 Here we define the function that will create the parameter block for the unit model:
 
-.. testcode::
+.. code-block:: python
 
     # Function to create costing parameters for unit model
     def build_unit_model_cost_param_block(blk):
@@ -52,7 +52,7 @@ Here we define the function that will create the parameter block for the unit mo
 
 Then we define the function that will create the parameter block for the "bazchem" flow type and register the flow type with the costing package:
 
-.. testcode::
+.. code-block:: python
 
     # Function to create costing parameters for bazchem flow type 
     # and register bazchem flow type with the costing package
@@ -72,7 +72,7 @@ Then we define the function that will create the parameter block for the "bazche
 
 Then define the costing model for the new unit model that uses those parameters to calculate capital and operating costs.
 
-.. testcode::
+.. code-block:: python
     
     # Create costing parameter blocks for new unit model (unit model) and bazchem (chemical flow type)
     # and register them to be built on the flowsheet costing block via the @register_costing_parameter_block decorator

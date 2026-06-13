@@ -24,7 +24,7 @@ __author__ = "Adam Atia"
 @declare_process_block_class("FixedBedZO")
 class FixedBedZOData(ZeroOrderBaseData):
     """
-    Zero-Order model for an Ion exchange unit operation.
+    Zero-Order model for a Fixed Bed bioreactor unit operation.
     """
 
     CONFIG = ZeroOrderBaseData.CONFIG()

@@ -578,6 +578,3 @@ def display_model_metrics(m, ED_1D=True):
 
 if __name__ == "__main__":
     m = main(ED_1D=True)
-    m = main(ED_1D=False)
-    from watertap.kurby import *
-    check_scaling(m)

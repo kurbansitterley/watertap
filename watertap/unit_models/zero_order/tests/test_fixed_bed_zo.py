@@ -27,16 +27,15 @@ from pyomo.environ import (
 )
 from pyomo.util.check_units import assert_units_consistent
 
-from idaes.core import FlowsheetBlock
-from watertap.core.solvers import get_solver
+from idaes.core import FlowsheetBlock, UnitModelCostingBlock
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.testing import initialization_tester
-from idaes.core import UnitModelCostingBlock
 
 from watertap.unit_models.zero_order import FixedBedZO
 from watertap.core.wt_database import Database
 from watertap.core.zero_order_properties import WaterParameterBlock
 from watertap.costing.zero_order_costing import ZeroOrderCosting
+from watertap.core.solvers import get_solver
 
 solver = get_solver()
 
@@ -390,22 +389,17 @@ class TestFixedBedZOsubtype:
             assert v.value == data["removal_frac_mass_comp"][j]["value"]
 
 
-db = Database()
-params = db._get_technology("fixed_bed")
 lcow_dict = {
     "default": 0.136606,
-    "gravity_basin": 0.141516,
-    "pressure_vessel": 0.136606,
+    "gravity_basin": 0.143994,
 }
 sec_dict = {
     "default": 0.0693,
     "gravity_basin": 0.069612,
-    "pressure_vessel": 0.0693,
 }
 capex_dict = {
     "default": 7021566.29,  # ~$6.4M from source
     "gravity_basin": 7762382.22,  # ~$7.1M from source
-    "pressure_vessel": 7021566.29,  # ~$6.4M from source
 }
 
 

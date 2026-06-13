@@ -4,6 +4,7 @@ How to access costing results
 ===============================
 
 This guide provides instructions on how to access costing results from a flowsheet with WaterTAP costing.
+See :ref:`how to add the costing packages<how_to_add_watertap_costing_to_flowsheet>` for instructions on adding costing to a model.
 
 How to
 *******
@@ -50,6 +51,7 @@ In either case, if the component is indexed, the index(es) must be specified to 
 
     # Accessing costing results by "calling" the component directly
     unit_operating_cost = m.fs.unit.costing.fixed_operating_cost()
+    # Access costs of an indexed component by specifying the index
     total_electricity_cost = m.fs.costing.aggregate_flow_costs["electricity"]()
     LCOW = m.fs.costing.LCOW()
     SEC = m.fs.costing.SEC()

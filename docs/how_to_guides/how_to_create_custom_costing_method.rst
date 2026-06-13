@@ -3,12 +3,8 @@
 How to create a custom costing method
 =======================================
 
-Overview 
-*********
-
 This guide provides an example of how to create a custom costing method for a new or existing unit model. 
-.. This how-to guide uses a generic chemical addition unit model as an example, but the same approach can be used to create custom costing methods for any unit model.
-The custom unit model costing method presented here is also used in :ref:`how to use WaterTAP costing<how_to_use_watertap_costing>`. 
+The custom unit model costing method presented here is adapted for a chemical addition unit in :ref:`how to use WaterTAP costing<how_to_use_watertap_costing>`. 
 
 How to
 ******
@@ -16,7 +12,7 @@ How to
 
 The code below shows an example of how to build a custom costing method for a new unit model :sup:`1` that adds a chemical called "bazchem". 
 We will create any variables, parameters, and constraints needed to calculate capital and operating costs for the new unit, and also register the "bazchem" flow type with the costing package to calculate variable operating costs based on the mass flow of bazchem :sup:`2`.
-This is the general structure of all :ref:`costing methods for existing WaterTAP unit models<detailed_unit_model_costing>` that are in the *watertap/costing/unit_models* directory.
+This is the general structure of all :ref:`costing methods for existing WaterTAP unit models<detailed_unit_model_costing>` that are in the `watertap/costing/unit_models <https://github.com/watertap-org/watertap/tree/main/watertap/costing/unit_models>`_ directory.
 
 Consider you have a flowsheet with a new unit model without a defined costing method:
 
@@ -134,8 +130,21 @@ This would be set in the code that defines the unit model:
 
 .. code-block:: python
 
+    # Import the costing method
+    from watertap.costing.unit_models import unit_model_costing
+
     class NewUnitModel(UnitModel):
-        default_costing_method = unit_model_costing
+
+        def build(self):
+            # Add unit model build code here
+            ...
+            # Set the default costing method
+            self.default_costing_method = unit_model_costing
+
+        # Or 
+        @property
+        def default_costing_method(self):
+            return unit_model_costing
 
 Explanation
 *************

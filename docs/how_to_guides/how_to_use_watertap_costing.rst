@@ -3,12 +3,9 @@
 How to use the WaterTAP costing package
 =======================================
 
-Overview
---------
-
 This guide will demonstrate how to use the WaterTAP costing package for a full flowsheet. It pulls together the smaller steps from other how-to guides, including
-how to :ref:`add the costing packages<how_to_add_watertap_costing_to_flowsheet>`, :ref:`create a custom costing method<how_to_create_custom_costing_method>`, and :ref:`access costing results<how_to_access_costing_results>`.
-Additional details on the WaterTAP costing package, including equations and default parameter values, can be found in the :ref:`official documentation<WaterTAPCostingBlockData>`.
+how to :ref:`add the costing packages<how_to_add_watertap_costing_to_flowsheet>`, how to :ref:`create a custom costing method<how_to_create_custom_costing_method>`, and how to :ref:`access costing results<how_to_access_costing_results>`.
+Additional details on the WaterTAP costing package, including equations and default parameter values, can be found in the :ref:`official WaterTAP costing documentation<WaterTAPCostingBlockData>`.
 
 How To
 ------
@@ -459,6 +456,8 @@ See :ref:`how to create a custom costing method<how_to_create_custom_costing_met
 
 How-To Add Unit Model Costing
 ******************************
+
+The example presented here uses the steps outlined in :ref:`how to add WaterTAP costing to a flowsheet <how_to_add_watertap_costing_to_flowsheet>` to add costing to all unit models on the flowsheet, including using the custom costing method for chemical addition.
 
 At this point in our flowsheet build, we have our flowsheet costing block ``m.fs.costing`` and our custom costing method for chemical addition defined, but we have not yet added costing to any of our unit models.
 Adding unit model costing is required because the flowsheet costing block will use these individual costing models to aggregate capital and operating costs at the system level.

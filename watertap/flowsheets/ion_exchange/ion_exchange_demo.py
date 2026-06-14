@@ -64,6 +64,12 @@ def test_watertap_costing_package():
     m.fs.costing.bar_purity = pyo.Param(
         initialize=0.50, doc="bar purity", units=pyo.units.dimensionless
     )
+    # Add breakdown of NaCl usage per unit product flow to costing package with name "regenerant_usage"
+    m.fs.costing.add_flow_component_breakdown(
+        "NaCl",
+        m.fs.product.properties[0].flow_vol_phase["Liq"],
+        name="regenerant_usage",
+    )
 
     m.fs.costing.register_flow_type(
         "bar", m.fs.costing.bar_base_cost * m.fs.costing.bar_purity
@@ -112,41 +118,106 @@ def test_watertap_costing_package():
     # no error
     m.fs.costing.initialize()
 
-    m.fs.costing.capital_recovery_factor.unfix()
-    with pytest.raises(
-        RuntimeError,
-        match="Exactly two of the variables fs.costing.plant_lifetime, "
-        "fs.costing.wacc, fs.costing.capital_recovery_factor should be "
-        "fixed and the other unfixed.",
-    ):
-        # error, capital_recovery_factor, wacc, unfixed
-        m.fs.costing.initialize()
+def optimize_system(m):
+    # Example of optimizing number of IX columns based on desired effluent equivalent concentration
 
-    m.fs.costing.plant_lifetime.unfix()
-    with pytest.raises(
-        RuntimeError,
-        match="Exactly two of the variables fs.costing.plant_lifetime, "
-        "fs.costing.wacc, fs.costing.capital_recovery_factor should be "
-        "fixed and the other unfixed.",
-    ):
-        # error, capital_recovery_factor, wacc, and plant_lifetime unfixed
-        m.fs.costing.initialize()
+    # Adding an objective to model.
+    # In this case, we want to optimze the model to minimize the LCOW.
+    m.fs.obj = Objective(expr=m.fs.costing.LCOW)
+    ix = m.fs.ion_exchange
+    target_ion = m.fs.ion_exchange.config.target_ion
 
-    m.fs.costing.wacc.fix()
-    m.fs.costing.capital_recovery_factor.fix()
-    # no error, wacc, capital_recovery_factor fixed
-    m.fs.costing.initialize()
+    # For this demo, we are optimizing the model to have an effluent concentration of 25 mg/L.
+    # Our initial model resulted in an effluent concentration of 0.21 mg/L.
+    # By increasing the effluent concentration, we will have a longer breakthrough time, which will lead to less regeneration solution used,
+    # and (hopefully) a lower cost.
+    ix.process_flow.properties_out[0].conc_mass_phase_comp["Liq", target_ion].fix(0.025)
+
+    # With the new effluent conditions for our ion exchange model, this will have implications for our downstream models (the Product and Regen blocks)
+    # Thus, we must re-propagate the new effluent state to these models...
+    propagate_state(m.fs.ix_to_product)
+    propagate_state(m.fs.ix_to_regen)
+    # ...and re-initialize them to our new conditions.
+    m.fs.product.initialize()
+    m.fs.regen.initialize()
+
+    # To adjust solution to fixed-pattern to achieve desired effluent, must unfix dimensionless_time.
+    ix.dimensionless_time.unfix()
+    # Can optimize around different design variables, e.g., bed_depth, service_flow_rate (or combinations of these)
+    # Here demonstrates optimization around column design
+    ix.number_columns.unfix()
+    ix.bed_depth.unfix()
+    optimized_results = solver.solve(m)
+    assert_optimal_termination(optimized_results)
 
 
-@pytest.mark.component
-def test_breakdowns():
-    m = lsrro.build()
+def get_ion_config(ions):
 
-    m.fs.BoosterPumps[:].control_volume.work[0.0].value = 42e6
-    m.fs.EnergyRecoveryDevices[:].control_volume.work[0.0].value = -42e6
+    if not isinstance(ions, (list, tuple)):
+        ions = [ions]
+    diff_data = {
+        "Na_+": 1.33e-9,
+        "Ca_2+": 9.2e-10,
+        "Cl_-": 2.03e-9,
+        "Mg_2+": 0.706e-9,
+        "SO4_2-": 1.06e-9,
+    }
+    mw_data = {
+        "Na_+": 23e-3,
+        "Ca_2+": 40e-3,
+        "Cl_-": 35e-3,
+        "Mg_2+": 24e-3,
+        "SO4_2-": 96e-3,
+    }
+    charge_data = {"Na_+": 1, "Ca_2+": 2, "Cl_-": -1, "Mg_2+": 2, "SO4_2-": -2}
+    ion_config = {
+        "solute_list": [],
+        "diffusivity_data": {},
+        "mw_data": {"H2O": 18e-3},
+        "charge": {},
+    }
+    for ion in ions:
+        ion_config["solute_list"].append(ion)
+        ion_config["diffusivity_data"][("Liq", ion)] = diff_data[ion]
+        ion_config["mw_data"][ion] = mw_data[ion]
+        ion_config["charge"][ion] = charge_data[ion]
+    return ion_config
 
-    m.fs.costing.add_specific_electrical_carbon_intensity(
-        m.fs.product.properties[0].flow_vol
+
+def display_results(m):
+
+    ix = m.fs.ion_exchange
+    liq = "Liq"
+    header = f'{"PARAM":<40s}{"VALUE":<40s}{"UNITS":<40s}\n'
+
+    prop_in = ix.process_flow.properties_in[0]
+    prop_out = ix.process_flow.properties_out[0]
+
+    recovery = prop_out.flow_vol_phase["Liq"]() / prop_in.flow_vol_phase["Liq"]()
+    target_ion = ix.config.target_ion
+    ion_set = ix.config.property_package.ion_set
+    bv_to_regen = (ix.vel_bed() * ix.t_breakthru()) / ix.bed_depth()
+
+    title = f'\n{"=======> SUMMARY <=======":^80}\n'
+    print(title)
+    print(header)
+    print(f'{"LCOW":<40s}{f"{m.fs.costing.LCOW():<40.4f}"}{"$/m3":<40s}')
+    print(
+        f'{"TOTAL Capital Cost":<40s}{f"${ix.costing.capital_cost():<39,.2f}"}{"$":<40s}'
+    )
+    print(
+        f'{"Specific Energy Consumption":<40s}{f"{m.fs.costing.specific_energy_consumption():<39,.5f}"}{"kWh/m3":<40s}'
+    )
+    regen_usage = m.fs.costing.regenerant_usage_component["fs.ion_exchange"]
+    print(
+        f'{f"Specific {ix.config.regenerant} Consumption":<40s}{f"{regen_usage():<39,.5f}"}{"kg/m3":<40s}'
+    )
+    print(
+        f'{f"Annual Regenerant cost ({ix.config.regenerant})":<40s}{f"${m.fs.costing.aggregate_flow_costs[ix.config.regenerant]():<39,.2f}"}{"$/yr":<40s}'
+    )
+    print(f'{"BV Until Regen":<40s}{bv_to_regen:<40.3f}{"Bed Volumes":<40s}')
+    print(
+        f'{f"Breakthrough/Initial Conc. [{target_ion}]":<40s}{ix.c_norm[target_ion]():<40.3%}'
     )
 
     assert_units_consistent(m)

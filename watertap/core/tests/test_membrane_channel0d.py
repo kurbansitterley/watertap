@@ -17,6 +17,7 @@ import itertools
 import pyomo.environ as pyo
 from watertap.core.membrane_channel0d import _0DPropertyHelper
 
+
 def build_model():
     m = pyo.ConcreteModel()
     m.time_periods = pyo.RangeSet(0, 10)
@@ -26,6 +27,7 @@ def build_model():
     m.properties_forward = _0DPropertyHelper(m, reverse=False)
     m.properties_backward = _0DPropertyHelper(m, reverse=True)
     return m
+
 
 class Test0DPropertyHelper:
 

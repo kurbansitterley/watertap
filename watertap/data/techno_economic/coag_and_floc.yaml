@@ -73,11 +73,12 @@ default:
           units: lb/day 
       flocculator:
         lower_bound:
-          value: 0.015
+          # NOTE: Table 5.2.1 and Figure 5.5.22 have different apparent bounds for the curve
+          value: 0.02 # from Table 5.2.1
           units: Mgallons
         upper_bound:
-          value: 7
-          units: gallons
+          value: 7.4 # from Figure 5.5.22
+          units: Mgallons
 
     capital_mix_a_parameter:
       value: 7.0814

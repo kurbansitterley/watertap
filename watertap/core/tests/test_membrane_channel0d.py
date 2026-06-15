@@ -17,27 +17,38 @@ import itertools
 import pyomo.environ as pyo
 from watertap.core.membrane_channel0d import _0DPropertyHelper
 
+def build_model():
+    m = pyo.ConcreteModel()
+    m.time_periods = pyo.RangeSet(0, 10)
+    m.properties_in = pyo.Var(m.time_periods)
+    m.properties_out = pyo.Var(m.time_periods)
+
+    m.properties_forward = _0DPropertyHelper(m, reverse=False)
+    m.properties_backward = _0DPropertyHelper(m, reverse=True)
+    return m
 
 class Test0DPropertyHelper:
 
-    @pytest.fixture(scope="class")
-    def model(self):
-        m = pyo.ConcreteModel()
-        m.time_periods = pyo.RangeSet(0, 10)
-        m.properties_in = pyo.Var(m.time_periods)
-        m.properties_out = pyo.Var(m.time_periods)
+    # @pytest.fixture(scope="class")
+    # def model(self):
+    #     m = pyo.ConcreteModel()
+    #     m.time_periods = pyo.RangeSet(0, 10)
+    #     m.properties_in = pyo.Var(m.time_periods)
+    #     m.properties_out = pyo.Var(m.time_periods)
 
-        m.properties_forward = _0DPropertyHelper(m, reverse=False)
-        m.properties_backward = _0DPropertyHelper(m, reverse=True)
-        return m
+    #     m.properties_forward = _0DPropertyHelper(m, reverse=False)
+    #     m.properties_backward = _0DPropertyHelper(m, reverse=True)
+    #     return m
 
     @pytest.mark.unit
-    def test_len(self, model):
+    def test_len(self):
+        model = build_model()
         assert len(model.properties_forward) == 2 * len(model.time_periods)
         assert len(model.properties_backward) == 2 * len(model.time_periods)
 
     @pytest.mark.unit
-    def test_iter(self, model):
+    def test_iter(self):
+        model = build_model()
         found_keys = []
         for k in model.properties_forward:
             found_keys.append(k)
@@ -49,7 +60,8 @@ class Test0DPropertyHelper:
         assert found_keys == [(t, x) for x in (0, 1) for t in model.time_periods]
 
     @pytest.mark.unit
-    def test_contains(self, model):
+    def test_contains(self):
+        model = build_model()
         assert (11, 0) not in model.properties_forward
         assert (11, 1) not in model.properties_forward
         assert (11, 0.5) not in model.properties_forward
@@ -67,7 +79,8 @@ class Test0DPropertyHelper:
         assert (5, 1) in model.properties_backward
 
     @pytest.mark.unit
-    def test_getitem(self, model):
+    def test_getitem(self):
+        model = build_model()
         assert model.properties_forward[5, 0] is model.properties_in[5]
         assert model.properties_forward[5, 1] is model.properties_out[5]
 
@@ -119,7 +132,8 @@ class Test0DPropertyHelper:
             model.properties_forward[5, slice(0, 2, 1)]
 
     @pytest.mark.unit
-    def test_keys(self, model):
+    def test_keys(self):
+        model = build_model()
         for k1, k2 in zip(
             model.properties_forward.keys(),
             itertools.chain(
@@ -138,7 +152,8 @@ class Test0DPropertyHelper:
             assert k1 == k2
 
     @pytest.mark.unit
-    def test_items(self, model):
+    def test_items(self):
+        model = build_model()
         for i1, i2 in zip(
             model.properties_forward.items(),
             itertools.chain(
@@ -172,7 +187,8 @@ class Test0DPropertyHelper:
             assert i1v is i2v
 
     @pytest.mark.unit
-    def test_values(self, model):
+    def test_values(self):
+        model = build_model()
         for v1, v2 in zip(
             model.properties_forward.values(),
             itertools.chain(

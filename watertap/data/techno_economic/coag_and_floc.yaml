@@ -8,14 +8,28 @@ default:
   alum_dose:
     value: 10
     units: mg/L
-    constituent_longform: Aluminum Sulphate Dosage
+    constituent_longform: Aluminum Sulphate Dose
+  alum_solution_density:
+    value: 1450
+    units: kg/m^3
+    reference: https://www.pentachemicals.eu/data/Bezpecnostni_listy/en/Aluminium%20sulfate%20solution%2050%20in%20water_1459_1.0.pdf
+  alum_ratio_in_solution:
+    value: 0.5
+    units: dimensionless
   polymer_dose:
     value: 0.1
     units: mg/L
-    constituent_longform: Polymer Dosage
-  anion_to_cation_polymer_ratio:
-    value: 1
+    constituent_longform: Polymer Flocculant Dose
+  polymer_solution_density:
+    value: 1040
+    units: kg/m^3
+    reference: Slide 15, for K122L cationic polymer
+        https://www.wef.org/globalassets/assets-wef/2-resources/online-education/webcasts/presentation-handouts/25june20-final-deck-handouts.pdf
+  polymer_ratio_in_solution:
+    value: 0.01
     units: dimensionless
+    reference: Slide 15, for K122L cationic polymer
+        https://www.wef.org/globalassets/assets-wef/2-resources/online-education/webcasts/presentation-handouts/25june20-final-deck-handouts.pdf
   rapid_mix_retention_time:
     value: 5.5
     units: s

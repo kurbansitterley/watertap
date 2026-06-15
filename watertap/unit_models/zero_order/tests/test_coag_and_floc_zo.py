@@ -15,7 +15,6 @@ Tests for zero-order coagulation/flocculation model
 
 import pytest
 
-
 from pyomo.environ import (
     Block,
     ConcreteModel,
@@ -27,16 +26,15 @@ from pyomo.environ import (
 )
 from pyomo.util.check_units import assert_units_consistent, assert_units_equivalent
 
-from idaes.core import FlowsheetBlock
-from watertap.core.solvers import get_solver
+from idaes.core import FlowsheetBlock, UnitModelCostingBlock
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.testing import initialization_tester
-from idaes.core import UnitModelCostingBlock
 
 from watertap.unit_models.zero_order import CoagulationFlocculationZO
 from watertap.core.wt_database import Database
 from watertap.core.zero_order_properties import WaterParameterBlock
 from watertap.costing.zero_order_costing import ZeroOrderCosting
+from watertap.core.solvers import get_solver
 
 solver = get_solver()
 
@@ -270,6 +268,8 @@ def test_costing():
     results = solver.solve(m)
     assert_optimal_termination(results)
 
+    return m
+
     assert isinstance(m.fs.costing.coag_and_floc, Block)
     assert isinstance(m.fs.costing.coag_and_floc.capital_mix_a_parameter, Var)
     assert isinstance(m.fs.costing.coag_and_floc.capital_mix_b_parameter, Var)
@@ -283,3 +283,5 @@ def test_costing():
     assert pytest.approx(value(m.fs.unit.costing.cost_floc_inj), rel=1e-5) == 459842.62
 
     assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]
+
+m = test_costing()

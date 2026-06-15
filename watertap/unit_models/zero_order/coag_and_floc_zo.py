@@ -15,10 +15,12 @@ operation.
 """
 
 import pyomo.environ as pyo
-from pyomo.environ import Constraint, units as pyunits, Var
+
+# from pyomo.environ import Constraint, units as pyo.units, Var
 from idaes.core import declare_process_block_class
 
 from watertap.core import build_pt, ZeroOrderBaseData
+from watertap.core.zero_order_electricity import pump_electricity
 from watertap.custom_exceptions import FrozenPipes
 
 __author__ = "Adam Atia"
@@ -39,120 +41,140 @@ class CoagulationFlocculationZOData(ZeroOrderBaseData):
 
         build_pt(self)
 
-        self.alum_dose = Var(
-            self.flowsheet().time,
-            units=pyunits.mg / pyunits.L,
+        self.alum_dose = pyo.Var(
+            units=pyo.units.mg / pyo.units.L,
             bounds=(0, None),
             doc="Dosing rate of alum",
         )
 
-        self.polymer_dose = Var(
+        self.alum_ratio_in_solution = pyo.Var(
+            units=pyo.units.dimensionless,
+            bounds=(0, 1),
+            doc="Mass ratio of alum in feed solution",
+        )
+
+        self.alum_solution_density = pyo.Var(
+            units=pyo.units.kg / pyo.units.m**3,
+            bounds=(0, None),
+            doc="Mass density of alum feed solution",
+        )
+
+        self.alum_flow_mass = pyo.Var(
+            units=pyo.units.kg / pyo.units.s,
+            bounds=(0, None),
+            doc="Mass flow rate of alum",
+        )
+
+        self.alum_flow_vol = pyo.Var(
             self.flowsheet().time,
-            units=pyunits.mg / pyunits.L,
+            units=pyo.units.m**3 / pyo.units.s,
+            bounds=(0, None),
+            doc="Volumetric flow rate of alum solution",
+        )
+
+        self.polymer_dose = pyo.Var(
+            units=pyo.units.mg / pyo.units.L,
             bounds=(0, None),
             doc="Dosing rate of polymer",
         )
 
-        self.anion_to_cation_polymer_ratio = Var(
+        self.polymer_ratio_in_solution = pyo.Var(
+            units=pyo.units.dimensionless,
+            bounds=(0, 1),
+            doc="Mass ratio of polymer in feed solution",
+        )
+
+        self.polymer_solution_density = pyo.Var(
+            units=pyo.units.kg / pyo.units.m**3,
+            bounds=(0, None),
+            doc="Mass density of polymer feed solution",
+        )
+
+        self.polymer_flow_mass = pyo.Var(
+            units=pyo.units.kg / pyo.units.s,
+            bounds=(0, None),
+            doc="Mass flow rate of polymer",
+        )
+
+        self.polymer_flow_vol = pyo.Var(
             self.flowsheet().time,
+            units=pyo.units.m**3 / pyo.units.s,
             bounds=(0, None),
-            units=pyunits.dimensionless,
-            doc="Ratio of anionic to cationic polymer in dosage",
+            doc="Volumetric flow rate of polymer solution",
         )
 
-        self.anionic_polymer_dose = Var(
-            self.flowsheet().config.time,
-            bounds=(0, None),
-            units=pyunits.mg / pyunits.L,
-            doc="Dosing rate of anionic polymer",
-        )
-
-        self.cationic_polymer_dose = Var(
-            self.flowsheet().config.time,
-            bounds=(0, None),
-            units=pyunits.mg / pyunits.L,
-            doc="Dosing rate of cationic polymer",
-        )
-
-        self.chemical_flow_mass = Var(
-            self.flowsheet().time,
-            ["alum", "polymer"],
-            units=pyunits.kg / pyunits.s,
-            bounds=(0, None),
-            doc="Mass flow rate of chemical solution",
-        )
-
-        self.rapid_mix_retention_time = Var(
-            self.flowsheet().config.time,
-            units=pyunits.seconds,
+        self.rapid_mix_retention_time = pyo.Var(
+            units=pyo.units.seconds,
             doc="Rapid Mix Retention Time",
         )
 
-        self.floc_retention_time = Var(
-            self.flowsheet().config.time,
-            units=pyunits.minutes,
+        self.floc_retention_time = pyo.Var(
+            units=pyo.units.minutes,
             doc="Floc Retention Time",
         )
 
-        self.rapid_mix_basin_vol = Var(units=pyunits.m**3, doc="Rapid Mix Basin Volume")
-
-        self.floc_basin_vol = Var(units=pyunits.m**3, doc="Floc Basin Volume")
-
-        self.num_rapid_mixers = Var(
-            units=pyunits.dimensionless, doc="Number of Rapid Mixers"
+        self.rapid_mix_basin_vol = pyo.Var(
+            units=pyo.units.m**3, doc="Rapid Mix Basin Volume"
         )
 
-        self.num_floc_mixers = Var(
-            units=pyunits.dimensionless, doc="Number of Floc Mixers"
+        self.floc_basin_vol = pyo.Var(units=pyo.units.m**3, doc="Floc Basin Volume")
+
+        self.num_rapid_mixers = pyo.Var(
+            units=pyo.units.dimensionless, doc="Number of Rapid Mixers"
         )
 
-        self.num_rapid_mix_processes = Var(
-            units=pyunits.dimensionless, doc="Number of Rapid Mix Processes"
+        self.num_floc_mixers = pyo.Var(
+            units=pyo.units.dimensionless, doc="Number of Floc Mixers"
         )
 
-        self.num_floc_processes = Var(
-            units=pyunits.dimensionless, doc="Number of Floc Processes"
+        self.num_rapid_mix_processes = pyo.Var(
+            units=pyo.units.dimensionless, doc="Number of Rapid Mix Processes"
         )
 
-        self.num_coag_processes = Var(
-            units=pyunits.dimensionless, doc="Number of Coagulation Processes"
+        self.num_floc_processes = pyo.Var(
+            units=pyo.units.dimensionless, doc="Number of Floc Processes"
         )
 
-        self.num_floc_injection_processes = Var(
-            units=pyunits.dimensionless, doc="Number of Floc Injection Processes"
+        self.num_coag_processes = pyo.Var(
+            units=pyo.units.dimensionless, doc="Number of Coagulation Processes"
         )
 
-        self.velocity_gradient_rapid_mix = Var(
+        self.num_floc_injection_processes = pyo.Var(
+            units=pyo.units.dimensionless, doc="Number of Floc Injection Processes"
+        )
+
+        self.velocity_gradient_rapid_mix = pyo.Var(
             self.flowsheet().config.time,
-            units=pyunits.s**-1,
+            units=pyo.units.s**-1,
             doc="Rapid Mix Velocity Gradient",
         )
 
-        self.velocity_gradient_floc = Var(
+        self.velocity_gradient_floc = pyo.Var(
             self.flowsheet().config.time,
-            units=pyunits.s**-1,
+            units=pyo.units.s**-1,
             doc="Floc Velocity Gradient",
         )
 
-        self.power_rapid_mix = Var(
+        self.power_rapid_mix = pyo.Var(
             self.flowsheet().config.time,
-            units=pyunits.kW,
+            units=pyo.units.kW,
             doc="Rapid Mix Power Consumption",
         )
 
-        self.power_floc = Var(
-            self.flowsheet().config.time, units=pyunits.kW, doc="Floc Power Consumption"
+        self.power_floc = pyo.Var(
+            self.flowsheet().config.time,
+            units=pyo.units.kW,
+            doc="Floc Power Consumption",
         )
 
-        self.electricity = Var(
+        self.electricity = pyo.Var(
             self.flowsheet().config.time,
-            units=pyunits.kW,
+            units=pyo.units.kW,
             doc="Total Power Consumption",
         )
 
         self._fixed_perf_vars.append(self.alum_dose)
         self._fixed_perf_vars.append(self.polymer_dose)
-        self._fixed_perf_vars.append(self.anion_to_cation_polymer_ratio)
         self._fixed_perf_vars.append(self.rapid_mix_retention_time)
         self._fixed_perf_vars.append(self.floc_retention_time)
         self._fixed_perf_vars.append(self.num_floc_injection_processes)
@@ -166,10 +188,8 @@ class CoagulationFlocculationZOData(ZeroOrderBaseData):
 
         self._perf_var_dict["Alum Dosage (mg/L)"] = self.alum_dose
         self._perf_var_dict["Polymer Dosage (mg/L)"] = self.polymer_dose
-        self._perf_var_dict["Alum Flow (kg/s)"] = self.chemical_flow_mass[0, "alum"]
-        self._perf_var_dict["Polymer Flow (kg/s)"] = self.chemical_flow_mass[
-            0, "polymer"
-        ]
+        self._perf_var_dict["Alum Flow (kg/s)"] = self.alum_flow_mass
+        self._perf_var_dict["Polymer Flow (kg/s)"] = self.polymer_flow_mass
         self._perf_var_dict["Rapid Mix Basin Volume (m^3)"] = self.rapid_mix_basin_vol
         self._perf_var_dict["Floc Basin Volume (m^3)"] = self.floc_basin_vol
         self._perf_var_dict["Rapid Mix Retention Time (s)"] = (
@@ -189,85 +209,113 @@ class CoagulationFlocculationZOData(ZeroOrderBaseData):
         def rule_rapid_mix_basin_vol(blk):
             return (
                 blk.rapid_mix_basin_vol
-                == blk.properties[0].flow_vol * blk.rapid_mix_retention_time[0]
+                == blk.properties[0].flow_vol * blk.rapid_mix_retention_time
             )
 
-        self.rapid_mix_basin_vol_constraint = Constraint(rule=rule_rapid_mix_basin_vol)
+        self.rapid_mix_basin_vol_constraint = pyo.Constraint(
+            rule=rule_rapid_mix_basin_vol
+        )
 
         def rule_floc_basin_vol(blk):
-            return blk.floc_basin_vol == pyunits.convert(
-                blk.properties[0].flow_vol * blk.floc_retention_time[0],
-                to_units=pyunits.m**3,
+            return blk.floc_basin_vol == pyo.units.convert(
+                blk.properties[0].flow_vol * blk.floc_retention_time,
+                to_units=pyo.units.m**3,
             )
 
-        self.floc_basin_vol_constraint = Constraint(rule=rule_floc_basin_vol)
+        self.floc_basin_vol_constraint = pyo.Constraint(rule=rule_floc_basin_vol)
 
-        def rule_chem_flow(blk, t, j):
-            if j == "alum":
-                chemical_dosage = blk.alum_dose[t]
-            elif j == "polymer":
-                chemical_dosage = blk.polymer_dose[t]
-            else:
-                raise FrozenPipes(
-                    f"Unexpected chemical {j} in coagulation/flocculation unit"
-                )
-            return blk.chemical_flow_mass[t, j] == pyunits.convert(
-                chemical_dosage * blk.properties[t].flow_vol,
-                to_units=pyunits.kg / pyunits.s,
+        def rule_alum_flow_mass(blk):
+            return blk.alum_flow_mass == pyo.units.convert(
+                (blk.alum_dose * blk.properties[0].flow_vol)
+                / blk.alum_ratio_in_solution,
+                to_units=pyo.units.kg / pyo.units.s,
             )
 
-        self.chemical_flow_constraint = Constraint(
-            self.flowsheet().time, ["alum", "polymer"], rule=rule_chem_flow
-        )
+        self.alum_flow_mass_constraint = pyo.Constraint(rule=rule_alum_flow_mass)
 
-        def rule_anionic_polymer_dose(blk, t):
-            return blk.anionic_polymer_dose[t] == blk.anion_to_cation_polymer_ratio[
-                t
-            ] * blk.polymer_dose[t] / (blk.anion_to_cation_polymer_ratio[t] + 1)
-
-        self.anionic_polymer_dose_constraint = Constraint(
-            self.flowsheet().config.time, rule=rule_anionic_polymer_dose
-        )
-
-        def rule_cationic_polymer_dose(blk, t):
-            return blk.cationic_polymer_dose[t] == blk.polymer_dose[t] / (
-                blk.anion_to_cation_polymer_ratio[t] + 1
+        def rule_alum_flow_vol(blk):
+            return blk.alum_flow_vol[0] == pyo.units.convert(
+                blk.alum_flow_mass / blk.alum_solution_density,
+                to_units=pyo.units.m**3 / pyo.units.s,
             )
 
-        self.cationic_polymer_dose_constraint = Constraint(
-            self.flowsheet().config.time, rule=rule_cationic_polymer_dose
-        )
+        self.alum_flow_vol_constraint = pyo.Constraint(rule=rule_alum_flow_vol)
+        pump_electricity(self, self.alum_flow_vol)
 
-        # TODO: WT3 doesn't include pump electricity. Consider adding after case study validation
-        # pump_electricity(self, self.chemical_flow_vol)
+        # def rule_polymer_flow_mass(blk):
+        #     return blk.polymer_flow_mass == pyo.units.convert(
+        #         (blk.polymer_dose * blk.properties[0].flow_vol)
+        #         / blk.polymer_ratio_in_solution,
+        #         to_units=pyo.units.m**3 / pyo.units.s,
+        #     )
 
-        @self.Constraint(
-            self.flowsheet().time, doc="Constraint for rapid mix power consumption"
-        )
-        def rule_power_rapid_mix(b, t):
-            return b.power_rapid_mix[t] == pyunits.convert(
+        # self.polymer_flow_mass_constraint = pyo.Constraint(rule=rule_polymer_flow_mass)
+
+        # def rule_polymer_flow_vol(blk):
+        #     return blk.polymer_flow_vol[0] == pyo.units.convert(
+        #         blk.polymer_flow_mass / blk.polymer_solution_density,
+        #         to_units=pyo.units.m**3 / pyo.units.s,
+        #     )
+    
+        # self.polymer_flow_vol_constraint = pyo.Constraint(rule=rule_polymer_flow_vol)
+
+        # pump_electricity(self, self.polymer_flow_vol)
+
+        # def rule_chem_flow(blk, t, j):
+        #     if j == "alum":
+        #         chemical_dosage = blk.alum_dose[t]
+        #     elif j == "polymer":
+        #         chemical_dosage = blk.polymer_dose[t]
+        #     else:
+        #         raise FrozenPipes(
+        #             f"Unexpected chemical {j} in coagulation/flocculation unit"
+        #         )
+        #     return blk.chemical_flow_mass[t, j] == pyo.units.convert(
+        #         chemical_dosage * blk.properties[t].flow_vol,
+        #         to_units=pyo.units.kg / pyo.units.s,
+        #     )
+
+        # self.chemical_flow_constraint = pyo.Constraint(
+        #     self.flowsheet().time, ["alum", "polymer"], rule=rule_chem_flow
+        # )
+
+
+        # @self.pyo.Constraint(
+        #     self.flowsheet().time, doc="Constraint for rapid mix power consumption"
+        # )
+        def rule_power_rapid_mix(b):
+            return b.power_rapid_mix == pyo.units.convert(
                 b.num_rapid_mixers
-                * b.properties[t].visc_d
+                * b.properties[0].visc_d
                 * b.rapid_mix_basin_vol
-                * b.velocity_gradient_rapid_mix[t] ** 2,
-                to_units=pyunits.kW,
+                * b.velocity_gradient_rapid_mix ** 2,
+                to_units=pyo.units.kW,
             )
-
-        @self.Constraint(
-            self.flowsheet().time, doc="Constraint for floc power consumption"
+        
+        self.rapid_mix_power_constraint = pyo.Constraint(rule=rule_power_rapid_mix
         )
-        def rule_power_floc(b, t):
-            return b.power_floc[t] == pyunits.convert(
+
+        # @self.pyo.Constraint(
+        #     self.flowsheet().time, doc="Constraint for floc power consumption"
+        # )
+        def rule_power_floc(b):
+            return b.power_floc == pyo.units.convert(
                 b.num_floc_mixers
-                * b.properties[t].visc_d
+                * b.properties[0].visc_d
                 * b.floc_basin_vol
-                * b.velocity_gradient_floc[t] ** 2,
-                to_units=pyunits.kW,
+                * b.velocity_gradient_floc ** 2,
+                to_units=pyo.units.kW,
             )
 
-        @self.Constraint(self.flowsheet().time, doc="Total power consumption")
-        def electricity_constraint(b, t):
-            return b.electricity[t] == b.power_floc[t] + b.power_rapid_mix[t]
+        self.floc_power_constraint = pyo.Constraint(
+            self.flowsheet().time, rule=rule_power_floc
+        )
+        # @self.pyo.Constraint(self.flowsheet().time, doc="Total power consumption")
+        # def electricity_constraint(b, t):
+        #     return b.electricity[t] == b.power_floc[t] + b.power_rapid_mix[t]
+
+        def rule_electricity(b):
+            return b.electricity[0] == b.power_floc + b.power_rapid_mix
 
     @property
     def default_costing_method(self):
@@ -305,14 +353,14 @@ class CoagulationFlocculationZOData(ZeroOrderBaseData):
         )
 
         # Add cost variable and constraint
-        blk.capital_cost = pyo.Var(
+        blk.capital_cost = pyo.pyo.Var(
             initialize=1,
             units=blk.config.flowsheet_costing_block.base_currency,
             bounds=(0, None),
             doc="Capital cost of unit operation",
         )
 
-        blk.cost_rapid_mix = pyo.Expression(
+        blk.cost_rapid_mix = pyo.pyo.Expression(
             expr=(
                 A
                 * pyo.units.convert(
@@ -323,7 +371,7 @@ class CoagulationFlocculationZOData(ZeroOrderBaseData):
             * blk.unit_model.num_rapid_mix_processes
         )
 
-        blk.cost_floc = pyo.Expression(
+        blk.cost_floc = pyo.pyo.Expression(
             expr=(
                 C
                 * pyo.units.convert(
@@ -334,11 +382,11 @@ class CoagulationFlocculationZOData(ZeroOrderBaseData):
             * blk.unit_model.num_floc_processes
         )
 
-        blk.cost_coag_inj = pyo.Expression(
+        blk.cost_coag_inj = pyo.pyo.Expression(
             expr=(
                 E
                 * pyo.units.convert(
-                    blk.unit_model.chemical_flow_mass[t0, "alum"],
+                    blk.unit_model.alum_flow_mass,
                     to_units=(pyo.units.lb / pyo.units.hour),
                 )
                 + F
@@ -346,11 +394,11 @@ class CoagulationFlocculationZOData(ZeroOrderBaseData):
             * blk.unit_model.num_coag_processes
         )
 
-        blk.cost_floc_inj = pyo.Expression(
+        blk.cost_floc_inj = pyo.pyo.Expression(
             expr=(
                 G
                 * pyo.units.convert(
-                    blk.unit_model.chemical_flow_mass[t0, "polymer"],
+                    blk.unit_model.polymer_flow_mass,
                     to_units=(pyo.units.lb / pyo.units.day),
                 )
                 + H
@@ -380,7 +428,7 @@ class CoagulationFlocculationZOData(ZeroOrderBaseData):
             blk, parameter_dict["capital_cost"]["cost_factor"]
         )
 
-        blk.capital_cost_constraint = pyo.Constraint(
+        blk.capital_cost_constraint = pyo.pyo.Constraint(
             expr=blk.capital_cost == blk.cost_factor * expr
         )
 

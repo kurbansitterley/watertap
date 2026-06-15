@@ -254,7 +254,7 @@ jobs:
         echo '::endgroup::'
     - name: Run pytest
       run: |
-        pytest watertap/core/tests/test_membrane_channel0d.py
+        pytest --pyargs watertap.core.tests.test_membrane_channel0d
 
 #   notebooks:
 #     name: Test notebooks (py${{ matrix.python-version }}/${{ matrix.os }})

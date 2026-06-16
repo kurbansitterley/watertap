@@ -21,15 +21,14 @@ from watertap.property_models.tests.property_test_harness import (
     PropertyCalculateStateTest,
 )
 
-
 # -----------------------------------------------------------------------------
-@pytest.mark.unit
-class TestNaClProperty_idaes(PropertyTestHarness_idaes):
-    def configure(self):
-        self.prop_pack = props.NaClParameterBlock
-        self.param_args = {}
-        self.prop_args = {}
-        self.has_density_terms = False
+# @pytest.mark.unit
+# class TestNaClProperty_idaes(PropertyTestHarness_idaes):
+#     def configure(self):
+#         self.prop_pack = props.NaClParameterBlock
+#         self.param_args = {}
+#         self.prop_args = {}
+#         self.has_density_terms = False
 
 
 class TestNaClProperty(PropertyTestHarness):

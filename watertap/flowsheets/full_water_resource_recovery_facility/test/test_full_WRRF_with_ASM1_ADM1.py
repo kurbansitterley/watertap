@@ -68,6 +68,7 @@ linux_platform_only = pytest.mark.xfail(
 
 class TestFullFlowsheet:
     @pytest.fixture(scope="class")
+    @classmethod
     def system_frame(self):
         m = BSM2.build()
         BSM2.set_operating_conditions(m)
@@ -91,6 +92,7 @@ class TestFullFlowsheet:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def optimized_system_frame(self):
         m = BSM2.build()
         BSM2.set_operating_conditions(m)

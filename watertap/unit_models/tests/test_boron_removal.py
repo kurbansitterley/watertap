@@ -303,6 +303,7 @@ class TestBoronRemoval_IonPropPack_with_ResBase(UnitTestHarness):
 # Start test class with bad config
 class TestBoronRemoval_BadConfigs:
     @pytest.fixture(scope="class")
+    @classmethod
     def boron_removal_bad_configs(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)

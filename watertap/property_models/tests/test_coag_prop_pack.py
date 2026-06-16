@@ -44,6 +44,7 @@ solver = get_solver()
 # Start test class
 class TestCoagulationPropPack:
     @pytest.fixture(scope="class")
+    @classmethod
     def coag_obj(self):
         model = ConcreteModel()
         model.fs = FlowsheetBlock(dynamic=False)
@@ -276,6 +277,7 @@ class TestCoagulationPropPack:
 
 class TestCoagulationPropPackFailures:
     @pytest.fixture(scope="class")
+    @classmethod
     def coag_obj_fail(self):
         model = ConcreteModel()
         model.fs = FlowsheetBlock(dynamic=False)

@@ -84,6 +84,7 @@ linux_platform_old_only = pytest.mark.xfail(
 @pytest.mark.requires_idaes_solver
 class TestFullFlowsheetBioPFalse:
     @pytest.fixture(scope="class")
+    @classmethod
     def system_frame(self):
         m, res, sm = main(bio_P=False)
         return m
@@ -202,6 +203,7 @@ class TestFullFlowsheetBioPFalse:
 @pytest.mark.requires_idaes_solver
 class TestFullFlowsheetBioPTrue:
     @pytest.fixture(scope="class")
+    @classmethod
     def system_frame(self):
         m, res, sm = main(bio_P=True)
         return m
@@ -321,6 +323,7 @@ class TestFullFlowsheetBioPTrue:
 @pytest.mark.requires_idaes_solver
 class TestScaledBioPFalse:
     @pytest.fixture(scope="class")
+    @classmethod
     def system_frame(self):
         m, res, sm = main(bio_P=False)
         return sm
@@ -382,6 +385,7 @@ class TestScaledBioPFalse:
 @pytest.mark.requires_idaes_solver
 class TestScaledBioPTrue:
     @pytest.fixture(scope="class")
+    @classmethod
     def system_frame(self):
         m, res, sm = main(bio_P=True)
         return sm

@@ -47,6 +47,7 @@ solver = get_solver()
 class TestIXDemoCa:
 
     @pytest.fixture(scope="class")
+    @classmethod
     def ix_0D_Ca(self):
         target_ion = "Ca_2+"
         ions = [target_ion]
@@ -397,6 +398,7 @@ class TestIXDemoCa:
 class TestIXDemoSO4:
 
     @pytest.fixture(scope="class")
+    @classmethod
     def ix_0D_SO4(self):
         target_ion = "SO4_2-"
         ions = [target_ion]

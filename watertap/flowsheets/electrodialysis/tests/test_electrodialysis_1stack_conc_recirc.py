@@ -21,6 +21,7 @@ __author__ = "Xiangyu Bi"
 
 class TestElectrodialysis1StackFS:
     @pytest.fixture(scope="class")
+    @classmethod
     def ED1D1Stack_conc_recirc(self):
         m = edfs.build()
         return m

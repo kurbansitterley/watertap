@@ -103,6 +103,7 @@ class UnitTestHarness(abc.ABC):
         """
 
     @pytest.fixture(scope="class")
+    @classmethod
     def frame(self):
         self.configure_class()
         return self._model, self.unit_model_block

@@ -28,6 +28,7 @@ from watertap.costing import CrystallizerCostType
 
 class TestCrystallizerBuild:
     @pytest.fixture(scope="class")
+    @classmethod
     def crystallizer(self):
         m = cryst_ex()
         return m

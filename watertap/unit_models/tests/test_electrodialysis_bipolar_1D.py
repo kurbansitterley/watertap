@@ -55,6 +55,7 @@ solver = get_solver()
 
 class Test_membrane_characteristics:
     @pytest.fixture(scope="class")
+    @classmethod
     def bped(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -280,6 +281,7 @@ class Test_membrane_characteristics:
 class Test_Operation:
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_const_v_no_salt_calc(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -315,6 +317,7 @@ class Test_Operation:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_const_current_no_salt_calc(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -350,6 +353,7 @@ class Test_Operation:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_const_v_salt_calc(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -385,6 +389,7 @@ class Test_Operation:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_const_current_salt_calc(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -829,6 +834,7 @@ class Test_Operation:
 class Test_NMSU_bench_scale:
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_1(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -931,6 +937,7 @@ class Test_NMSU_bench_scale:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_2(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -1033,6 +1040,7 @@ class Test_NMSU_bench_scale:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_3(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -1344,6 +1352,7 @@ class Test_NMSU_bench_scale:
 class Test_BPED_pressure_drop_components:
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_m0(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -1380,6 +1389,7 @@ class Test_BPED_pressure_drop_components:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_m1(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -1418,6 +1428,7 @@ class Test_BPED_pressure_drop_components:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_m2(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -1456,6 +1467,7 @@ class Test_BPED_pressure_drop_components:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_m3(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -1494,6 +1506,7 @@ class Test_BPED_pressure_drop_components:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_m4(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -1532,6 +1545,7 @@ class Test_BPED_pressure_drop_components:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def bped_m5(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)

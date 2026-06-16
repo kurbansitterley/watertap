@@ -122,7 +122,8 @@ def test_config():
 
 class TestAeration_withASM1(object):
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
 
@@ -351,7 +352,7 @@ def test_error_without_oxygen():
 
 class TestAerationTankScaler:
     @pytest.fixture
-    def model(self):
+    def model(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
 

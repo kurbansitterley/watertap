@@ -32,6 +32,7 @@ solver = get_solver()
 
 class TestGACFlowsheet:
     @pytest.fixture(scope="class")
+    @classmethod
     def gac_frame(self):
 
         m = gac_fs.build(

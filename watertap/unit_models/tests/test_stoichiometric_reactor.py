@@ -49,6 +49,7 @@ solver = get_solver()
 
 class TestStoichiometricReactor:
     @pytest.fixture(scope="class")
+    @classmethod
     def basic_unit_mass(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -152,6 +153,7 @@ class TestStoichiometricReactor:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def basic_unit_molar(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -255,6 +257,7 @@ class TestStoichiometricReactor:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def dissolution_reactor(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
@@ -343,6 +346,7 @@ class TestStoichiometricReactor:
         return m
 
     @pytest.fixture(scope="class")
+    @classmethod
     def precipitation_reactor(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)

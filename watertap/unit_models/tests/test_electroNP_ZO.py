@@ -38,6 +38,7 @@ solver = get_solver()
 
 class TestElectroNP:
     @pytest.fixture(scope="class")
+    @classmethod
     def ElectroNP_frame(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)

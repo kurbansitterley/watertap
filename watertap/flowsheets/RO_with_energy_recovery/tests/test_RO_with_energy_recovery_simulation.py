@@ -48,6 +48,7 @@ solver = get_solver()
 # -----------------------------------------------------------------------------
 class TestROwithPX:
     @pytest.fixture(scope="class")
+    @classmethod
     def system_frame(self):
         m = build(erd_type="pressure_exchanger")
 
@@ -370,6 +371,7 @@ PXR brine out: 0.528 kg/s, 67424 ppm, 1.0 bar
 
 class TestROwithTurbine:
     @pytest.fixture(scope="class")
+    @classmethod
     def system_frame(self):
         m = build(erd_type=ERDtype.pump_as_turbine)
 
@@ -439,6 +441,7 @@ class TestROwithTurbine:
 
 class TestROnoERD:
     @pytest.fixture(scope="class")
+    @classmethod
     def system_frame(self):
         m = build(erd_type="no_ERD")
 

@@ -61,7 +61,7 @@ def test_custom_path():
 class TestDatabase:
     @pytest.fixture(scope="class")
     @classmethod
-    def db(self):
+    def db(cls):
         return Database()
 
     @pytest.mark.unit

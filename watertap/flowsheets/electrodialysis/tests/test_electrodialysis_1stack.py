@@ -42,7 +42,7 @@ __author__ = "Xiangyu Bi"
 class TestElectrodialysisVoltageConst:
     @pytest.fixture(scope="class")
     @classmethod
-    def electrodialysis_1D1stack(self):
+    def electrodialysis_1D1stack(cls):
         m = edfs.build()
         return m
 

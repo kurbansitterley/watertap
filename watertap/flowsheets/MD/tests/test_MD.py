@@ -44,7 +44,7 @@ solver = get_solver()
 class TestMDContinuousRecirculation:
     @pytest.fixture(scope="class")
     @classmethod
-    def system_frame(self):
+    def system_frame(cls):
         m = build()
 
         return m

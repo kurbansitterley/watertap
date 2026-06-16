@@ -29,7 +29,7 @@ solver = get_solver()
 class TestElectrolyzerCosting:
     @pytest.fixture(scope="class")
     @classmethod
-    def build_costing(self):
+    def build_costing(cls):
         m = build()
         initialization_tester(m)
         solver.solve(m)

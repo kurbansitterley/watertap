@@ -56,7 +56,7 @@ solver = get_solver()
 class Test_membrane_characteristics:
     @pytest.fixture(scope="class")
     @classmethod
-    def bped(self):
+    def bped(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -282,7 +282,7 @@ class Test_Operation:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_const_v_no_salt_calc(self):
+    def bped_const_v_no_salt_calc(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -318,7 +318,7 @@ class Test_Operation:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_const_current_no_salt_calc(self):
+    def bped_const_current_no_salt_calc(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {

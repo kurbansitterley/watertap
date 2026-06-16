@@ -185,7 +185,7 @@ class TestIntervalImproveInitial:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def m_infeas(self):
+    def m_infeas(cls):
 
         # This is the same model used in the pyomo fbbt test at
         # https://github.com/Pyomo/pyomo/blob/0e749d0c993df960af6cde0e775bef7cab6e2568/pyomo/contrib/fbbt/tests/test_fbbt.py#L957C9-L966C32

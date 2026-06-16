@@ -304,7 +304,7 @@ class TestBoronRemoval_IonPropPack_with_ResBase(UnitTestHarness):
 class TestBoronRemoval_BadConfigs:
     @pytest.fixture(scope="class")
     @classmethod
-    def boron_removal_bad_configs(self):
+    def boron_removal_bad_configs(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
 

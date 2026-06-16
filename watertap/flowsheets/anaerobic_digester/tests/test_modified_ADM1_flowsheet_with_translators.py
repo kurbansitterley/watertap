@@ -38,7 +38,7 @@ solver = get_solver()
 class TestADM1BioPFalse:
     @pytest.fixture(scope="class")
     @classmethod
-    def system_frame(self):
+    def system_frame(cls):
         m, res = main(bio_P=False)
         m.results = res
         return m
@@ -116,7 +116,7 @@ class TestADM1BioPFalse:
 class TestADM1BioPTrue:
     @pytest.fixture(scope="class")
     @classmethod
-    def system_frame(self):
+    def system_frame(cls):
         m, res = main(bio_P=True)
         m.results = res
         return m

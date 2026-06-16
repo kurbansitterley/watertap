@@ -48,7 +48,7 @@ class TestIXDemoCa:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def ix_0D_Ca(self):
+    def ix_0D_Ca(cls):
         target_ion = "Ca_2+"
         ions = [target_ion]
         m = ixf.ix_build(ions)
@@ -399,7 +399,7 @@ class TestIXDemoSO4:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def ix_0D_SO4(self):
+    def ix_0D_SO4(cls):
         target_ion = "SO4_2-"
         ions = [target_ion]
         m = ixf.ix_build(ions)

@@ -29,7 +29,7 @@ solver = get_solver()
 class TestPriceTakerWorkflow:
     @pytest.fixture(scope="class")
     @classmethod
-    def system_frame(self):
+    def system_frame(cls):
         price_data_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "..",

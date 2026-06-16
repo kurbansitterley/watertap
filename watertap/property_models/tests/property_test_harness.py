@@ -94,7 +94,7 @@ class PropertyTestHarness:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def frame_stateblock(self):
+    def frame_stateblock(cls):
         m = ConcreteModel()
         self.configure_class(m)
 
@@ -382,7 +382,7 @@ class PropertyTestHarness:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def frame_control_volume(self):
+    def frame_control_volume(cls):
         m = ConcreteModel()
         self.configure_class(m)
 

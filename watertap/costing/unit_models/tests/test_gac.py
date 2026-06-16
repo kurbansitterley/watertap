@@ -31,7 +31,7 @@ solver = get_solver()
 class TestGACCosting:
     @pytest.fixture(scope="class")
     @classmethod
-    def build(self):
+    def build(cls):
         m = build_crittenden()
         initialization_tester(m)
         solver.solve(m)

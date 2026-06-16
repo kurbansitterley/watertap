@@ -63,7 +63,7 @@ testing = [
     # treebeardtech/nbmake#121
     "nbmake!=1.5.1",
     "nbconvert",
-    "idaes-flowsheet-processor @ git+https://github.com/kurbansitterley/idaes-flowsheet-processor.git@pytest-update-bug-fix",
+    "idaes-flowsheet-processor @ git+https://github.com/prommis/idaes-flowsheet-processor.git@main",
 ]
 notebooks = ["jupyter", "ipykernel"]
 oli_api = [

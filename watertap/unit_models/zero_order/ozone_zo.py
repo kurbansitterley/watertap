@@ -186,6 +186,7 @@ class OzoneZOData(ZeroOrderBaseData):
         """
         Generate expressions for capital cost of ozonation system.
         """
+        # TODO: re-visit capex equation
 
         ln_Q = pyo.log(
             pyo.units.convert(

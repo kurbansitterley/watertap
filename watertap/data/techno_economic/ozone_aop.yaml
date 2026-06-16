@@ -2,9 +2,11 @@ default:  # default aop is for hydrogen peroxide
   oxidant_ozone_ratio:
     value: 0.5
     units: dimensionless
+    reference: Texas Water Development Board IT3PR User Manual
   contact_time:
     value: 1  
     units: min
+    reference: Texas Water Development Board IT3PR User Manual
   concentration_time:  
     value: 0.3
     units: (mg*min)/L
@@ -12,6 +14,7 @@ default:  # default aop is for hydrogen peroxide
   mass_transfer_efficiency:
     value: 0.8      
     units: dimensionless
+    reference: Texas Water Development Board IT3PR User Manual Table 3.24
   specific_energy_coeff:
     value: 5      
     units: kWh/lb
@@ -20,7 +23,7 @@ default:  # default aop is for hydrogen peroxide
   capital_cost:
     cost_factor: None
     ozone_capital_cost:
-      reference: Texas Water Development Board IT3P Table 3.24
+      reference: Texas Water Development Board IT3PR User Manual Table 3.24
       validity_range:
         flow_vol:
            lower_bound:
@@ -37,7 +40,7 @@ default:  # default aop is for hydrogen peroxide
              value: 25
              units: mg/L
     aop_capital_cost:
-      reference: Texas Water Development Board IT3P Figure 3.4
+      reference: Texas Water Development Board IT3PR User Manual Figure 3.4
       validity_range:
         lower_bound:
           value: 0

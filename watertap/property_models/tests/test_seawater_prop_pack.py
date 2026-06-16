@@ -23,12 +23,12 @@ from watertap.property_models.tests.property_test_harness import (
 )
 
 # -----------------------------------------------------------------------------
-# class TestSeawaterProperty_idaes(PropertyTestHarness_idaes):
-#     def configure(self):
-#         self.prop_pack = props.SeawaterParameterBlock
-#         self.param_args = {}
-#         self.prop_args = {}
-#         self.has_density_terms = True
+class TestSeawaterProperty_idaes(PropertyTestHarness_idaes):
+    def configure(self):
+        self.prop_pack = props.SeawaterParameterBlock
+        self.param_args = {}
+        self.prop_args = {}
+        self.has_density_terms = True
 
 
 class TestSeawaterProperty(PropertyTestHarness):

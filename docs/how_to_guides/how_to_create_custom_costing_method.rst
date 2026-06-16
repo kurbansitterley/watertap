@@ -14,16 +14,16 @@ The code below shows an example of how to build a custom costing method for a ne
 We will create any variables, parameters, and constraints needed to calculate capital and operating costs for the new unit, and also register the "bazchem" flow type with the costing package to calculate variable operating costs based on the mass flow of bazchem :sup:`2`.
 This is the general structure of all :ref:`costing methods for existing WaterTAP unit models<detailed_unit_model_costing>` that are in the `watertap/costing/unit_models <https://github.com/watertap-org/watertap/tree/main/watertap/costing/unit_models>`_ directory.
 
-Consider you have a flowsheet with a new unit model without a defined costing method:
+Consider you have a flowsheet with a new unit model that does not have a defined costing method:
 
 .. code-block:: python
 
     m.fs.unit = NewUnitModel(property_package=m.fs.properties)
 
-Prior to adding the unit model costing block, we will create a custom costing method for the new unit model.
-We need to define the parameter block for the new unit model and the parameter block for the "bazchem" flow type.
+Prior to adding the unit model costing block, we need to create a custom costing method for this new unit model.
+To do this, we need to define the parameter block for the new unit model and the parameter block for the "bazchem" flow type.
 
-Here we define the function that will create the parameter block for the unit model:
+First, define the functions that will create the parameter blocks for the unit model and the "bazchem" flow type.
 
 .. code-block:: python
 
@@ -50,10 +50,6 @@ Here we define the function that will create the parameter block for the unit mo
             doc="Fraction of unit model equipment replaced per year",
         )
 
-Then we define the function that will create the parameter block for the "bazchem" flow type and register the flow type with the costing package:
-
-.. code-block:: python
-
     # Function to create costing parameters for bazchem flow type 
     # and register bazchem flow type with the costing package
     def build_bazchem_cost_param_block(blk):
@@ -69,6 +65,8 @@ Then we define the function that will create the parameter block for the "bazche
         costing_pkg = blk.parent_block()
         # Register the bazchem flow type with the costing package
         costing_pkg.register_flow_type("bazchem", blk.unit_cost)
+
+Note that we could also register the "bazchem" flow type with the costing package at the flowsheet level with steps presented in :ref:`how to cost a flow<how_to_cost_a_flow>`.
 
 Then define the costing model for the new unit model that uses those parameters to calculate capital and operating costs.
 

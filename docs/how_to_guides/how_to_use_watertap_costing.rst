@@ -4,7 +4,12 @@ How to use the WaterTAP costing package
 =======================================
 
 This guide will demonstrate how to use the WaterTAP costing package for a full flowsheet. It pulls together the smaller steps from other how-to guides, including
-how to :ref:`how to add the costing packages<how_to_add_watertap_costing_to_flowsheet>`, :ref:`how to create a custom costing method<how_to_create_custom_costing_method>`, and :ref:`how to access costing results<how_to_access_costing_results>`.
+
+- :ref:`How to add costing packages to a flowsheet<how_to_add_watertap_costing_to_flowsheet>`,
+- :ref:`How to create a custom costing method<how_to_create_custom_costing_method>`, 
+- :ref:`How to cost a chemical flow<how_to_cost_a_flow>`, and
+- :ref:`How to access costing results<how_to_access_costing_results>`
+
 Additional details on the WaterTAP costing package, including equations and default parameter values, can be found in the :ref:`official WaterTAP costing documentation<WaterTAPCostingBlockData>`.
 
 How To

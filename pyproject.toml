@@ -58,7 +58,7 @@ Homepage = "https://github.com/watertap-org/watertap"
 
 [project.optional-dependencies]
 testing = [
-    "pytest",
+    "pytest==9.0.3",
     "pandas",
     # treebeardtech/nbmake#121
     "nbmake!=1.5.1",

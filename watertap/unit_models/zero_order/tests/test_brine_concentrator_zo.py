@@ -59,7 +59,8 @@ def test_no_tds_in_solute_list_error():
 
 class TestBrineConcentratorZO_wo_default_removal:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 
@@ -169,7 +170,8 @@ class TestBrineConcentratorZO_wo_default_removal:
 
 class TestBrineConcentratorZO_w_default_removal:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 

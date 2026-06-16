@@ -352,7 +352,7 @@ def test_error_without_oxygen():
 
 class TestAerationTankScaler:
     @pytest.fixture
-    def model(cls):
+    def model(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
 

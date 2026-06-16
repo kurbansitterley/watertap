@@ -841,7 +841,7 @@ def test_du_costing_config_err():
 
 class TestThickenerScaler:
     @pytest.fixture
-    def model(cls):
+    def model(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
 

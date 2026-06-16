@@ -446,7 +446,7 @@ def test_list_error():
 
 class TestThickenerScaler:
     @pytest.fixture
-    def model(cls):
+    def model(self):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
 

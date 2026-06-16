@@ -11,10 +11,13 @@ How to
 
 Adding the WaterTAP costing package to a flowsheet can be done at any point in the flowsheet build prior to adding the unit model costing blocks and consists of two steps:
 
-#. Add a costing model to the flowsheet.
-#. Add costing blocks to unit models and specify the costing method and any arguments to use for each unit model (if not using the default WaterTAP costing method)
+#. Add a flowsheet costing block.
+#. Add individual costing blocks to unit models and, if not using the default costing method:
 
-Consider the following flowsheet with a single unit model, ``unit``, that we want to add costing to.
+    - specify the costing method
+    - pass any necessary keyword arguments to the costing method
+
+Consider that we want to add costing to the following flowsheet with a single unit model, ``unit``.
 
 .. code-block:: python
 
@@ -22,7 +25,7 @@ Consider the following flowsheet with a single unit model, ``unit``, that we wan
     m.fs = FlowsheetBlock(dynamic=False)
     m.fs.unit = UnitModel()
 
-To add costing to this flowsheet, we add a costing block to the flowsheet.
+To add costing to this flowsheet, we first add a system costing model. 
 This is done by creating an instance of the costing model and assigning it to a flowsheet attribute. 
 Convention is to name this attribute ``m.fs.costing``. 
 This is referred to as the "flowsheet costing block" (contrasted with a "unit model costing block"). 
@@ -34,9 +37,9 @@ This is referred to as the "flowsheet costing block" (contrasted with a "unit mo
     m.fs.costing = WaterTAPCosting()
 
 
-At this point, the flowsheet costing block only contains instructions to aggregate the costs from the individual unit model costing blocks into overall flowsheet-level costs.
+At this point, the flowsheet costing block only contains instructions to aggregate the costs from the individual unit model costing blocks into overall flowsheet-level costs and metrics.
 To get costing results, we need to add the unit model costing block.
-This is done by adding a ``UnitModelCostingBlock`` to the unit model. 
+This is done by adding a ``UnitModelCostingBlock`` to the unit model. Concention is to also name this attribute ``costing``.
 If we want to use the default WaterTAP costing method, we can simply add the costing block without specifying a costing method. 
 
 .. code-block:: python

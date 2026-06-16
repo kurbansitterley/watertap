@@ -354,7 +354,7 @@ class Test_Operation:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_const_v_salt_calc(self):
+    def bped_const_v_salt_calc(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -390,7 +390,7 @@ class Test_Operation:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_const_current_salt_calc(self):
+    def bped_const_current_salt_calc(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -835,7 +835,7 @@ class Test_NMSU_bench_scale:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_1(self):
+    def bped_1(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -938,7 +938,7 @@ class Test_NMSU_bench_scale:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_2(self):
+    def bped_2(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1041,7 +1041,7 @@ class Test_NMSU_bench_scale:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_3(self):
+    def bped_3(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1353,7 +1353,7 @@ class Test_BPED_pressure_drop_components:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_m0(self):
+    def bped_m0(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1390,7 +1390,7 @@ class Test_BPED_pressure_drop_components:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_m1(self):
+    def bped_m1(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1429,7 +1429,7 @@ class Test_BPED_pressure_drop_components:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_m2(self):
+    def bped_m2(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1468,7 +1468,7 @@ class Test_BPED_pressure_drop_components:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_m3(self):
+    def bped_m3(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1507,7 +1507,7 @@ class Test_BPED_pressure_drop_components:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_m4(self):
+    def bped_m4(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1546,7 +1546,7 @@ class Test_BPED_pressure_drop_components:
 
     @pytest.fixture(scope="class")
     @classmethod
-    def bped_m5(self):
+    def bped_m5(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {

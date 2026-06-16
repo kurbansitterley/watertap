@@ -1003,7 +1003,7 @@ class TestNanofiltration0DScaler:
 class TestMCAS:
     @pytest.fixture(scope="class")
     @classmethod
-    def mcas_case(self):
+    def mcas_case(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = MCASParameterBlock(

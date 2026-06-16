@@ -109,7 +109,7 @@ def test_config():
 class TestAsm1Adm1(object):
     @pytest.fixture(scope="class")
     @classmethod
-    def asmadm(self):
+    def asmadm(cls):
         m = ConcreteModel()
 
         m.fs = FlowsheetBlock(dynamic=False)

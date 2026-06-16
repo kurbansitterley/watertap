@@ -89,7 +89,7 @@ def test_option_has_pressure_change():
 class TestNanofiltration:
     @pytest.fixture(scope="class")
     @classmethod
-    def unit_frame(self):
+    def unit_frame(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
 

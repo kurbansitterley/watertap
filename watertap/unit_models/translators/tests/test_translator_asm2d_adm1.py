@@ -121,7 +121,7 @@ def test_config():
 class TestAsm2dAdm1_bioP_true(object):
     @pytest.fixture(scope="class")
     @classmethod
-    def asmadm(self):
+    def asmadm(cls):
         m = ConcreteModel()
 
         m.fs = FlowsheetBlock(dynamic=False)
@@ -387,7 +387,7 @@ class TestAsm2dAdm1_bioP_true(object):
 class TestAsm2dAdm1_bioP_false(object):
     @pytest.fixture(scope="class")
     @classmethod
-    def asmadm(self):
+    def asmadm(cls):
         m = ConcreteModel()
 
         m.fs = FlowsheetBlock(dynamic=False)

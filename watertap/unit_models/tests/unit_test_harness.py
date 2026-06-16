@@ -105,8 +105,9 @@ class UnitTestHarness(abc.ABC):
     @pytest.fixture(scope="class")
     @classmethod
     def frame(cls):
-        cls.configure_class()
-        return cls._model, cls.unit_model_block
+        self = cls()
+        self.configure_class()
+        return self._model, self.unit_model_block
 
     @pytest.mark.unit
     def test_units_consistent(self, frame):

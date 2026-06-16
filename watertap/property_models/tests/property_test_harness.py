@@ -96,13 +96,14 @@ class PropertyTestHarness:
     @classmethod
     def frame_stateblock(cls):
         m = ConcreteModel()
-        cls.configure_class(m)
+        self = cls()
+        self.configure_class(m)
 
         m.fs = FlowsheetBlock(dynamic=False)
-        m.fs.properties = cls.prop_pack()
-        m.fs.stream = m.fs.properties.build_state_block([0], **cls.param_args)
+        m.fs.properties = self.prop_pack()
+        m.fs.stream = m.fs.properties.build_state_block([0], **self.param_args)
 
-        for (v_str, ind), sf in cls.scaling_args.items():
+        for (v_str, ind), sf in self.scaling_args.items():
             m.fs.properties.set_default_scaling(v_str, sf, index=ind)
 
         return m
@@ -384,23 +385,24 @@ class PropertyTestHarness:
     @classmethod
     def frame_control_volume(cls):
         m = ConcreteModel()
-        cls.configure_class(m)
+        self = cls()
+        self.configure_class(m)
 
         m.fs = FlowsheetBlock(dynamic=False)
-        m.fs.properties = cls.prop_pack()
+        m.fs.properties = self.prop_pack()
 
         m.fs.cv = ControlVolume0DBlock(
             dynamic=False,
             has_holdup=False,
             property_package=m.fs.properties,
-            property_package_args=cls.param_args,
+            property_package_args=self.param_args,
         )
         m.fs.cv.add_state_blocks(has_phase_equilibrium=False)
         m.fs.cv.add_material_balances()
         m.fs.cv.add_energy_balances()
         m.fs.cv.add_momentum_balances()
 
-        for (v_str, ind), sf in cls.scaling_args.items():
+        for (v_str, ind), sf in self.scaling_args.items():
             m.fs.properties.set_default_scaling(v_str, sf, index=ind)
 
         return m

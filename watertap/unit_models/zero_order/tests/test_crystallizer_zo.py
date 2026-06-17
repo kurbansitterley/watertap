@@ -59,7 +59,8 @@ def test_no_tds_in_solute_list_error():
 
 class TestCrystallizerZO_w_o_default_removal:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 

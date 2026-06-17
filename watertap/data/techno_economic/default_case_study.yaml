@@ -44,6 +44,10 @@ defined_flows:
     value: 0.79
     units: USD_2017/kg
     purity: 1
+  cationic_polymer:
+    value: 0.79
+    units: USD_2017/kg
+    purity: 1
   caustic_soda:
     value: 1.02
     units: USD_2023/kg

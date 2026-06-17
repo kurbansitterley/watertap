@@ -119,7 +119,8 @@ def test_list_error():
 # -----------------------------------------------------------------------------
 class TestDu(object):
     @pytest.fixture(scope="class")
-    def du(self):
+    @classmethod
+    def du(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
 
@@ -303,7 +304,8 @@ class TestDu(object):
 
 class TestDUASM2d(object):
     @pytest.fixture(scope="class")
-    def du_asm2d(self):
+    @classmethod
+    def du_asm2d(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
 
@@ -403,7 +405,8 @@ class TestDUASM2d(object):
 
 class TestDUModifiedASM2d(object):
     @pytest.fixture(scope="class")
-    def du_mod_asm2d(self):
+    @classmethod
+    def du_mod_asm2d(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
 

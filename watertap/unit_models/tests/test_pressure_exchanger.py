@@ -200,7 +200,8 @@ def test_build_without_mass_transfer():
 
 class TestPressureExchanger_without_mass_transfer:
     @pytest.fixture(scope="class")
-    def unit_frame(self):
+    @classmethod
+    def unit_frame(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = SeawaterParameterBlock()
@@ -337,7 +338,8 @@ class TestPressureExchanger_without_mass_transfer:
 
 class TestPressureExchanger_with_high_pressure_difference:
     @pytest.fixture(scope="class")
-    def unit_frame(self):
+    @classmethod
+    def unit_frame(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = SeawaterParameterBlock()
@@ -476,7 +478,8 @@ class TestPressureExchanger_with_high_pressure_difference:
 
 class TestPressureExchanger_with_mass_transfer:
     @pytest.fixture(scope="class")
-    def unit_frame(self):
+    @classmethod
+    def unit_frame(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = SeawaterParameterBlock()
@@ -625,7 +628,8 @@ class TestPressureExchanger_with_mass_transfer:
 
 class TestPressureExchanger_with_ion_prop_pack:
     @pytest.fixture(scope="class")
-    def unit_frame(self):
+    @classmethod
+    def unit_frame(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = MCASParameterBlock(

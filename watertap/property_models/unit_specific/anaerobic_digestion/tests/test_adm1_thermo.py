@@ -41,7 +41,8 @@ solver = get_solver()
 
 class TestParamBlock(object):
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         model = ConcreteModel()
         model.params = ADM1ParameterBlock()
 
@@ -102,7 +103,8 @@ class TestParamBlock(object):
 
 class TestStateBlock(object):
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         model = ConcreteModel()
         model.params = ADM1ParameterBlock()
 

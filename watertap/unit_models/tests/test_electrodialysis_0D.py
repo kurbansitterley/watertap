@@ -56,7 +56,8 @@ solver = get_solver()
 # Start test class
 class TestElectrodialysisVoltageConst:
     @pytest.fixture(scope="class")
-    def electrodialysis_cell1(self):
+    @classmethod
+    def electrodialysis_cell1(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -303,7 +304,8 @@ class TestElectrodialysisVoltageConst:
 
 class TestElectrodialysisCurrentConst:
     @pytest.fixture(scope="class")
-    def electrodialysis_cell2(self):
+    @classmethod
+    def electrodialysis_cell2(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -523,7 +525,8 @@ class TestElectrodialysisCurrentConst:
 
 class TestElectrodialysis_withNeutralSPecies:
     @pytest.fixture(scope="class")
-    def electrodialysis_cell3(self):
+    @classmethod
+    def electrodialysis_cell3(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -752,7 +755,8 @@ class TestElectrodialysis_withNeutralSPecies:
 
 class Test_ED_MembNonohm_On_ConstV:
     @pytest.fixture(scope="class")
-    def EDcell(self):
+    @classmethod
+    def EDcell(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -975,7 +979,8 @@ class Test_ED_MembNonohm_On_ConstV:
 
 class Test_ED_MembNonohm_On_NDL_On_ConstV:
     @pytest.fixture(scope="class")
-    def EDcell(self):
+    @classmethod
+    def EDcell(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1200,7 +1205,8 @@ class Test_ED_MembNonohm_On_NDL_On_ConstV:
 
 class Test_ED_MembNonohm_On_NDL_On_ConstC:
     @pytest.fixture(scope="class")
-    def EDcell(self):
+    @classmethod
+    def EDcell(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1425,7 +1431,8 @@ class Test_ED_MembNonohm_On_NDL_On_ConstC:
 
 class Test_ED_pressure_drop_components:
     @pytest.fixture(scope="class")
-    def ed_m0(self):
+    @classmethod
+    def ed_m0(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1446,7 +1453,8 @@ class Test_ED_pressure_drop_components:
         return m
 
     @pytest.fixture(scope="class")
-    def ed_m1(self):
+    @classmethod
+    def ed_m1(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1469,7 +1477,8 @@ class Test_ED_pressure_drop_components:
         return m
 
     @pytest.fixture(scope="class")
-    def ed_m2(self):
+    @classmethod
+    def ed_m2(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1492,7 +1501,8 @@ class Test_ED_pressure_drop_components:
         return m
 
     @pytest.fixture(scope="class")
-    def ed_m3(self):
+    @classmethod
+    def ed_m3(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1515,7 +1525,8 @@ class Test_ED_pressure_drop_components:
         return m
 
     @pytest.fixture(scope="class")
-    def ed_m4(self):
+    @classmethod
+    def ed_m4(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1538,7 +1549,8 @@ class Test_ED_pressure_drop_components:
         return m
 
     @pytest.fixture(scope="class")
-    def ed_m5(self):
+    @classmethod
+    def ed_m5(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1769,7 +1781,8 @@ class Test_ED_pressure_drop_components:
 
 class Test_Limiting_Current_Density_Method:
     @pytest.fixture(scope="class")
-    def ed_l0(self):
+    @classmethod
+    def ed_l0(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1791,7 +1804,8 @@ class Test_Limiting_Current_Density_Method:
         return m
 
     @pytest.fixture(scope="class")
-    def ed_l1(self):
+    @classmethod
+    def ed_l1(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {
@@ -1812,7 +1826,8 @@ class Test_Limiting_Current_Density_Method:
         return m
 
     @pytest.fixture(scope="class")
-    def ed_l2(self):
+    @classmethod
+    def ed_l2(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         ion_dict = {

@@ -42,7 +42,8 @@ solver = get_solver()
 
 class TestSurfaceDischargeZO:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 
@@ -134,7 +135,8 @@ class TestSurfaceDischargeZO:
 
 class TestSurfaceDischargeZOsubtype:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 

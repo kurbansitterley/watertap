@@ -48,7 +48,8 @@ solver = get_solver()
 
 class TestParamBlock(object):
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         model = ConcreteModel()
         model.pparams = ASM1ParameterBlock()
         model.rparams = ASM1ReactionParameterBlock(property_package=model.pparams)
@@ -131,7 +132,8 @@ class TestParamBlock(object):
 
 class TestReactionBlock(object):
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         model = ConcreteModel()
         model.pparams = ASM1ParameterBlock()
         model.rparams = ASM1ReactionParameterBlock(property_package=model.pparams)
@@ -283,7 +285,8 @@ class TestASM1ReactionScaler(object):
 
 class TestReactor:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
 
         m.fs = FlowsheetBlock(dynamic=False)

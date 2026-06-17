@@ -39,7 +39,8 @@ solver = get_solver()
 
 class TestParamBlock(object):
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         model = ConcreteModel()
         model.params = ASM2dParameterBlock()
 
@@ -127,7 +128,8 @@ class TestParamBlock(object):
 
 class TestStateBlock(object):
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         model = ConcreteModel()
         model.params = ASM2dParameterBlock()
 

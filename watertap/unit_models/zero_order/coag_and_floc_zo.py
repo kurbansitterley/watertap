@@ -20,7 +20,6 @@ from idaes.core import declare_process_block_class
 from idaes.core.util.constants import Constants
 
 from watertap.core import build_pt, ZeroOrderBaseData
-from watertap.core.zero_order_electricity import pump_electricity
 
 __author__ = "Adam Atia, Kurban Sitterley"
 

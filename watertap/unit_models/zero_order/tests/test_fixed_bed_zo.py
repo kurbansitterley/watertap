@@ -42,7 +42,8 @@ solver = get_solver()
 
 class TestFixedBedZO_w_o_default_removal:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 
@@ -215,7 +216,8 @@ class TestFixedBedZO_w_o_default_removal:
 
 class TestFixedBedZO_w_default_removal:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 
@@ -366,7 +368,8 @@ params = db._get_technology("fixed_bed")
 @pytest.mark.component
 class TestFixedBedZOsubtype:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
 
         m.fs = FlowsheetBlock(dynamic=False)

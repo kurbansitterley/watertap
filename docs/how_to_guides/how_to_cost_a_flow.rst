@@ -7,6 +7,7 @@ In the WaterTAP costing package, variable operational costs for the system are c
 These commonly include flows of power (electricity) and various chemicals.
 If you are using a unit model with a default costing method, the necessary flows are already costed in that unit model costing method.
 However, if you are using a new costing model that has a material or energy flow, you will need to add that to the flowsheet.
+This guide presents how to register flow types and then cost flow expressions in WaterTAP costing.
 
 How To
 ------

@@ -24,9 +24,9 @@ Results for only the unit model are found on the unit model costing block and co
 - Capital cost: ``m.fs.unit.costing.capital_cost``
 - Operating cost: ``m.fs.unit.costing.fixed_operating_cost``
 
-Note that the results available will depend on if they are included in the costing method for the unit model.
+The specific results available will depend on if they are included in the costing method for the unit model.
 
-These results are found on the flowsheet costing block and could include:
+Results from all the unit model costing blocks are aggregated to the flowsheet costing block and could include:
 
 - Total capital cost: ``m.fs.costing.total_capital_cost``
 - Total operating cost: ``m.fs.costing.total_operating_cost``
@@ -55,3 +55,14 @@ In either case, if the component is indexed, the index(es) must be specified to 
     total_electricity_cost = m.fs.costing.aggregate_flow_costs["electricity"]()
     LCOW = m.fs.costing.LCOW()
     SEC = m.fs.costing.SEC()
+
+Alternatively, users can use the ``display`` method on these components to view their values directly. In addition to the value of the component, 
+the ``display`` method will also show additional information such as units, bounds, and other metadata associated with the modeling component.
+
+Below is an example of how to display costing results using the ``display()`` method.
+
+.. code-block:: python
+
+    m.fs.costing.LCOW.display()
+    m.fs.costing.total_capital_cost.display()
+    m.fs.costing.aggregate_flow_costs.display()

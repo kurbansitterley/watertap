@@ -147,7 +147,7 @@ How To
         )
         m.fs.chem_addition.chem_mass_flow = Expression(
             expr=pyunits.convert(
-                m.fs.chem_addition.chemical_dosage[0]
+                m.fs.chem_addition.chemical_dosage
                 * m.fs.chem_addition.properties[0].flow_vol_phase["Liq"],
                 to_units=pyunits.kg / pyunits.s,
             ),
@@ -377,7 +377,7 @@ Adding the WaterTAP costing package to a flowsheet can be done at any point in t
 Below is a build function to create the flowsheet. The costing package is added after added the property package.
 
 
-.. testcode::
+.. code-block:: python
 
 
     def build():
@@ -479,7 +479,7 @@ Costing proceeds in the following steps:
 
 The following snippet shows how to add costing to the unit models on our flowsheet, including using the custom costing method for chemical addition.
 
-.. testcode::
+.. code-block:: python
 
     def add_costing(m):
 
@@ -542,12 +542,13 @@ or other costing variables/parameters. In the example below, we also add an ``Ob
 How-To Access Costing Results
 ******************************
 
-After building the costing model and solving the optimization problem, system-level costing results are on the flowsheet costing block (``m.fs.costing``) and unit-level costing results are on the ``costing`` attribute of each unit model (e.g. ``m.fs.chem_addition.costing``).
+The approaches for accessing results are also presented in the :ref:`how to access costing results guide<how_to_access_costing_results>`.
+
+After building and solving the model, system-level costing results are on the flowsheet costing block (``m.fs.costing``) and unit-level costing results are on the ``costing`` attribute of each unit model (e.g. ``m.fs.chem_addition.costing``).
 Accessing the values for any variable, expression, parameter, etc. can be done using the ``value`` function from Pyomo *or* by "calling" the component directly (i.e., placing ``()`` after the component name). 
 Examples of both of these approaches are presented below.
 
-Alternatively, users can use the ``display`` method :sup:`1` on these components to view their values directly. In addition to the value of the component, 
-the ``display`` method will also show additional information such as units, bounds, and other metadata associated with the modeling component.
+
 
 Accessing Unit Model Costing Results
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

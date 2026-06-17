@@ -69,7 +69,7 @@ First, define the functions that will create the parameter blocks for the unit m
 Here, we register the "bazchem" flow type with the costing package in the unit model costing method.
 This could also be done at the flowsheet level with steps presented in :ref:`how to cost a flow<how_to_cost_a_flow>` using the same costing package methods presented here.
 
-Then define the costing model for the new unit model that uses those parameters to calculate capital and operating costs.
+Second, define the costing model for the new unit model that uses those parameters to calculate capital and operating costs.
 
 .. code-block:: python
     
@@ -109,13 +109,14 @@ Then define the costing model for the new unit model that uses those parameters 
             == blk.costing_package.unit_model.factor_equip_replacement * blk.capital_cost
         )
 
-        # Cost the flow of bazchem with the cost_flow method. 
-        # Note that the flow passed to cost_flow must be convertable to units of cost/time.
+        # Cost the flow of bazchem with the cost_flow method.
         blk.costing_package.cost_flow(blk.unit_model.chem_mass_flow, "bazchem")
 
-See :ref:`how_to_use_a_custom_costing_method <how_to_add_watertap_costing_to_flowsheet>` for how to use this custom costing method when creating the unit model costing block.
-Then when creating the costing block on the unit model, we do not need to specify the costing method because it will preferentially use the method specified by the unit model's ``default_costing_method`` attribute before using the default WaterTAP costing method :sup:`3`.
-This would be set in the code that defines the unit model:
+Descriptions of the components of the costing method function are presented below.
+See :ref:`how to add costing packages<how_to_add_watertap_costing_to_flowsheet>` for how to use this custom costing method when creating the unit model costing block.
+
+To make this the default, set the unit model's ``default_costing_method`` attribute to return the custom costing method.
+Setting this attribute would be done in the code that defines the unit model:
 
 .. code-block:: python
 
@@ -135,9 +136,8 @@ This would be set in the code that defines the unit model:
         def default_costing_method(self):
             return unit_model_costing
 
-Explanation
-*************
-
+Costing method components
+--------------------------
 
 Custom costing methods generally consist of two functions:
 
@@ -157,24 +157,21 @@ Custom costing methods generally consist of two functions:
 2. A function to build the costing model (``unit_model_costing``), which is decorated with the ``@register_costing_parameter_block`` decorator. This function creates the costing variables and constraints needed to calculate capital and operating costs, and also defines the variable cost calculations using the ``cost_flow`` method of the costing package.
 
     - The first argument to the ``@register_costing_parameter_block`` decorator is the function that builds the costing parameter block, and the second argument is the desired name for the parameter block on the flowsheet costing block :sup:`3`. This is the name that will be used to access the parameters for this costing method from the flowsheet costing block. In this example, the parameter block is named "unit_model" and is accessed with ``m.fs.costing.unit_model``.
-    - Within the costing method function, we first create the necessary costing variables (capital cost and fixed operating cost :sup:`4`). Then we define the constraints that calculate capital and fixed operating cost using the parameters defined in the parameter block and any relevant unit model variables :sup:`5`. 
+    - Within the costing method function, we first create the necessary costing variables (capital cost and fixed operating cost :sup:`2`). Then we define the constraints that calculate capital and fixed operating cost using the parameters defined in the parameter block and any relevant unit model variables :sup:`3`. 
     - The ``cost_flow`` method is used to aggregate flows of the same type across multiple units (most commonly this is done with chemical and electricty flows).
-    - Costing methods that calculate capital costs must provide a capital cost factor to be used to calculate direct and indirect capital costs.
-
+    - Costing methods that calculate capital costs *must* specify a capital cost factor via the ``add_cost_factor`` method (options are ``"TIC"``, ``"TPEC"``, or ``None``) to be used to calculate direct and indirect capital costs; see the :ref:`common costing parameters<common_global_costing_parameters>` for more information.
 
 
 .. note::
 
     :sup:`1` Users can create a custom costing method for *any* unit model in the same way. The flowsheet costing block will preferentially use the any method passed via the ``costing_method`` argument when creating the ``UnitModelCostingBlock`` before using the costing method specified by the unit model's ``default_costing_method`` attribute.
 
-    :sup:`3` Any Pyomo component can be added to the parameter blocks. But note that as part of the building process via the ``@register_costing_parameter_block`` decorator, any ``Var`` found will be fixed to their initialized value, thus it is not necessary to fix them at the flowsheet level.
-
-    :sup:`4` For proper aggregation of capital and operating costs, the flowsheet costing block requires the following naming conventions:
+    :sup:`2` For proper aggregation of capital and operating costs, the flowsheet costing block requires the following naming conventions:
 
         - The capital cost variable must be named ``capital_cost`` and constraint ``capital_cost_constraint``.
         - The fixed operating cost variable must be named ``fixed_operating_cost`` and constraint ``fixed_operating_cost_constraint``.
 
         For this reason, the imported utility functions ``make_capital_cost_var`` and ``make_fixed_operating_cost_var`` should be used.
     
-    :sup:`5` In the costing model build function, any components located on the unit model that are used in the costing constraints can always be accessed via ``blk.unit_model`` and the costing package can be accessed via ``blk.costing_package`` regardless of their names on the flowsheet.
+    :sup:`3` In the costing model build function, any components located on the unit model that are used in the costing constraints can always be accessed via ``blk.unit_model`` and the costing package can be accessed via ``blk.costing_package`` regardless of their names on the flowsheet.
 

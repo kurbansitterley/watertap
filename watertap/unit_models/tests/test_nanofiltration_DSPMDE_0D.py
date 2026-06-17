@@ -186,7 +186,8 @@ def test_config_without_CP():
 
 class TestNanoFiltration_with_CP_5ions:
     @pytest.fixture(scope="class")
-    def NF_frame(self):
+    @classmethod
+    def NF_frame(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = MCASParameterBlock(
@@ -443,7 +444,8 @@ class TestNanoFiltration_with_CP_5ions:
 
 class TestNanoFiltration_without_CP_5ions:
     @pytest.fixture(scope="class")
-    def NF_frame(self):
+    @classmethod
+    def NF_frame(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = MCASParameterBlock(
@@ -702,7 +704,8 @@ class TestNanoFiltration_without_CP_5ions:
 
 class TestNanoFiltration_with_CP_2ions:
     @pytest.fixture(scope="class")
-    def NF_frame(self):
+    @classmethod
+    def NF_frame(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = MCASParameterBlock(
@@ -931,7 +934,8 @@ class TestNanoFiltration_with_CP_2ions:
 
 class TestNanoFiltration_without_CP_2ions:
     @pytest.fixture(scope="class")
-    def NF_frame(self):
+    @classmethod
+    def NF_frame(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = MCASParameterBlock(
@@ -1153,7 +1157,8 @@ class TestNanoFiltration_without_CP_2ions:
 
 class TestNanoFiltration_with_CP_5ions_double_concentration:
     @pytest.fixture(scope="class")
-    def NF_frame(self):
+    @classmethod
+    def NF_frame(cls):
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = MCASParameterBlock(

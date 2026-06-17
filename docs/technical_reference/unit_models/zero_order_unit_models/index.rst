@@ -62,7 +62,6 @@ The zero-order models rely on default model parameter values specified in YAML f
    metab_zo
    microbial_battery_zo
    microfiltration_zo
-   microscreen_filtration_zo
    municipal_drinking_zo
    municipal_wwtp_zo
    nanofiltration_zo

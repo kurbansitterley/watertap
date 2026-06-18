@@ -7,7 +7,7 @@ default:
         value: 1000
         units: m^3/day
       upper_bound:
-        value: 300000
+        value: 30000
         units: m^3/day
     reference_state:
       value: 1

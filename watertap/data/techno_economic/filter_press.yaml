@@ -14,7 +14,7 @@ default: # plate filter press
   electricity_a_parameter:
     value: 0.0018963
     units: kW/ft^3
-    reference: Regressed from data in Fig 4 Chap 17 of "Biosolids Treatment Processes" for 6% solids; doi 10.1007/978-1-59259-996-7
+    reference: Regressed from data in Fig 9 Chap 18 of "Biosolids Treatment Processes" for 6% solids; doi 10.1007/978-1-59259-996-7
     validity_range:
       lower_bound:
         value: 10
@@ -25,7 +25,7 @@ default: # plate filter press
   electricity_b_parameter:
     value: 1.2195
     units: dimensionless
-    reference: Regressed from data in Fig 4 Chap 17 of "Biosolids Treatment Processes" for 6% solids; doi 10.1007/978-1-59259-996-7
+    reference: Regressed from data in Fig 9 Chap 18 of "Biosolids Treatment Processes" for 6% solids; doi 10.1007/978-1-59259-996-7
     validity_range:
       lower_bound:
         value: 10

@@ -62,7 +62,7 @@ anion_exchange:  # TODO: add some differentiation between default, anion, and ca
     units: dimensionless
   removal_frac_mass_comp:
     tds:
-      value: 0
+      value: 0.9
       units: dimensionless
       constituent_longform: Total Dissolved Solids (TDS)
   energy_electric_flow_vol_inlet:

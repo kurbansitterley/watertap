@@ -80,16 +80,19 @@ class DeepWellInjectionZOData(ZeroOrderBaseData):
         )
 
         # Get costing parameter sub-block for this technology
-        A, pipe_cost_basis, C = blk.unit_model._get_tech_parameters(
-            blk,
-            parameter_dict,
-            blk.unit_model.config.process_subtype,
-            ["well_pump_cost", "pipe_cost_basis", "flow_exponent"],
+        well_pump_cost, pipe_cost_basis, flow_exponent = (
+            blk.unit_model._get_tech_parameters(
+                blk,
+                parameter_dict,
+                blk.unit_model.config.process_subtype,
+                ["well_pump_cost", "pipe_cost_basis", "flow_exponent"],
+            )
         )
 
         blk.well_cost = pyo.Expression(
             expr=pyo.units.convert(
-                A, to_units=blk.config.flowsheet_costing_block.base_currency
+                well_pump_cost,
+                to_units=blk.config.flowsheet_costing_block.base_currency,
             )
         )
 
@@ -122,7 +125,7 @@ class DeepWellInjectionZOData(ZeroOrderBaseData):
         blk.unit_model._general_power_law_form(
             blk,
             blk.base_cost,
-            C,
+            flow_exponent,
             sizing_term,
             factor,
             number_of_parallel_units,

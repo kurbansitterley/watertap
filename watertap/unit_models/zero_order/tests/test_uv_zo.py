@@ -18,7 +18,6 @@ import pytest
 
 from pyomo.environ import (
     assert_optimal_termination,
-    check_optimal_termination,
     ConcreteModel,
     Constraint,
     value,
@@ -129,7 +128,7 @@ class TestUVZO_with_default_removal:
         results = solver.solve(model)
 
         # Check for optimal solution
-        assert check_optimal_termination(results)
+        assert_optimal_termination
 
     @pytest.mark.solver
     @pytest.mark.skipif(solver is None, reason="Solver not available")
@@ -237,7 +236,7 @@ class TestUVZO_w_o_default_removal:
         results = solver.solve(model)
 
         # Check for optimal solution
-        assert check_optimal_termination(results)
+        assert_optimal_termination
 
     @pytest.mark.solver
     @pytest.mark.skipif(solver is None, reason="Solver not available")

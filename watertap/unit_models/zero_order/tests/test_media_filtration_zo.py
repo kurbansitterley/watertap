@@ -20,7 +20,6 @@ from pyomo.environ import (
     Block,
     ConcreteModel,
     Constraint,
-    check_optimal_termination,
     value,
     Var,
     assert_optimal_termination,
@@ -330,7 +329,7 @@ def test_costing():
     m.fs.unit.initialize()
 
     results = solver.solve(m)
-    assert check_optimal_termination(results)
+    assert_optimal_termination(results)
 
     assert isinstance(m.fs.costing.media_filtration, Block)
     assert isinstance(m.fs.costing.media_filtration.capital_a_parameter, Var)

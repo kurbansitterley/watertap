@@ -48,7 +48,8 @@ solver = get_solver()
 
 class TestMicroFiltrationZO:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 
@@ -190,7 +191,8 @@ class TestMicroFiltrationZO:
 
 class TestMicroFiltrationZO_w_default_removal:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 

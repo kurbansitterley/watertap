@@ -47,7 +47,8 @@ solver = get_solver()
 
 class TestCartridgeFiltrationZO:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 
@@ -167,7 +168,8 @@ class TestCartridgeFiltrationZO:
 
 class TestCartridgeFiltrationZO_w_default_removal:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 

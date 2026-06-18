@@ -43,7 +43,8 @@ solver = get_solver()
 
 class TestWaterPumpingStationZO:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 
@@ -123,7 +124,8 @@ class TestWaterPumpingStationZO:
 
 class TestWaterPumpingStationZO_without_fix_pump_power_config:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 
@@ -211,7 +213,8 @@ params = db._get_technology("water_pumping_station")
 
 class TestPumpZOsubtype:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
 
         m.fs = FlowsheetBlock(dynamic=False)

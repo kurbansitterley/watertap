@@ -43,7 +43,8 @@ solver = get_solver()
 
 class TestDualMediaFiltrationZO:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 
@@ -173,7 +174,8 @@ class TestDualMediaFiltrationZO:
 
 class TestDualMediaFiltrationZO_w_default_removal:
     @pytest.fixture(scope="class")
-    def model(self):
+    @classmethod
+    def model(cls):
         m = ConcreteModel()
         m.db = Database()
 

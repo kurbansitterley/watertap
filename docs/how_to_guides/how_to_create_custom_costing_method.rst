@@ -73,7 +73,7 @@ Second, define the costing model for the new unit model that uses those paramete
 
 .. code-block:: python
     
-    # Create costing parameter blocks for new unit model (unit model) and bazchem (chemical flow type)
+    # Create costing parameter blocks for new unit model and bazchem (chemical flow type)
     # and register them to be built on the flowsheet costing block via the @register_costing_parameter_block decorator
     @register_costing_parameter_block(
         build_rule=build_unit_model_cost_param_block,
@@ -128,10 +128,10 @@ Setting this attribute would be done in the code that defines the unit model:
         def build(self):
             # Add unit model build code here
             ...
-            # Set the default costing method
+            # Set the default costing method here
             self.default_costing_method = unit_model_costing
 
-        # Or 
+        # Or set the default costing method here
         @property
         def default_costing_method(self):
             return unit_model_costing
@@ -141,7 +141,7 @@ Costing method components
 
 Custom costing methods generally consist of two functions:
 
-1. A function to build the costing parameter block(s) (``build_unit_model_cost_param_block`` and ``build_bazchem_cost_param_block``). These functions define the parameters needed for the costing method and registers any flow types needed for variable cost calculations. In this example, there is one function to build costing parameters for the unit model and a separate function to build costing parameters for the "bazchem" flow type. Though not strictly necessary, convention is to have separate parameter blocks for unique flow types and unit processes. These two functions will:
+1. A function to build the costing parameter block(s) (``build_unit_model_cost_param_block`` and ``build_bazchem_cost_param_block``). These functions define the parameters needed for the costing method and registers any flow types needed for variable cost calculations. In this example, there is one function to build costing parameters for the unit model and a separate function to build costing parameters for the "bazchem" flow type. Though not strictly necessary, convention is to have separate parameter blocks for unique flow types and unit processes. These two functions are:
 
     ``build_unit_model_cost_param_block``:
 

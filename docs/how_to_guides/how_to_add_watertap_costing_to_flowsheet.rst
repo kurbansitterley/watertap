@@ -42,6 +42,7 @@ To get costing results, we need to add the unit model costing block.
 This is done by adding a ``UnitModelCostingBlock`` to the unit model. Convention is to also name this attribute ``costing``.
 If we want to use the default costing method in WaterTAP for the unit model, we can simply add the costing block without specifying a costing method. 
 We also need to pass the "flowsheet costing block" as an argument to the ``UnitModelCostingBlock``
+
 .. code-block:: python
 
     from idaes.core import UnitModelCostingBlock

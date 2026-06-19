@@ -8,7 +8,7 @@ The custom unit model costing method presented here is adapted for a chemical ad
 
 The code below shows an example of how to build a custom costing method for a new unit model that adds a chemical called "bazchem". 
 We will create any variables, parameters, and constraints needed to calculate capital and operating costs for the new unit, and also register the "bazchem" flow type with the costing package to calculate variable operating costs based on the mass flow of bazchem.
-This is the general structure of all :ref:`costing methods for existing WaterTAP unit models<detailed_unit_model_costing>` that are in the `watertap/costing/unit_models <https://github.com/watertap-org/watertap/tree/main/watertap/costing/unit_models>`_ directory.
+This is the general structure of all the :ref:`default costing methods for existing WaterTAP unit models<detailed_unit_model_costing>` that are in the `watertap/costing/unit_models <https://github.com/watertap-org/watertap/tree/main/watertap/costing/unit_models>`_ directory.
 
 Consider you have a flowsheet with a new unit model that does not have a defined costing method:
 

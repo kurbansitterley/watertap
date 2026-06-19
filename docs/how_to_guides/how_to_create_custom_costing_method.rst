@@ -146,7 +146,7 @@ Custom costing methods generally consist of two functions:
     ``build_unit_model_cost_param_block``:
 
     - Create variables for unit model capital cost calculation (``unit_capex_base`` and ``unit_capex_exponent``)
-    - Create a variable for calculating fixed operating cost (``factor_equip_replacement``) as fraction of the capital cost per year
+    - Create a variable for calculating fixed operating cost (``factor_equip_replacement``) as a fraction of the capital cost per year
 
     ``build_bazchem_cost_param_block``:
 

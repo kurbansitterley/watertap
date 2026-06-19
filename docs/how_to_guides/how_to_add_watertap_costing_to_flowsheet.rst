@@ -6,9 +6,6 @@ How to add WaterTAP costing to a flowsheet
 This guide provides a step-by-step example of how to add WaterTAP costing to a flowsheet for any unit model. 
 The steps presented here are used in :ref:`how to use WaterTAP costing<how_to_use_watertap_costing>` for a full flowsheet. 
 
-How to
-*******
-
 Adding the WaterTAP costing package to a flowsheet can be done at any point in the flowsheet build prior to adding the unit model costing blocks and consists of two steps:
 
 #. Add a flowsheet costing block.

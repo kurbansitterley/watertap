@@ -3,18 +3,6 @@
 How to cost a flow in WaterTAP costing
 =======================================
 
-In the WaterTAP costing package, variable operational costs for the system are calculated by collecting all the material and energy flows from each unit model on the flowsheet. 
-These commonly include flows of power (electricity) and various chemicals.
-If you are using a unit model with a default costing method, the necessary flows are already costed in that unit model costing method.
-However, if you are using a new costing model that has a material or energy flow, you will need to add that to the flowsheet.
-
-In this guide, we demonstrate how to register and cost a flow at the flowsheet level. 
-Frequently these steps are done within a unit model costing method; 
-see :ref:`how to create a custom costing method<how_to_create_custom_costing_method>` for an example of how to cost this flow within a unit model costing method.
-
-How To
-------
-
 .. testcode:: python
 
     from pyomo.environ import (
@@ -71,6 +59,16 @@ How To
     results = solver.solve(m)
     assert_optimal_termination(results)
 
+
+
+In the WaterTAP costing package, variable operational costs for the system are calculated by collecting all the material and energy flows from each unit model on the flowsheet. 
+These commonly include flows of power (electricity) and various chemicals.
+If you are using a unit model with a default costing method, the necessary flows are already costed in that unit model costing method.
+However, if you are using a new costing model that has a material or energy flow, you will need to add that to the flowsheet.
+
+In this guide, we demonstrate how to register and cost a flow at the flowsheet level. 
+Frequently these steps are done within a unit model costing method; 
+see :ref:`how to create a custom costing method<how_to_create_custom_costing_method>` for an example of how to cost this flow within a unit model costing method.
 
 Costing a flow in WaterTAP has two steps:
 

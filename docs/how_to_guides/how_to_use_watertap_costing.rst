@@ -12,8 +12,6 @@ This guide will demonstrate how to use the WaterTAP costing package for a full f
 
 Additional details on the WaterTAP costing package, including equations and default parameter values, can be found in the :ref:`official WaterTAP costing documentation<WaterTAPCostingBlockData>`.
 
-How To
-------
 
 .. testsetup::
 
@@ -368,7 +366,7 @@ For this guide, we will consider a flowsheet with these units in the following o
 - Brine block
 
 
-How-To Add WaterTAP Costing to a Flowsheet
+Adding costing to a WaterTAP model
 *******************************************
 
 This section applies the steps outlined in the :ref:`how to add WaterTAP costing to a flowsheet guide<how_to_add_watertap_costing_to_flowsheet>` for all unit models on this flowsheet.
@@ -451,7 +449,7 @@ This is referred to as the "flowsheet costing block" (contrasted with a "unit mo
 At this point, the flowsheet costing block only contains instructions for aggregating costs from individual unit model costing blocks into overall flowsheet-level costs and metrics.
 To get costing results, we need to add costing blocks to each unit model.
 
-How-To Create Custom Costing Method 
+Create custom costing method
 ************************************
 
 All WaterTAP unit models in the library have a default costing method assigned. 
@@ -459,7 +457,7 @@ For the purposes of this guide, we assume use of a custom costing method for the
 See :ref:`how to create a custom costing method<how_to_create_custom_costing_method>` for instructions on how to create a custom costing method.
 
 
-How-To Add Unit Model Costing
+Add unit model costing
 ******************************
 
 The example presented here uses the steps outlined in :ref:`how to add WaterTAP costing to a flowsheet <how_to_add_watertap_costing_to_flowsheet>` to add costing to all unit models on the flowsheet, including using the custom costing method for chemical addition.
@@ -539,7 +537,7 @@ or other costing variables/parameters. In the example below, we also add an ``Ob
     m.fs.costing.reverse_osmosis.factor_membrane_replacement.fix(0.02)
 
 
-How-To Access Costing Results
+Access costing results
 ******************************
 
 The approaches for accessing results are also presented in the :ref:`how to access costing results guide<how_to_access_costing_results>`.
@@ -549,8 +547,7 @@ Accessing the values for any variable, expression, parameter, etc. can be done u
 Examples of both of these approaches are presented below.
 
 
-
-Accessing Unit Model Costing Results
+Unit model costing results
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Costing results for individual unit models are on the unit model costing block. These are the individual ``UnitModelCostingBlock`` that we assigned to the ``costing`` attribute of each 
@@ -603,7 +600,7 @@ If you are unsure, the units for costing variables (or any variable) can be acce
     ERD capital cost units: USD_2018
 
 
-Accessing System-Level Costing Results
+System costing results
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Costing results for all units with a costing block are aggregated to the system level and converted to be in the same currency year (as defined by ``base_currency``). Operating costs are likewise converted to 

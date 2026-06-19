@@ -6,9 +6,6 @@ How to access costing results
 This guide provides instructions on how to access costing results from a flowsheet with WaterTAP costing.
 See :ref:`how to add the costing packages<how_to_add_watertap_costing_to_flowsheet>` for instructions on adding costing to a model.
 
-How to
-*******
-
 After building and solving a flowsheet, there are results associated with the flowsheet costing block and each individual unit model costing block.
 In this example, we assume the costing models are structured as follows:
 

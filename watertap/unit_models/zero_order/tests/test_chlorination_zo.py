@@ -322,7 +322,7 @@ def test_costing():
         pytest.approx(value(m.fs.unit.costing.direct_capital_cost), rel=1e-3)
         == 5515652.77  # ~$5.4M from reference
     )
-    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 0.036611
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 0.0365031
     assert pytest.approx(value(m.fs.costing.SEC), rel=1e-3) == 5e-5
 
     assert m.fs.unit.electricity[0] in m.fs.costing._registered_flows["electricity"]

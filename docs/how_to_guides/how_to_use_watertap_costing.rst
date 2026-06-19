@@ -452,7 +452,7 @@ To get costing results, we need to add costing blocks to each unit model.
 Create custom costing method
 ************************************
 
-All WaterTAP unit models in the library have a default costing method assigned. 
+All WaterTAP unit models in the `library <https://github.com/watertap-org/watertap/tree/main/watertap/costing/unit_models>`_ have a default costing method assigned. 
 For the purposes of this guide, we assume use of a custom costing method for the chemical addition unit model.
 See :ref:`how to create a custom costing method<how_to_create_custom_costing_method>` for instructions on how to create a custom costing method.
 

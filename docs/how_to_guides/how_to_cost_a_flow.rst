@@ -3,7 +3,7 @@
 How to cost a flow in WaterTAP costing
 =======================================
 
-.. testcode:: python
+.. testsetup:: python
 
     from pyomo.environ import (
         ConcreteModel,

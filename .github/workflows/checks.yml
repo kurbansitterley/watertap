@@ -314,4 +314,5 @@ jobs:
         job-name: notebooks
     - name: Run pytest with nbmake
       run: |
-        pytest --nbmake --nbmake-kernel="${{ env.WATERTAP_KERNEL_NAME }}" **/*.ipynb
+        notebooks=$(find . -name "*.ipynb" -not -path "*/.ipynb_checkpoints/*")
+        pytest --nbmake --nbmake-kernel="${{ env.WATERTAP_KERNEL_NAME }}" $notebooks

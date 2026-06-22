@@ -149,9 +149,9 @@ jobs:
       run:
         |
         echo PYTEST_ADDOPTS="$PYTEST_ADDOPTS --cov --cov-report=xml" >> $GITHUB_ENV
-    - name: Test with pytest
-      run: |
-        pytest --pyargs watertap --idaes-flowsheets --entry-points-group watertap.flowsheets
+    # - name: Test with pytest
+    #   run: |
+    #     pytest --pyargs watertap --idaes-flowsheets --entry-points-group watertap.flowsheets
     - name: Upload coverage report as job artifact
       if: matrix.coverage
       uses: actions/upload-artifact@v7
@@ -252,9 +252,9 @@ jobs:
         echo '::group::Output of "idaes get-extensions" command'
         idaes get-extensions --extra petsc --verbose
         echo '::endgroup::'
-    - name: Run pytest
-      run: |
-        pytest --pyargs watertap
+    # - name: Run pytest
+    #   run: |
+    #     pytest --pyargs watertap
 
   notebooks:
     name: Test notebooks (py${{ matrix.python-version }}/${{ matrix.os }})

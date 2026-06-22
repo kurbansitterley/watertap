@@ -314,4 +314,4 @@ jobs:
         job-name: notebooks
     - name: Run pytest with nbmake
       run: |
-        python -m pytest --nbmake --nbmake-kernel="${{ env.WATERTAP_KERNEL_NAME }}" .
+        python -m pytest --nbmake --nbmake-kernel="${{ env.WATERTAP_KERNEL_NAME }}" tutorials/

@@ -140,3 +140,6 @@ disable = [
 # see https://pylint.readthedocs.io/en/latest/user_guide/messages/messages_overview.html
 # for a list of all messages
 enable = ["unnecessary-pass", "unused-import"]
+
+[tool.pytest.ini_options]
+collect_ignore_glob = ["**/.ipynb_checkpoints/*"]

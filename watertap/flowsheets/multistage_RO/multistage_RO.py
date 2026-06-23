@@ -50,8 +50,9 @@ from watertap.core import (  # noqa # pylint: disable=unused-import
 )
 from watertap.core.solvers import get_solver
 import watertap.flowsheets.multistage_RO.utils as utils
+from watertap.core.util.unit_models import calculate_operating_pressure
 
-__author__ = "Alexander V. Dudchenko, Kurban A. Sitterley"
+__author__ = "Alexander V. Dudchenko, Kurban Sitterley"
 
 """
 Build and solve N-stage RO system with optional ERD and booster pumps.
@@ -98,6 +99,7 @@ def build_stage(
     _logger.info(f"Building Stage {stage.index()}")
 
     stage.feed = StateJunction(property_package=m.fs.properties)
+    stage.feed.properties[0].pressure_osm_phase["Liq"]
 
     stage.RO = ReverseOsmosis1D(
         property_package=m.fs.properties,
@@ -169,10 +171,10 @@ def set_stage_op_conditions(stage, m=None, max_pressure=400e5, ro_op_dict={}):
 
     if stage.has_pump:
 
-        operating_pressure = utils.calculate_operating_pressure(
-            feed_state_block=m.fs.feed.properties[0],
-            over_pressure=m.over_pressure,
-            water_recovery=m.water_recovery,
+        operating_pressure = calculate_operating_pressure(
+            state_block=m.fs.feed.properties[0],
+            over_pressure_factor=m.over_pressure_factor,
+            water_recovery_mass=m.water_recovery_mass,
             salt_passage=0.01,
             solver=solver,
         )
@@ -279,8 +281,8 @@ def set_stage_bounds(stage):
 
     stage.RO.length.setlb(1 * pyunits.meter)
     stage.RO.width.setlb(0.1 * pyunits.meter)
-    stage.RO.feed_side.velocity[0, 0].setub(0.3)
-    stage.RO.feed_side.velocity[0, 0].setlb(0.1)
+    # stage.RO.feed_side.velocity[0, 0].setub(0.3)
+    # stage.RO.feed_side.velocity[0, 0].setlb(0.1)
     stage.RO.feed_side.cp_modulus.setub(20)
     stage.RO.feed_side.friction_factor_darcy.setub(20)
 
@@ -325,8 +327,8 @@ def build_n_stage_system(
     flow_vol=1,  # L/s
     salinity=35,  # g/L
     temperature=25,  # degC
-    water_recovery=0.5,  # only for initialization
-    over_pressure=0.25,
+    water_recovery_mass=0.5,  # only for initialization
+    over_pressure_factor=1.25,
     max_perm_conc=0.5,
     pump_dict={1: True},  # first stage always has pump
     hpro_costing=False,
@@ -348,8 +350,8 @@ def build_n_stage_system(
     m = ConcreteModel()
     m.flow_vol = flow_vol * pyunits.liter / pyunits.s
     m.salinity = salinity * pyunits.gram / pyunits.liter
-    m.over_pressure = over_pressure
-    m.water_recovery = water_recovery
+    m.over_pressure_factor = over_pressure_factor
+    m.water_recovery_mass = water_recovery_mass
 
     m.fs = FlowsheetBlock(dynamic=False)
 
@@ -536,8 +538,6 @@ def initialize_n_stage_system(m, *args, **kwargs):
 
     add_erd = kwargs.get("add_erd", True)
 
-    #### INITIALIZE
-
     _logger.info(f"DOF before initialization = {degrees_of_freedom(m)}")
 
     m.fs.feed.initialize()
@@ -569,13 +569,7 @@ def initialize_n_stage_system(m, *args, **kwargs):
     m.fs.product.initialize()
 
     ### SOLVE
-
-    # Unfix area, width, and pump pressure; optimize recovery
-    for n, stage in m.fs.stage.items():
-        stage.RO.area.unfix()
-        stage.RO.width.unfix()
-        if stage.has_pump:
-            stage.pump.control_volume.properties_out[0].pressure.unfix()
+    unfix_system_design(m)
 
     _logger.info(f"DOF before optimization = {degrees_of_freedom(m)}")
 
@@ -597,18 +591,25 @@ def initialize_n_stage_system(m, *args, **kwargs):
     return m
 
 
-def set_system_recovery(m, recovery):
+def unfix_system_design(m):
     """
-    Fix system recovery and unfix membrane area, width, and pump pressure in each stage
+    Unfix membrane area, width, and pump pressure in each stage
     """
 
-    m.fs.system_recovery.fix(recovery)
-
-    for n, stage in m.fs.stage.items():
+    for stage in m.fs.stage.values():
         stage.RO.area.unfix()
         stage.RO.width.unfix()
         if stage.has_pump:
             stage.pump.control_volume.properties_out[0].pressure.unfix()
+
+
+def set_system_recovery(m, recovery):
+    """
+    Set system recovery
+    """
+
+    unfix_system_design(m)
+    m.fs.system_recovery.fix(recovery)
 
     return m
 
@@ -623,7 +624,7 @@ def run_n_stage_system(*args, **kwargs):
 
 if __name__ == "__main__":
 
-    pump_dict = {1: True, 2: False, 3: True, 4: False, 5: True}
+    pump_dict = {1: True, 2: True, 3: False, 4: False, 5: True}
     m = run_n_stage_system(
         n_stages=3,
         salinity=95,

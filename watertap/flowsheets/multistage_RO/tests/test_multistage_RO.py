@@ -22,26 +22,25 @@ import watertap.flowsheets.multistage_RO.utils as utils
 lcow_results_salinity = {
     5: {
         1: {False: 0.3501, True: 0.3307},
-        2: {False: 0.3485, True: 0.3294},
-        3: {False: 0.3478, True: 0.329},
+        2: {False: 0.3483, True: 0.3292},
+        3: {False: 0.3475, True: 0.3287},
     },
     100: {
-        1: {False: 2.8075, True: 2.2792},
-        2: {False: 2.6304, True: 2.105},
-        3: {False: 2.5822, True: 2.0704},
+        1: {False: 2.6789, True: 2.1908},
+        2: {False: 2.5511, True: 2.0544},
+        3: {False: 2.5234, True: 2.0352},
     },
 }
-
 sec_results_salinity = {
     5: {
         1: {False: 1.1852, True: 0.7986},
-        2: {False: 1.1822, True: 0.7975},
-        3: {False: 1.1788, True: 0.7974},
+        2: {False: 1.1765, True: 0.7934},
+        3: {False: 1.1732, True: 0.792},
     },
     100: {
-        1: {False: 15.647, True: 9.688},
-        2: {False: 14.6124, True: 8.6606},
-        3: {False: 14.3329, True: 8.5305},
+        1: {False: 14.8991, True: 9.3661},
+        2: {False: 14.1455, True: 8.4974},
+        3: {False: 13.9852, True: 8.4265},
     },
 }
 
@@ -55,7 +54,7 @@ lcow_results_flow = {
     1000: {
         1: {False: 0.8496, True: 0.7313},
         2: {False: 0.8333, True: 0.7167},
-        3: {False: 0.8284, True: 0.7132},
+        3: {False: 0.9397, True: 0.7132},
     },
 }
 sec_results_flow = {
@@ -67,7 +66,7 @@ sec_results_flow = {
     1000: {
         1: {False: 4.1014, True: 2.5725},
         2: {False: 3.8789, True: 2.4304},
-        3: {False: 3.8618, True: 2.4258},
+        3: {False: 4.4233, True: 2.4258},
     },
 }
 

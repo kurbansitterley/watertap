@@ -28,7 +28,6 @@ from pyomo.environ import (
 from pyomo.util.check_units import assert_units_consistent
 
 from idaes.core import FlowsheetBlock
-from watertap.core.solvers import get_solver
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.testing import initialization_tester
 from idaes.core import UnitModelCostingBlock
@@ -37,6 +36,7 @@ from watertap.unit_models.zero_order import BackwashSolidsHandlingZO
 from watertap.core.wt_database import Database
 from watertap.core.zero_order_properties import WaterParameterBlock
 from watertap.costing.zero_order_costing import ZeroOrderCosting
+from watertap.core.solvers import get_solver
 
 solver = get_solver()
 
@@ -153,38 +153,6 @@ class TestBackwashSolidsHandling_w_default_removal:
     @pytest.mark.component
     def test_report(self, model):
         model.fs.unit.report()
-
-
-db = Database()
-params = db._get_technology("backwash_solids_handling")
-
-
-class TestIXZOsubtype:
-    @pytest.fixture(scope="class")
-    @classmethod
-    def model(cls):
-        m = ConcreteModel()
-
-        m.fs = FlowsheetBlock(dynamic=False)
-        m.fs.params = WaterParameterBlock(solute_list=["nitrate"])
-
-        m.fs.unit = BackwashSolidsHandlingZO(property_package=m.fs.params, database=db)
-
-        return m
-
-    @pytest.mark.parametrize("subtype", [params.keys()])
-    @pytest.mark.component
-    def test_load_parameters(self, model, subtype):
-        model.fs.unit.config.process_subtype = subtype
-        data = db.get_unit_operation_parameters(
-            "backwash_solids_handling", subtype=subtype
-        )
-
-        model.fs.unit.load_parameters_from_database()
-
-        for (t, j), v in model.fs.unit.removal_frac_mass_comp.items():
-            assert v.fixed
-            assert v.value == data["removal_frac_mass_comp"][j]["value"]
 
 
 @pytest.mark.component

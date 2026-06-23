@@ -11,14 +11,11 @@
 #################################################################################
 
 from pyomo.environ import (
-    ConcreteModel,
     value,
-    assert_optimal_termination,
     check_optimal_termination,
     units as pyunits,
 )
 
-from idaes.core.util.initialization import solve_indexed_blocks
 import idaes.core.util.scaling as iscale
 from idaes.core.util.model_statistics import degrees_of_freedom
 
@@ -28,37 +25,6 @@ from watertap.core.util.model_diagnostics.infeasible import (
     print_infeasible_bounds,
     print_infeasible_constraints,
 )
-
-
-def calculate_operating_pressure(
-    feed_state_block=None,
-    over_pressure=0.15,
-    water_recovery=0.5,
-    salt_passage=0.01,
-    solver=None,
-):
-    t = ConcreteModel()
-    prop = feed_state_block.config.parameters
-    comp = prop.solute_set.at(1)
-    t.brine = prop.build_state_block([0])
-
-    t.brine[0].flow_mass_phase_comp["Liq", "H2O"].fix(
-        value(feed_state_block.flow_mass_phase_comp["Liq", "H2O"])
-        * (1 - water_recovery)
-    )
-    t.brine[0].flow_mass_phase_comp["Liq", comp].fix(
-        value(feed_state_block.flow_mass_phase_comp["Liq", comp]) * (1 - salt_passage)
-    )
-    t.brine[0].pressure.fix(
-        101325
-    )  # valid when osmotic pressure is independent of hydraulic pressure
-    t.brine[0].temperature.fix(value(feed_state_block.temperature))
-
-    t.brine[0].pressure_osm_phase
-    results = solve_indexed_blocks(solver, [t.brine])
-    assert_optimal_termination(results)
-
-    return value(t.brine[0].pressure_osm_phase["Liq"]) * (1 + over_pressure)
 
 
 def report_pump(blk, w=30):

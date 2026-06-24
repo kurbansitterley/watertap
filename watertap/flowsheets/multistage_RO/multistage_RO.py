@@ -9,7 +9,6 @@
 # information, respectively. These files are also available online at the URL
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
-import logging
 from pyomo.environ import (
     RangeSet,
     ConcreteModel,
@@ -24,6 +23,8 @@ from pyomo.environ import (
     units as pyunits,
 )
 from pyomo.network import Arc
+
+import idaes.logger as idaeslog
 from idaes.core import FlowsheetBlock
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.initialization import propagate_state
@@ -55,18 +56,10 @@ from watertap.core.util.unit_models import calculate_operating_pressure
 __author__ = "Alexander V. Dudchenko, Kurban Sitterley"
 
 """
-Build and solve N-stage RO system with optional ERD and booster pumps.
+Build and solve N-stage RO system with optional energy recovery device (ERD) and booster pumps.
 """
 
-_logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    "MWMWMWMWMW %(asctime)s [%(levelname)s] %(module)s: %(message)s",
-    "%Y-%m-%d %H:%M:%S",
-)
-handler.setFormatter(formatter)
-_logger.addHandler(handler)
-_logger.setLevel(logging.DEBUG)
+_logger = idaeslog.getModelLogger("multistage_RO", level=idaeslog.INFO)
 
 solver = get_solver()
 

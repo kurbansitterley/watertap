@@ -75,6 +75,10 @@ reaktoro = [
     "reaktoro-pse>=0.3.0",
 ]
 
+exposan = [
+    "exposan",
+]
+
 dev = [
     "black==26.3.1",
     "pre-commit",

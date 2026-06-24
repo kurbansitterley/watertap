@@ -19,12 +19,197 @@ from pyomo.environ import (
 import idaes.core.util.scaling as iscale
 from idaes.core.util.model_statistics import degrees_of_freedom
 
+from watertap.unit_models.reverse_osmosis_1D import ReverseOsmosis1D
 from watertap.core.solvers import get_solver
 from watertap.core.util.model_diagnostics.infeasible import (
     print_close_to_bounds,
     print_infeasible_bounds,
     print_infeasible_constraints,
 )
+
+
+def overscale_ro(ro, props, full_scaling=True):
+
+    if isinstance(ro, ReverseOsmosis1D):
+        RO_1D = True
+    else:
+        RO_1D = False
+
+    comp = props.solute_set.at(1)
+    h2o_scale = props._default_scaling_factors["flow_mass_phase_comp", ("Liq", "H2O")]
+    comp_scale = props._default_scaling_factors["flow_mass_phase_comp", ("Liq", comp)]
+    scales = {"H2O": h2o_scale, comp: comp_scale}
+
+    iscale.set_scaling_factor(ro.area, 1e-2)
+    iscale.constraint_scaling_transform(ro.eq_area, 1e-2)
+    iscale.set_scaling_factor(ro.width, 1)
+    iscale.set_scaling_factor(ro.length, 1)
+
+    for e in ro.feed_side.velocity:
+        iscale.set_scaling_factor(ro.feed_side.velocity[e], 1)
+
+    iscale.constraint_scaling_transform(ro.eq_area, 1e-1)
+
+    for temp_stream in [
+        ro.eq_permeate_isothermal,
+        ro.feed_side.eq_equal_temp_interface,
+        ro.feed_side.eq_feed_isothermal,
+        ro.eq_permeate_outlet_isothermal,
+    ]:
+        for e in temp_stream:
+            iscale.constraint_scaling_transform(temp_stream[e], 1e-2)
+
+    if full_scaling:
+        for pressure_stream in [
+            ro.eq_permeate_outlet_isobaric,
+            ro.feed_side.eq_equal_pressure_interface,
+        ]:
+            for e in pressure_stream:
+                iscale.constraint_scaling_transform(pressure_stream[e], 1e-5)
+        if ro.find_component("eq_pressure_drop") is not None:
+            for e in ro.eq_pressure_drop:
+                iscale.constraint_scaling_transform(ro.eq_pressure_drop[e], 1e-4)
+        for e in ro.feed_side.eq_K:
+            iscale.constraint_scaling_transform(ro.feed_side.eq_K[e], 1e4)
+
+        for e in ro.feed_side.eq_N_Sh_comp:
+            iscale.constraint_scaling_transform(ro.feed_side.eq_N_Sh_comp[e], 1e-2)
+        for e in ro.feed_side.eq_N_Re:
+            iscale.constraint_scaling_transform(ro.feed_side.eq_N_Re[e], 1e2)
+
+        for e in ro.feed_side.eq_friction_factor:
+            iscale.constraint_scaling_transform(
+                ro.feed_side.eq_friction_factor[e], 1e-2
+            )
+        for e in ro.feed_side.eq_dP_dx:
+            iscale.constraint_scaling_transform(ro.feed_side.eq_dP_dx[e], 1e-3)
+
+        for e in ro.feed_side.eq_equal_flow_vol_interface:
+            iscale.constraint_scaling_transform(
+                ro.feed_side.eq_equal_flow_vol_interface[e], 1e1
+            )
+
+        for e in ro.eq_mass_transfer_term:
+            sf = scales[e[-1]]
+            iscale.constraint_scaling_transform(ro.eq_mass_transfer_term[e], sf * 10)
+        for e in ro.feed_side.mass_transfer_term:
+            sf = scales[e[-1]]
+            iscale.set_scaling_factor(ro.feed_side.mass_transfer_term[e], sf * 10)
+        if ro.find_component("eq_mass_flux_equal_mass_transfer") is not None:
+            for e in ro.eq_mass_flux_equal_mass_transfer:
+                sf = scales[e[-1]]
+                iscale.constraint_scaling_transform(
+                    ro.eq_mass_flux_equal_mass_transfer[e], sf
+                )
+        for e in ro.eq_connect_mass_transfer:
+            if e[-1] == "H2O":
+                sf = sf * 10
+            if e[-1] == comp:
+                sf = sf * 100
+            sf = scales[e[-1]]
+            iscale.constraint_scaling_transform(ro.eq_connect_mass_transfer[e], sf)
+        for e in ro.eq_recovery_mass_phase_comp:
+            sf = scales[e[-1]]
+            if e[-1] == "H2O":
+                sf = sf * 10
+            if e[-1] == comp:
+                sf = sf * 100
+            iscale.set_scaling_factor(ro.eq_recovery_mass_phase_comp[e], sf)
+        for e in ro.eq_permeate_production:
+            sf = scales[e[-1]]
+            if e[-1] == "H2O":
+                sf = sf * 10
+            if e[-1] == comp:
+                sf = sf * 100
+            iscale.constraint_scaling_transform(ro.eq_permeate_production[e], sf)
+        for e in ro.eq_flux_mass:
+            sf = scales[e[-1]]
+            if e[-1] == "H2O":
+                sf = sf * 10
+            if e[-1] == comp:
+                sf = sf * 100
+            iscale.constraint_scaling_transform(ro.eq_flux_mass[e], sf)
+
+        if not RO_1D:
+            sf = scales[comp]
+            sf = sf * 100
+            for (x, p, j), v in ro.mass_transfer_phase_comp.items():
+                if j == comp:
+                    iscale.set_scaling_factor(v, sf)
+
+
+def relax_bounds_for_low_salinity_waters(blk):
+
+    comp = blk.config.property_package.solute_set.at(1)
+    for x in list(blk.length_domain):
+        blk.feed_side.velocity[0, x].setub(0.25)
+        blk.feed_side.velocity[0, x].setlb(0.01)
+
+    for i, v in blk.feed_side.K.items():
+        v.setub(0.01)
+
+    for i, v in blk.feed_side.friction_factor_darcy.items():
+        v.setub(200)
+
+    for i, v in blk.feed_side.cp_modulus.items():
+        v.setlb(1e-5)
+        v.setub(15)
+
+    for (x, p, c), v in blk.recovery_mass_phase_comp.items():
+        if c == comp:
+            v.setlb(1e-9)
+            v.setub(1e-1)
+
+    for (t, x, p, c), v in blk.flux_mass_phase_comp.items():
+        if c == comp:
+            v.setlb(1e-9)
+            v.setub(1e-1)
+        if c == "H2O":
+            v.setlb(1e-5)
+            v.setub(0.999)
+
+    for (x, p, c), v in blk.recovery_mass_phase_comp.items():
+        if c == "H2O":
+            v.setlb(1e-4)
+            v.setub(0.999)
+
+
+def solve(
+    model=None,
+    solver=None,
+    tee=True,
+    raise_on_failure=True,
+    max_iter=1000,
+):
+
+    if solver is None:
+        solver = get_solver()
+
+    solver.options["max_iter"] = max_iter
+
+    print("\n--------- SOLVING ---------\n")
+    print(f"SOLVING with {degrees_of_freedom(model)} DOF")
+    results = solver.solve(model, tee=tee)
+
+    if check_optimal_termination(results):
+        print("\n--------- OPTIMAL SOLVE!!! ---------\n")
+        return results
+
+    if raise_on_failure:
+        print("\n--------- INFEASIBLE SOLVE!!! ---------\n")
+
+        print("\n--------- CLOSE TO BOUNDS ---------\n")
+        print_close_to_bounds(model)
+
+        print("\n--------- INFEASIBLE BOUNDS ---------\n")
+        print_infeasible_bounds(model)
+
+        print("\n--------- INFEASIBLE CONSTRAINTS ---------\n")
+        print_infeasible_constraints(model)
+        msg = "The current configuration is infeasible. Please adjust the decision variables."
+
+        raise RuntimeError(msg)
+    return results
 
 
 def report_pump(blk, w=30):
@@ -167,172 +352,3 @@ def report_n_stage_system(m, w=30):
 
     if hasattr(m.fs, "costing"):
         report_costing(m.fs.costing, w=w)
-
-
-def relax_bounds_for_low_salinity_waters(blk):
-
-    comp = blk.config.property_package.solute_set.at(1)
-    for x in list(blk.length_domain):
-        blk.feed_side.velocity[0, x].setub(0.25)
-        blk.feed_side.velocity[0, x].setlb(0.01)
-
-    for i, v in blk.feed_side.K.items():
-        v.setub(0.01)
-
-    for i, v in blk.feed_side.friction_factor_darcy.items():
-        v.setub(200)
-
-    for i, v in blk.feed_side.cp_modulus.items():
-        v.setlb(1e-5)
-        v.setub(15)
-
-    for (x, p, c), v in blk.recovery_mass_phase_comp.items():
-        if c == comp:
-            v.setlb(1e-9)
-            v.setub(1e-1)
-
-    for (t, x, p, c), v in blk.flux_mass_phase_comp.items():
-        if c == comp:
-            v.setlb(1e-9)
-            v.setub(1e-1)
-        if c == "H2O":
-            v.setlb(1e-5)
-            v.setub(0.999)
-
-    for (x, p, c), v in blk.recovery_mass_phase_comp.items():
-        if c == "H2O":
-            v.setlb(1e-4)
-            v.setub(0.999)
-
-
-def overscale_ro(ro, props, full_scaling=True):
-    comp = props.solute_set.at(1)
-    h2o_scale = props._default_scaling_factors["flow_mass_phase_comp", ("Liq", "H2O")]
-    comp_scale = props._default_scaling_factors["flow_mass_phase_comp", ("Liq", comp)]
-    scales = {"H2O": h2o_scale, comp: comp_scale}
-
-    iscale.set_scaling_factor(ro.area, 1e-2)
-    iscale.constraint_scaling_transform(ro.eq_area, 1 / 100)
-    iscale.set_scaling_factor(ro.width, 1)
-    iscale.set_scaling_factor(ro.length, 1)
-
-    for e in ro.feed_side.velocity:
-        iscale.set_scaling_factor(ro.feed_side.velocity[e], 1)
-
-    iscale.constraint_scaling_transform(ro.eq_area, 1 / 10)
-
-    for temp_stream in [
-        ro.eq_permeate_isothermal,
-        ro.feed_side.eq_equal_temp_interface,
-        ro.feed_side.eq_feed_isothermal,
-        ro.eq_permeate_outlet_isothermal,
-    ]:
-        for e in temp_stream:
-            iscale.constraint_scaling_transform(temp_stream[e], 1e-2)
-
-    if full_scaling:
-        for pressure_stream in [
-            ro.eq_permeate_outlet_isobaric,
-            ro.feed_side.eq_equal_pressure_interface,
-        ]:
-            for e in pressure_stream:
-                iscale.constraint_scaling_transform(pressure_stream[e], 1e-5)
-        for e in ro.eq_pressure_drop:
-            iscale.constraint_scaling_transform(ro.eq_pressure_drop[e], 1e-4)
-        for e in ro.feed_side.eq_K:
-            iscale.constraint_scaling_transform(ro.feed_side.eq_K[e], 1e4)
-
-        for e in ro.feed_side.eq_N_Sh_comp:
-            iscale.constraint_scaling_transform(ro.feed_side.eq_N_Sh_comp[e], 1e-2)
-        for e in ro.feed_side.eq_N_Re:
-            iscale.constraint_scaling_transform(ro.feed_side.eq_N_Re[e], 1e2)
-
-        for e in ro.feed_side.eq_friction_factor:
-            iscale.constraint_scaling_transform(
-                ro.feed_side.eq_friction_factor[e], 1e-2
-            )
-        for e in ro.feed_side.eq_dP_dx:
-            iscale.constraint_scaling_transform(ro.feed_side.eq_dP_dx[e], 1e-3)
-
-        for e in ro.feed_side.eq_equal_flow_vol_interface:
-            iscale.constraint_scaling_transform(
-                ro.feed_side.eq_equal_flow_vol_interface[e], 1e1
-            )
-
-        for e in ro.eq_mass_transfer_term:
-            sf = scales[e[-1]]
-            iscale.constraint_scaling_transform(ro.eq_mass_transfer_term[e], sf * 10)
-        for e in ro.feed_side.mass_transfer_term:
-            sf = scales[e[-1]]
-            iscale.set_scaling_factor(ro.feed_side.mass_transfer_term[e], sf * 10)
-        for e in ro.eq_mass_flux_equal_mass_transfer:
-            sf = scales[e[-1]]
-            iscale.constraint_scaling_transform(
-                ro.eq_mass_flux_equal_mass_transfer[e], sf
-            )
-        for e in ro.eq_connect_mass_transfer:
-            if e[-1] == "H2O":
-                sf = sf * 10
-            if e[-1] == comp:
-                sf = sf * 100
-            sf = scales[e[-1]]
-            iscale.constraint_scaling_transform(ro.eq_connect_mass_transfer[e], sf)
-        for e in ro.eq_recovery_mass_phase_comp:
-            sf = scales[e[-1]]
-            if e[-1] == "H2O":
-                sf = sf * 10
-            if e[-1] == comp:
-                sf = sf * 100
-            iscale.set_scaling_factor(ro.eq_recovery_mass_phase_comp[e], sf)
-        for e in ro.eq_permeate_production:
-            sf = scales[e[-1]]
-            if e[-1] == "H2O":
-                sf = sf * 10
-            if e[-1] == comp:
-                sf = sf * 100
-            iscale.constraint_scaling_transform(ro.eq_permeate_production[e], sf)
-        for e in ro.eq_flux_mass:
-            sf = scales[e[-1]]
-            if e[-1] == "H2O":
-                sf = sf * 10
-            if e[-1] == comp:
-                sf = sf * 100
-            iscale.constraint_scaling_transform(ro.eq_flux_mass[e], sf)
-
-
-def solve(
-    model=None,
-    solver=None,
-    tee=True,
-    raise_on_failure=True,
-    max_iter=1000,
-):
-
-    if solver is None:
-        solver = get_solver()
-
-    solver.options["max_iter"] = max_iter
-
-    print("\n--------- SOLVING ---------\n")
-    print(f"SOLVING with {degrees_of_freedom(model)} DOF")
-    results = solver.solve(model, tee=tee)
-
-    if check_optimal_termination(results):
-        print("\n--------- OPTIMAL SOLVE!!! ---------\n")
-        return results
-
-    if raise_on_failure:
-        print("\n--------- INFEASIBLE SOLVE!!! ---------\n")
-
-        print("\n--------- CLOSE TO BOUNDS ---------\n")
-        print_close_to_bounds(model)
-
-        print("\n--------- INFEASIBLE BOUNDS ---------\n")
-        print_infeasible_bounds(model)
-
-        print("\n--------- INFEASIBLE CONSTRAINTS ---------\n")
-        print_infeasible_constraints(model)
-        msg = "The current configuration is infeasible. Please adjust the decision variables."
-
-        raise RuntimeError(msg)
-    return results

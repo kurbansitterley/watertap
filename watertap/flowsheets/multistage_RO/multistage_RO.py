@@ -44,6 +44,7 @@ from watertap.property_models.seawater_prop_pack import SeawaterParameterBlock
 from watertap.unit_models.pressure_changer import Pump, EnergyRecoveryDevice
 from watertap.costing import WaterTAPCosting
 from watertap.unit_models.reverse_osmosis_1D import ReverseOsmosis1D
+from watertap.unit_models.reverse_osmosis_0D import ReverseOsmosis0D
 from watertap.core import (  # noqa # pylint: disable=unused-import
     ConcentrationPolarizationType,
     MassTransferCoefficient,
@@ -94,18 +95,28 @@ def build_stage(
     stage.feed = StateJunction(property_package=m.fs.properties)
     stage.feed.properties[0].pressure_osm_phase["Liq"]
 
-    stage.RO = ReverseOsmosis1D(
-        property_package=m.fs.properties,
-        has_pressure_change=True,
-        pressure_change_type=PressureChangeType.calculated,
-        mass_transfer_coefficient=MassTransferCoefficient.calculated,
-        concentration_polarization_type=ConcentrationPolarizationType.calculated,
-        transformation_scheme="BACKWARD",
-        transformation_method="dae.finite_difference",
-        module_type="spiral_wound",
-        finite_elements=10,
-        has_full_reporting=True,
-    )
+    if m.RO_1D:
+        stage.RO = ReverseOsmosis1D(
+            property_package=m.fs.properties,
+            has_pressure_change=True,
+            pressure_change_type=PressureChangeType.calculated,
+            mass_transfer_coefficient=MassTransferCoefficient.calculated,
+            concentration_polarization_type=ConcentrationPolarizationType.calculated,
+            transformation_scheme="BACKWARD",
+            transformation_method="dae.finite_difference",
+            module_type="spiral_wound",
+            finite_elements=10,
+            has_full_reporting=True,
+        )
+    else:
+        stage.RO = ReverseOsmosis0D(
+            property_package=m.fs.properties,
+            has_pressure_change=True,
+            pressure_change_type=PressureChangeType.calculated,
+            mass_transfer_coefficient=MassTransferCoefficient.calculated,
+            concentration_polarization_type=ConcentrationPolarizationType.calculated,
+            has_full_reporting=True,
+        )
 
     stage.product = StateJunction(property_package=m.fs.properties)
     stage.disposal = StateJunction(property_package=m.fs.properties)
@@ -329,6 +340,7 @@ def build_n_stage_system(
     ro_op_dict={},
     add_costing=True,
     max_pressure=400e5,
+    RO_1D=True,
     *args,
     **kwargs,
 ):
@@ -345,6 +357,7 @@ def build_n_stage_system(
     m.salinity = salinity * pyunits.gram / pyunits.liter
     m.over_pressure_factor = over_pressure_factor
     m.water_recovery_mass = water_recovery_mass
+    m.RO_1D = RO_1D
 
     m.fs = FlowsheetBlock(dynamic=False)
 
@@ -561,15 +574,22 @@ def initialize_n_stage_system(m, *args, **kwargs):
     propagate_state(m.fs.product_mixer_to_product)
     m.fs.product.initialize()
 
+    if m.fs.find_component("costing") is not None:
+        m.fs.costing.initialize()
+
     ### SOLVE
     unfix_system_design(m)
 
     _logger.info(f"DOF before optimization = {degrees_of_freedom(m)}")
 
+    # from watertap.kurby import check_scaling
+    # check_scaling(m.fs.stage[1])
+    # assert False
+
     results = utils.solve(model=m, tee=True)
     assert_optimal_termination(results)
 
-    # Fix area, with, and pump pressure
+    # Fix area, width, and pump pressure
     for n, stage in m.fs.stage.items():
         stage.RO.area.fix()
         stage.RO.width.fix()
@@ -618,17 +638,20 @@ def run_n_stage_system(*args, **kwargs):
 if __name__ == "__main__":
 
     pump_dict = {1: True, 2: True, 3: False, 4: False, 5: True}
-    m = run_n_stage_system(
-        n_stages=3,
-        salinity=95,
-        flow_vol=5,
-        add_erd=True,
-        pump_dict=pump_dict,
-        # max_pressure=300e5
-    )
 
-    m = set_system_recovery(m, 0.4)
+    for b in [True, False]:
+        m = run_n_stage_system(
+            n_stages=3,
+            salinity=35,
+            flow_vol=5,
+            add_erd=True,
+            pump_dict=pump_dict,
+            RO_1D=b,
+            add_costing=True,
+        )
 
-    res = utils.solve(model=m, tee=False)
+        m = set_system_recovery(m, 0.4)
 
-    utils.report_n_stage_system(m)
+        res = utils.solve(model=m, tee=False)
+
+        utils.report_n_stage_system(m)

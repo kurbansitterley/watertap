@@ -453,9 +453,9 @@ def export_variables(flowsheet=None, exports=None, build_options=None, **kwargs)
             rounding=2,
             description="ERD efficiency",
             is_input=True,
-            input_category="ERD",
+            input_category="Energy Recovery Device",
             is_output=True,
-            output_category="ERD",
+            output_category="Energy Recovery Device",
         )
         exports.add(
             obj=fs.ERD.control_volume.properties_out[0].pressure,
@@ -465,7 +465,7 @@ def export_variables(flowsheet=None, exports=None, build_options=None, **kwargs)
             rounding=2,
             description="ERD operating pressure",
             is_input=True,
-            input_category="ERD",
+            input_category="Energy Recovery Device",
             is_output=False,
         )
 

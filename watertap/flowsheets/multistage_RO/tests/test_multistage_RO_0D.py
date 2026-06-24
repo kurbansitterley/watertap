@@ -14,97 +14,96 @@ from pyomo.environ import value, units as pyunits
 
 from watertap.property_models.NaCl_T_dep_prop_pack import NaClParameterBlock
 from watertap.property_models.seawater_prop_pack import SeawaterParameterBlock
-from watertap.unit_models.reverse_osmosis_1D import ReverseOsmosis1D
+from watertap.unit_models.reverse_osmosis_0D import ReverseOsmosis0D
 from watertap.unit_models.pressure_changer import Pump
 import watertap.flowsheets.multistage_RO.multistage_RO as multistage
 import watertap.flowsheets.multistage_RO.utils as utils
 
+# Results for salinity range tests for RO-0D
 lcow_results_salinity = {
     5: {
-        1: {False: 0.3501, True: 0.3307},
-        2: {False: 0.3483, True: 0.3292},
-        3: {False: 0.3475, True: 0.3287},
+        1: {False: 0.3522, True: 0.3328},
+        2: {False: 0.349, True: 0.3301},
+        3: {False: 0.3482, True: 0.3295},
     },
     100: {
-        1: {False: 2.6789, True: 2.1908},
-        2: {False: 2.5511, True: 2.0544},
-        3: {False: 2.5234, True: 2.0352},
+        1: {False: 1.4469, True: 1.4046},
+        2: {False: 1.465, True: 1.4281},
+        3: {False: 1.4901, True: 1.4614},
     },
 }
 sec_results_salinity = {
     5: {
-        1: {False: 1.1852, True: 0.7986},
-        2: {False: 1.1765, True: 0.7934},
-        3: {False: 1.1732, True: 0.792},
+        1: {False: 1.1893, True: 0.8037},
+        2: {False: 1.177, True: 0.7952},
+        3: {False: 1.1742, True: 0.7939},
     },
     100: {
-        1: {False: 14.8991, True: 9.3661},
-        2: {False: 14.1455, True: 8.4974},
-        3: {False: 13.9852, True: 8.4265},
+        1: {False: 7.0295, True: 6.2209},
+        2: {False: 7.1696, True: 6.3749},
+        3: {False: 7.3433, True: 6.6009},
     },
 }
 
-
+# Results for flow range tests for RO-0D
 lcow_results_flow = {
     1: {
-        1: {False: 0.8456, True: 0.7303},
-        2: {False: 0.831, True: 0.7145},
-        3: {False: 0.826, True: 0.7109},
+        1: {False: 0.7308, True: 0.6671},
+        2: {False: 0.7368, True: 0.6718},
+        3: {False: 0.7434, True: 0.6921},
     },
     1000: {
-        1: {False: 0.8496, True: 0.7313},
-        2: {False: 0.8333, True: 0.7167},
-        3: {False: 0.9397, True: 0.7132},
+        1: {False: 0.7815, True: 0.6902},
+        2: {False: 0.774, True: 0.6883},
+        3: {False: 0.7742, True: 0.689},
     },
 }
 sec_results_flow = {
     1: {
-        1: {False: 3.9539, True: 2.5279},
-        2: {False: 3.8437, True: 2.3956},
-        3: {False: 3.8237, True: 2.3882},
+        1: {False: 2.9621, True: 2.0312},
+        2: {False: 2.9927, True: 2.054},
+        3: {False: 3.0317, True: 2.2759},
     },
     1000: {
-        1: {False: 4.1014, True: 2.5725},
-        2: {False: 3.8789, True: 2.4304},
-        3: {False: 4.4233, True: 2.4258},
+        1: {False: 3.7141, True: 2.418},
+        2: {False: 3.5608, True: 2.3535},
+        3: {False: 3.562, True: 2.3556},
     },
 }
 
-
+# Results for recovery range tests for RO-0D
 lcow_results_recov = {
     0.4: {
-        1: {False: 0.9153, True: 0.7719},
-        2: {False: 0.9072, True: 0.7654},
-        3: {False: 0.904, True: 0.7624},
+        1: {False: 0.8571, True: 0.7457},
+        2: {False: 0.8638, True: 0.7483},
+        3: {False: 0.8835, True: 0.7513},
     },
     0.5: {
-        1: {False: 0.8456, True: 0.7303},
-        2: {False: 0.831, True: 0.7145},
-        3: {False: 0.826, True: 0.7109},
+        1: {False: 0.7308, True: 0.6671},
+        2: {False: 0.7368, True: 0.6718},
+        3: {False: 0.7434, True: 0.6921},
     },
     0.6: {
-        1: {False: 0.8388, True: 0.7419},
-        2: {False: 0.8003, True: 0.701},
-        3: {False: 0.7954, True: 0.6972},
+        1: {False: 0.6429, True: 0.6033},
+        2: {False: 0.6482, True: 0.6079},
+        3: {False: 0.6546, True: 0.6644},
     },
 }
-
-
 sec_results_recov = {
     0.4: {
-        1: {False: 4.2266, True: 2.3989},
-        2: {False: 4.1896, True: 2.3768},
-        3: {False: 4.1773, True: 2.3472},
+        1: {False: 3.5393, True: 2.2241},
+        2: {False: 3.5795, True: 2.2414},
+        3: {False: 3.9585, True: 2.2641},
     },
     0.5: {
-        1: {False: 3.9539, True: 2.5279},
-        2: {False: 3.8437, True: 2.3956},
-        3: {False: 3.8237, True: 2.3882},
+        1: {False: 2.9621, True: 2.0312},
+        2: {False: 2.9927, True: 2.054},
+        3: {False: 3.0317, True: 2.2759},
     },
     0.6: {
-        1: {False: 4.0167, True: 2.8528},
-        2: {False: 3.7355, True: 2.5399},
-        3: {False: 3.7172, True: 2.5317},
+        1: {False: 2.5666, True: 1.9514},
+        2: {False: 2.5914, True: 1.9709},
+        3: {False: 2.6261, True: 2.1895},
     },
 }
 
@@ -126,7 +125,7 @@ default_ro_op_dict = {
 }
 
 
-class TestMultiStageRO:
+class TestMultiStageRO_0D:
 
     @pytest.mark.unit
     def test_wrong_prop_pack(self):
@@ -134,12 +133,25 @@ class TestMultiStageRO:
             ValueError,
             match="Only NaCl or Seawater property models can be used but MCAS was passed.",
         ):
-            _ = multistage.build_n_stage_system(prop_pack="MCAS")
+            _ = multistage.build_n_stage_system(prop_pack="MCAS", RO_1D=False)
+
+    @pytest.mark.unit
+    def test_that_ro_param_doesnt_exist(self):
+        with pytest.raises(
+            ValueError,
+            match="Component rainjacket not found in RO unit model",
+        ):
+            _ = multistage.build_n_stage_system(
+                n_stages=3,
+                add_costing=False,
+                prop_pack="NACL",
+                ro_op_dict={"rainjacket": 7983},
+            )
 
     @pytest.mark.unit
     def test_NaCl_build(self):
         m = multistage.build_n_stage_system(
-            n_stages=5, add_costing=False, prop_pack="NACL"
+            n_stages=5, add_costing=False, prop_pack="NACL", RO_1D=False
         )
         assert m.fs.properties.solute_set.at(1) == "NaCl"
         assert isinstance(m.fs.properties, NaClParameterBlock)
@@ -148,7 +160,7 @@ class TestMultiStageRO:
         assert len(m.fs.product_mixer.config.inlet_list) == len(m.fs.stages_set)
 
         for n, stage in m.fs.stage.items():
-            assert isinstance(stage.RO, ReverseOsmosis1D)
+            assert isinstance(stage.RO, ReverseOsmosis0D)
             if not n == m.fs.stages_set.first():
                 assert not stage.has_pump
                 assert stage.find_component("pump") is None
@@ -168,12 +180,13 @@ class TestMultiStageRO:
             pump_dict={1: True, 3: True},
             prop_pack="seawater",
             add_erd=False,
+            RO_1D=False,
         )
         assert m.fs.properties.solute_set.at(1) == "TDS"
         assert isinstance(m.fs.properties, SeawaterParameterBlock)
         assert len(m.fs.stage) == 3
         for n, stage in m.fs.stage.items():
-            assert isinstance(stage.RO, ReverseOsmosis1D)
+            assert isinstance(stage.RO, ReverseOsmosis0D)
             if n in [1, 3]:
                 assert stage.has_pump
                 assert isinstance(stage.find_component("pump"), Pump)
@@ -188,7 +201,7 @@ class TestMultiStageRO:
 
     @pytest.mark.unit
     def test_reporting(self):
-        m = multistage.run_n_stage_system()
+        m = multistage.run_n_stage_system(RO_1D=False)
         utils.report_n_stage_system(m)
 
     @pytest.mark.parametrize("n", n_stages)
@@ -209,6 +222,7 @@ class TestMultiStageRO:
             flow_vol=1,
             pump_dict={1: True, 2: True, 3: False},
             ro_op_dict=default_ro_op_dict,
+            RO_1D=False,
         )
 
         m = multistage.set_system_recovery(m, 0.5)
@@ -240,6 +254,7 @@ class TestMultiStageRO:
             flow_vol=flow,
             pump_dict={1: True, 2: True, 3: False},
             ro_op_dict=default_ro_op_dict,
+            RO_1D=False,
         )
 
         m = multistage.set_system_recovery(m, 0.5)
@@ -271,6 +286,7 @@ class TestMultiStageRO:
             flow_vol=1,
             pump_dict={1: True, 2: True, 3: False},
             ro_op_dict=default_ro_op_dict,
+            RO_1D=False,
         )
 
         m = multistage.set_system_recovery(m, recov)

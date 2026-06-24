@@ -24,6 +24,7 @@ constructed wetlands ,constructed_wetlands_zo,ConstructedWetlandsZO,non-basic,SI
 conventional activated sludge,conventional_activated_sludge_zo,CASZO,basic,SIDO,TRUE,constant_intensity,cost_power_law_flow,"single-input, double-output",sido_methods
 cooling supply ,cooling_supply_zo,CoolingSupplyZO,basic,PT,TRUE,constant_intensity,cost_power_law_flow,pass-through,pt_methods
 cooling tower ,cooling_tower_zo,CoolingTowerZO,non-basic,SIDO,TRUE,constant_intensity,cost_power_law_flow,"single-input, double-output",sido_methods
+crystallizer,crystallizer_zo,CrystallizerZO,non-basic,SIDO,FALSE,f(x),cost_crystallizer,"single-input, double-output",sido_methods
 decarbonator ,decarbonator_zo,DecarbonatorZO,basic,SISO,TRUE,constant_intensity,cost_power_law_flow,"single-input, single-output",siso_methods
 deep well injection,deep_well_injection_zo,DeepWellInjectionZO,non-basic,PT,TRUE,pump_electricity,cost_deep_well_injection,pass-through,pt_methods
 dissolved air flotation,dissolved_air_flotation_zo,DissolvedAirFlotationZO,basic,SIDO,TRUE,constant_intensity,cost_power_law_flow,"single-input, double-output",sido_methods

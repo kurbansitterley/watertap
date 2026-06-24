@@ -11,7 +11,7 @@ This flowsheet can be used to create a N-stage reverse osmosis (RO) system with 
 Implementation
 --------------
 
-This flowsheet will build, solve, and optimize an N-stage RO system with the following models:
+This flowsheet will build, solve, and optimize an N-stage RO system with the following property models:
 
 Property models:
 

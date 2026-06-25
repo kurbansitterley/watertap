@@ -500,21 +500,22 @@ The following snippet shows how to add costing to the unit models on our flowshe
         # Build the process costing model
         m.fs.costing.cost_process()
 
+        # Designate flow rate for costing metrics
+        flow_rate = m.fs.product.properties[0].flow_vol_phase["Liq"]
+
         # Add system-level costing metrics
-        m.fs.costing.add_LCOW(m.fs.product.properties[0].flow_vol_phase["Liq"])
-        m.fs.costing.add_specific_energy_consumption(
-            m.fs.product.properties[0].flow_vol_phase["Liq"], name="SEC"
-        )
+        m.fs.costing.add_LCOW(flow_rate)
+        m.fs.costing.add_specific_energy_consumption(flow_rate, name="SEC")
 
         # Add flow component breakdown for electricity and bazchem
         m.fs.costing.add_flow_component_breakdown(
             "electricity",
-            m.fs.product.properties[0].flow_vol_phase["Liq"],
+            flow_rate,
             period=pyunits.hr,
         )
         m.fs.costing.add_flow_component_breakdown(
             "bazchem",
-            m.fs.product.properties[0].flow_vol_phase["Liq"],
+            flow_rate,
             period=pyunits.hr,
         )
 

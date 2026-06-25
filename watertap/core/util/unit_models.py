@@ -73,7 +73,7 @@ def calculate_operating_pressure(
             raise ValueError("salt_passage argument must be between 0 and 0.999")
 
     comps = state_block.params.solute_set
-    
+
     if not isinstance(salt_passage, dict):
         # Assume same salt passage for all solutes if a single value is provided
         salt_passage = {comp: salt_passage for comp in comps}

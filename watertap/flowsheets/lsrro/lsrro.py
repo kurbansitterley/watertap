@@ -11,6 +11,9 @@
 #################################################################################
 
 import itertools
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 from pyomo.environ import (
     ConcreteModel,
@@ -32,7 +35,6 @@ from pyomo.network import Arc, SequentialDecomposition
 from pyomo.util.check_units import assert_units_consistent
 
 from idaes.core import FlowsheetBlock, UnitModelCostingBlock
-from watertap.core.solvers import get_solver
 from idaes.core.util.exceptions import InitializationError
 from idaes.core.util.initialization import propagate_state
 from idaes.core.util.misc import StrEnum
@@ -41,19 +43,16 @@ from idaes.models.unit_models.mixer import MomentumMixingType
 import idaes.core.util.scaling as iscale
 import idaes.logger as idaeslogger
 from idaes.core.util.model_statistics import fixed_variables_in_activated_equalities_set
+
 from watertap.unit_models.reverse_osmosis_1D import (
+    Pump,
+    EnergyRecoveryDevice,
+    ReverseOsmosis0D,
     ReverseOsmosis1D,
     ConcentrationPolarizationType,
     MassTransferCoefficient,
     PressureChangeType,
 )
-from watertap.unit_models.reverse_osmosis_0D import (
-    ReverseOsmosis0D,
-    ConcentrationPolarizationType,
-    MassTransferCoefficient,
-    PressureChangeType,
-)
-from watertap.unit_models.pressure_changer import Pump, EnergyRecoveryDevice
 from watertap.core.util.initialization import (
     assert_no_degrees_of_freedom,
     assert_degrees_of_freedom,
@@ -63,12 +62,10 @@ from watertap.costing import (
     make_capital_cost_var,
     register_costing_parameter_block,
 )
-
+from watertap.core.solvers import get_solver
 from watertap.property_models import NaClParameterBlock
+
 from parameter_sweep import LinearSample, parameter_sweep
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 
 _log = idaeslogger.getLogger(__name__)
 

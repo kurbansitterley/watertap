@@ -10,6 +10,8 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 
+import logging
+
 from pyomo.environ import (
     ConcreteModel,
     value,
@@ -51,8 +53,6 @@ from watertap.property_models import (
     DensityCalculation,
 )
 from watertap.core.solvers import get_solver
-
-import logging
 
 _logger = logging.getLogger(__name__)
 handler = logging.StreamHandler()

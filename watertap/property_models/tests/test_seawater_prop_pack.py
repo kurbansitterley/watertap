@@ -298,7 +298,7 @@ class TestSeawaterCalculateState_5(PropertyCalculateStateTest):
 def test_list_and_print_properties():
     m = ConcreteModel()
     m.fs = FlowsheetBlock(dynamic=False)
-    m.fs.props = props.SeawaterParameterBlock()
+    m.fs.props = SeawaterParameterBlock()
 
     m.fs.props.list_properties()
     m.fs.props.print_properties()

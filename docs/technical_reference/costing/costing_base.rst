@@ -8,7 +8,7 @@ WaterTAP Costing Framework
 
 .. currentmodule:: watertap.costing.watertap_costing
 
-The WaterTAP Costing Base class and utility functions contain extensions, methods, and variables and constraints common to all WaterTAP Costing Packages, and which would be useful for creating custom costing packages for WaterTAP.
+The WaterTAP Costing Base class and utility functions contain extensions, methods, variables, and constraints common to all WaterTAP Costing Packages, and which would be useful for creating custom costing packages for WaterTAP.
 An example of using WaterTAP costing in a flowsheet is provided in the :ref:`How to use WaterTAP Costing <how_to_use_watertap_costing>` guide.
 
 .. _extensions_over_idaes_costing_framework:
@@ -289,11 +289,11 @@ The relationship between the :math:`f_{crf}`, :math:`L`, and :math:`f_{wacc}` is
 
         f_{crf} = \frac{ f_{wacc} (1 + f_{wacc}) ^ L}{ (1 + f_{wacc}) ^ L - 1}
 
-Therefore, at exactly two of the variables ``capital_recovery_factor``, ``plant_lifetime`` and ``wacc`` must be fixed. By default the variables ``plant_lifetime`` and ``wacc`` are fixed
-and the variable ``capital_recovery_factor`` is calculated.
+Therefore, exactly two of the variables ``capital_recovery_factor``, ``plant_lifetime`` and ``wacc`` must be fixed. By default, ``plant_lifetime`` and ``wacc`` are fixed
+and ``capital_recovery_factor`` is calculated.
 
 
-The process-wide costs described below rely on two other factors which must be supplyed by the derived class, the total investment factor and the maintenance-labor-chemical factor.
+The process-wide costs described below rely on two other factors that must be supplied by the derived class: the total investment factor and the maintenance-labor-chemical factor.
 
 =============================================  ====================  =======================================  ===============  ==============================================================================
                  Cost factor                     Variable                 Name                                 Default Value    Description
@@ -324,7 +324,7 @@ Aggregate electricity cost                      :math:`C_{el,tot}`    ``aggregat
 Costing Calculations
 --------------------
 
-Total annulized cost is a simple function of the annualized capital cost and the annualized operating cost:
+Total annualized cost is a simple function of the annualized capital cost and the annualized operating cost:
 
     .. math::
  
@@ -340,9 +340,9 @@ The total operating cost is the sum of the fixed and variable operating costs:
 
     .. math::
 
-        C_{op,tot} = C_{op,fix} + c_{op,var}
+        C_{op,tot} = C_{op,fix} + C_{op,var}
 
-The total fixed operating cost :math:`C_{op,fix}` is the sum of the maintence, labor, and chemical operating costs, :math:`C_{mlc}` and the total fixed operating costs from the unit models, :math:`C_{fop,u}`:
+The total fixed operating cost :math:`C_{op,fix}` is the sum of the maintence, labor, and chemical operating costs, :math:`C_{mlc}`, and the total fixed operating costs from the unit models, :math:`C_{fop,u}`:
 
    .. math::
 
@@ -365,7 +365,7 @@ Aggregate Metrics
 ------------------
 
 Built-in methods can be used to add expressions for common aggregate metrics used in technoeconomic analyses of water systems.
-The following methods can be added to add different metrics to the costing block:
+The following methods can be used to add different metrics to the costing block:
 
 .. csv-table::
    :header: "Method", "Default Expression Name", "Description"
@@ -392,7 +392,7 @@ based on ``flow_rate`` would be:
 Levelized Cost of Water (LCOW)
 ++++++++++++++++++++++++++++++
 
-For a given volumetric flow :math:`Q`, the LCOW, :math:`LCOW_{Q}` is calculated by the ``add_LCOW`` method as
+For a given volumetric flow :math:`Q`, an expression for the LCOW, :math:`LCOW_{Q}` is added by the ``add_LCOW`` method as
 
     .. math::
   
@@ -431,7 +431,7 @@ The ``LCOW_component_*`` expressions are indexed by the string representation of
 The indexes for the ``LCOW_aggregate_*`` expressions are the unit model class name.
 
 Importantly, both ``LCOW_component_variable_opex`` and ``LCOW_aggregate_variable_opex`` expressions are also indexed by flow name for registered flows.
-Energy (e.g., ``electricity``) and material (e.g., ``naocl``, ``caustic``) flows registered with the costing package will have their variable operating costs
+Energy (e.g., `"electricity"`) and material (e.g., `"naocl"`, `"caustic"`) flows registered with the costing package will have their variable operating costs
 broken out in these expressions. This allows the user to see the contribution of individual flow costs to the overall LCOW.
 
 For an example of the breakdowns presented by each of these expressions, see the :ref:`how to use WaterTAP costing<how_to_use_watertap_costing>` guide.
@@ -442,13 +442,13 @@ For an example of the breakdowns presented by each of these expressions, see the
 Specific Energy Consumption (SEC)
 +++++++++++++++++++++++++++++++++
 
-For a given volumetric flow `Q`, the specific energy consumption, :math:`\text{SEC}_Q` is calculated by the ``add_specific_energy_consumption`` method as
+For a given volumetric flow `Q`, an expression for the specific energy consumption, :math:`\text{SEC}_Q` is added by the ``add_specific_energy_consumption`` method as
 
     .. math::
   
         \text{SEC}_Q = \frac{C_{el,tot}}{Q}
 
-Additionally, the specific energy consumption will be broken down by unit model. An expression is created with ``_component`` prepended to the name provided by the user (or ``specific_energy_consumption`` by default).
+Additionally, the specific energy consumption will be broken down by unit model. An expression is created with ``_component`` appended to the name provided by the user (or ``specific_energy_consumption`` by default).
 This expression is indexed by unit model flowsheet name and is calculated as
     
     .. math::
@@ -458,13 +458,13 @@ This expression is indexed by unit model flowsheet name and is calculated as
 Specific Electrical Carbon Intensity (SECI)
 +++++++++++++++++++++++++++++++++++++++++++
 
-For a given volumetric flow `Q`, the specific electrical carbon intensity, :math:`\text{SECI}_Q` is calculated by the ``add_specific_electrical_carbon_intensity`` method as
+For a given volumetric flow `Q`, an expression for the specific electrical carbon intensity, :math:`\text{SECI}_Q` is added by the ``add_specific_electrical_carbon_intensity`` method as
 
     .. math::
   
         \text{SECI}_Q = \frac{f_{eci} C_{el,tot}}{Q}
 
-Additionally, the specific electrical carbon intensity will be broken down by unit model. An expression is created with ``_component`` prepended to the name provided by the user (or ``specific_electrical_carbon_intensity`` by default).
+Additionally, the specific electrical carbon intensity will be broken down by unit model. An expression is created with ``_component`` appended to the name provided by the user (or ``specific_electrical_carbon_intensity`` by default).
 This expression is indexed by unit model flowsheet name and is calculated as
     
     .. math::
@@ -474,7 +474,7 @@ This expression is indexed by unit model flowsheet name and is calculated as
 Annual Water Production
 +++++++++++++++++++++++
 
-For a given volumetric flow `Q`, the annual water production, :math:`\text{W}^{\text{A}}_{Q}` is calculated by the ``add_annual_water_production`` method as
+For a given volumetric flow `Q`, an expression for the annual water production, :math:`\text{W}^{\text{A}}_{Q}` is added by the ``add_annual_water_production`` method as
 
     .. math::
    
@@ -499,14 +499,14 @@ The method has two required arguments and three optional arguments:
 
 - ``flow_name`` (required): string for a registered flow type 
 - ``flow_rate`` (required): flow rate of water (volumetric) to be used for normalization
-- ``name`` (optional): base name prepended to ``"_component"`` for expression name (default is to use ``flow_name``)
+- ``name`` (optional): base name appended with ``_component`` for expression name (default is to use ``flow_name``)
 - ``period`` (optional): time period for normalization (default is ``base_period``)
 - ``multiplier`` (optional): multiplier for the flow (default is 1.0)
 
 To create a breakdown of costs for ``bazchem`` used per hour per cubic meter of water, the following will create 
 an expression ``m.fs.costing.bazchem_flow_component`` indexed to every unit that is associated with a flow of ``bazchem``.
 
-.. code-block::
+.. code-block:: python
 
     m.fs.costing.add_flow_component_breakdown(
         "bazchem", flow_rate, name="bazchem_flow", period=pyunits.hour

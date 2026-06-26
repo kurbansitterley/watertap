@@ -1118,6 +1118,7 @@ def test_RO_with_MCAS_NaCl():
     # fully specify system
     feed_flow_mass = 1 / 3.6
     feed_mass_frac_NaCl = 0.03
+    nacl_mw = 58.44
     feed_mass_frac_H2O = 1 - feed_mass_frac_NaCl
     feed_pressure = 70e5
     feed_temperature = 273.15 + 25

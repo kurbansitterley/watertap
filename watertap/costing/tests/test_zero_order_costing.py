@@ -101,7 +101,7 @@ class TestGeneralMethods:
         assert model.fs.frame.base_currency == pyunits.MUSD_2018
         assert model.fs.frame.base_period == pyunits.year
 
-        assert len(model.fs.frame.defined_flows) == 22
+        assert len(model.fs.frame.defined_flows) == 23
         for f in model.fs.frame.defined_flows:
             assert f in [
                 "heat",
@@ -121,6 +121,7 @@ class TestGeneralMethods:
                 "hydrogen_peroxide",
                 "ion_exchange_resin",
                 "lime",
+                "polymer",
                 "phosphoric_acid",
                 "sand",
                 "sodium_bisulfite",
@@ -331,6 +332,7 @@ class TestWorkflow:
         m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
 
         m.fs.costing = ZeroOrderCosting()
+        m.fs.costing.base_currency = pyunits.USD_2020
 
         return m
 
@@ -476,8 +478,8 @@ class TestWorkflow:
     @pytest.mark.skipif(solver is None, reason="Solver not available")
     @pytest.mark.component
     def test_solution(self, model):
-        # Note all dollar values are in millions of dollars
-        assert pytest.approx(628.8506, rel=1e-5) == value(
+
+        assert pytest.approx(186742848.27, rel=1e-5) == value(
             model.fs.costing.total_capital_cost
         )
 
@@ -488,8 +490,7 @@ class TestWorkflow:
             model.fs.costing.aggregate_flow_alum
         )
 
-        # Note units (M$)
-        assert pytest.approx(1.724546e-7, rel=1e-3) == value(model.fs.costing.LCOW)
+        assert pytest.approx(0.0613672, rel=1e-5) == value(model.fs.costing.LCOW)
 
         assert pytest.approx(0.231345, rel=1e-5) == value(
             model.fs.costing.electricity_intensity

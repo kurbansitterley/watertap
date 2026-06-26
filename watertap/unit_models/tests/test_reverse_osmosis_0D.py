@@ -1129,12 +1129,12 @@ def test_RO_with_MCAS_NaCl():
     A = 4.2e-12
     B = 3.5e-8
     pressure_atmospheric = 101325
-  
+
     m.fs.unit.inlet.flow_mass_phase_comp[0, "Liq", "Na_+"].fix(
-        feed_flow_mass * feed_mass_frac_NaCl/nacl_mw*23
+        feed_flow_mass * feed_mass_frac_NaCl / nacl_mw * 23
     )
     m.fs.unit.inlet.flow_mass_phase_comp[0, "Liq", "Cl_-"].fix(
-        feed_flow_mass * feed_mass_frac_NaCl/nacl_mw*35
+        feed_flow_mass * feed_mass_frac_NaCl / nacl_mw * 35
     )
     m.fs.unit.inlet.flow_mass_phase_comp[0, "Liq", "H2O"].fix(
         feed_flow_mass * feed_mass_frac_H2O

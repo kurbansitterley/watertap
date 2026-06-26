@@ -36,6 +36,8 @@ from idaes.core.util.misc import StrEnum
 from watertap.property_models import NaClParameterBlock
 from watertap.unit_models import (
     OsmoticallyAssistedReverseOsmosis0D,
+    OsmoticallyAssistedReverseOsmosis1D,
+    ReverseOsmosis1D,
     ReverseOsmosis0D,
     ConcentrationPolarizationType,
     MassTransferCoefficient,
@@ -43,6 +45,7 @@ from watertap.unit_models import (
     Pump,
     EnergyRecoveryDevice,
 )
+
 from watertap.core.util.initialization import assert_degrees_of_freedom
 from watertap.costing import WaterTAPCosting
 from watertap.core.solvers import get_solver
@@ -58,14 +61,16 @@ def erd_type_not_found(erd_type):
     )
 
 
-def main(erd_type=ERDtype.pump_as_turbine, raise_on_failure=False):
+def main(
+    erd_type=ERDtype.pump_as_turbine, RO_1D=False, OARO_1D=False, raise_on_failure=False
+):
     # set up solver
     solver = get_solver()
 
     # build, set, and initialize
-    m = build(erd_type=erd_type)
+    m = build(erd_type=erd_type, RO_1D=RO_1D, OARO_1D=OARO_1D)
     set_operating_conditions(m)
-    initialize_system(m, solver=solver)
+    initialize_system(m, solver=solver, OARO_1D=OARO_1D)
 
     optimize_set_up(m)
     solve(m, solver=solver)
@@ -80,7 +85,7 @@ def main(erd_type=ERDtype.pump_as_turbine, raise_on_failure=False):
     return m
 
 
-def build(erd_type=ERDtype.pump_as_turbine):
+def build(erd_type=ERDtype.pump_as_turbine, RO_1D=False, OARO_1D=False):
     # TODO: add costing later (OARO unit model does not have costing method)
 
     # flowsheet set up
@@ -103,24 +108,44 @@ def build(erd_type=ERDtype.pump_as_turbine):
     m.fs.P3 = Pump(property_package=m.fs.properties)
 
     # --- Reverse Osmosis Block ---
-    m.fs.RO = ReverseOsmosis0D(
-        property_package=m.fs.properties,
-        has_pressure_change=True,
-        pressure_change_type=PressureChangeType.calculated,
-        mass_transfer_coefficient=MassTransferCoefficient.calculated,
-        concentration_polarization_type=ConcentrationPolarizationType.calculated,
-        has_full_reporting=True,
-    )
+    if RO_1D:
+        m.fs.RO = ReverseOsmosis1D(
+            property_package=m.fs.properties,
+            has_pressure_change=True,
+            pressure_change_type=PressureChangeType.calculated,
+            mass_transfer_coefficient=MassTransferCoefficient.calculated,
+            concentration_polarization_type=ConcentrationPolarizationType.calculated,
+            has_full_reporting=True,
+        )
+    else:
+        m.fs.RO = ReverseOsmosis0D(
+            property_package=m.fs.properties,
+            has_pressure_change=True,
+            pressure_change_type=PressureChangeType.calculated,
+            mass_transfer_coefficient=MassTransferCoefficient.calculated,
+            concentration_polarization_type=ConcentrationPolarizationType.calculated,
+            has_full_reporting=True,
+        )
 
     # --- Osmotically Assisted Reverse Osmosis Block ---
-    m.fs.OARO = OsmoticallyAssistedReverseOsmosis0D(
-        property_package=m.fs.properties,
-        has_pressure_change=True,
-        pressure_change_type=PressureChangeType.calculated,
-        mass_transfer_coefficient=MassTransferCoefficient.calculated,
-        concentration_polarization_type=ConcentrationPolarizationType.calculated,
-        has_full_reporting=True,
-    )
+    if OARO_1D:
+        m.fs.OARO = OsmoticallyAssistedReverseOsmosis1D(
+            property_package=m.fs.properties,
+            has_pressure_change=True,
+            pressure_change_type=PressureChangeType.calculated,
+            mass_transfer_coefficient=MassTransferCoefficient.calculated,
+            concentration_polarization_type=ConcentrationPolarizationType.calculated,
+            has_full_reporting=True,
+        )
+    else:
+        m.fs.OARO = OsmoticallyAssistedReverseOsmosis0D(
+            property_package=m.fs.properties,
+            has_pressure_change=True,
+            pressure_change_type=PressureChangeType.calculated,
+            mass_transfer_coefficient=MassTransferCoefficient.calculated,
+            concentration_polarization_type=ConcentrationPolarizationType.calculated,
+            has_full_reporting=True,
+        )
 
     # --- ERD blocks ---
     if erd_type == ERDtype.pump_as_turbine:
@@ -361,7 +386,7 @@ def initialize_loop(m, solver):
     m.fs.disposal.initialize()
 
 
-def initialize_system(m, solver=None, verbose=True):
+def initialize_system(m, solver=None, OARO_1D=False, verbose=True):
     if solver is None:
         solver = get_solver()
 
@@ -384,7 +409,10 @@ def initialize_system(m, solver=None, verbose=True):
     # permeate side outlet pressure and unfix the RO pump
     # (which allows for control over the flow mass composition
     # into the OARO permeate_side).
-    m.fs.OARO.permeate_side.properties_out[0].pressure.fix(101325)
+    if OARO_1D:
+        m.fs.OARO.permeate_side.properties[0, 0].pressure.fix(101325)
+    else:
+        m.fs.OARO.permeate_side.properties_out[0].pressure.fix(101325)
     m.fs.P2.control_volume.properties_out[0].pressure.unfix()
 
     print(f"DOF: {degrees_of_freedom(m)}")
@@ -520,4 +548,4 @@ def display_state(m):
 
 
 if __name__ == "__main__":
-    m = main(erd_type=ERDtype.pump_as_turbine)
+    m = main(erd_type=ERDtype.pump_as_turbine, RO_1D=False, OARO_1D=False)

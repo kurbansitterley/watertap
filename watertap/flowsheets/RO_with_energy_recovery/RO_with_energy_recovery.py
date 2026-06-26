@@ -40,6 +40,11 @@ from watertap.unit_models import (
     Pump,
     EnergyRecoveryDevice,
 )
+from watertap.unit_models.reverse_osmosis_1D import (
+    ReverseOsmosis1D,
+)
+from watertap.unit_models.pressure_exchanger import PressureExchanger
+from watertap.unit_models.pressure_changer import Pump, EnergyRecoveryDevice
 from watertap.core.util.initialization import assert_degrees_of_freedom
 from watertap.core.util.unit_models import calculate_operating_pressure
 from watertap.costing import WaterTAPCosting
@@ -62,12 +67,12 @@ def erd_type_not_found(erd_type):
     )
 
 
-def main(erd_type=ERDtype.pressure_exchanger):
+def main(erd_type=ERDtype.pressure_exchanger, RO_1D=False):
     # set up solver
     solver = get_solver()
     # build, set, and initialize
-    m = build(erd_type=erd_type)
-    set_operating_conditions(m)
+    m = build(erd_type=erd_type, RO_1D=RO_1D)
+    set_operating_conditions(m, RO_1D=RO_1D)
     initialize_system(m, solver=solver)
 
     assert_optimal_termination(solve(m, solver=solver))
@@ -86,7 +91,7 @@ def main(erd_type=ERDtype.pressure_exchanger):
     return m
 
 
-def build(erd_type=ERDtype.pressure_exchanger):
+def build(erd_type=ERDtype.pressure_exchanger, RO_1D=False):
     # flowsheet set up
     m = ConcreteModel()
     m.fs = FlowsheetBlock(dynamic=False)
@@ -103,13 +108,22 @@ def build(erd_type=ERDtype.pressure_exchanger):
     m.fs.P1 = Pump(property_package=m.fs.properties)
 
     # --- Reverse Osmosis Block ---
-    m.fs.RO = ReverseOsmosis0D(
-        property_package=m.fs.properties,
-        has_pressure_change=True,
-        pressure_change_type=PressureChangeType.calculated,
-        mass_transfer_coefficient=MassTransferCoefficient.calculated,
-        concentration_polarization_type=ConcentrationPolarizationType.calculated,
-    )
+    if RO_1D:
+        m.fs.RO = ReverseOsmosis1D(
+            property_package=m.fs.properties,
+            has_pressure_change=True,
+            pressure_change_type=PressureChangeType.calculated,
+            mass_transfer_coefficient=MassTransferCoefficient.calculated,
+            concentration_polarization_type=ConcentrationPolarizationType.calculated,
+        )
+    else:
+        m.fs.RO = ReverseOsmosis0D(
+            property_package=m.fs.properties,
+            has_pressure_change=True,
+            pressure_change_type=PressureChangeType.calculated,
+            mass_transfer_coefficient=MassTransferCoefficient.calculated,
+            concentration_polarization_type=ConcentrationPolarizationType.calculated,
+        )
 
     # --- ERD blocks ---
     if erd_type == ERDtype.pressure_exchanger:
@@ -213,6 +227,7 @@ def set_operating_conditions(
     flow_vol=1e-3,
     salt_mass_conc=35e-3,
     solver=None,
+    RO_1D=False,
 ):
 
     if solver is None:
@@ -241,10 +256,20 @@ def set_operating_conditions(
         m.fs.P1.control_volume.properties_out[0].flow_vol_phase["Liq"], 1
     )
     iscale.set_scaling_factor(m.fs.P1.work_fluid[0], 1)
-    iscale.set_scaling_factor(m.fs.RO.mass_transfer_phase_comp[0, "Liq", "NaCl"], 1e4)
-    iscale.set_scaling_factor(
-        m.fs.RO.feed_side.mass_transfer_term[0, "Liq", "NaCl"], 1e4
-    )
+    if RO_1D:
+        iscale.set_scaling_factor(
+            m.fs.RO.mass_transfer_phase_comp[0, 0.1, "Liq", "NaCl"], 1e4
+        )
+        iscale.set_scaling_factor(
+            m.fs.RO.feed_side.mass_transfer_term[0, 0.1, "Liq", "NaCl"], 1e4
+        )
+    else:
+        iscale.set_scaling_factor(
+            m.fs.RO.mass_transfer_phase_comp[0, "Liq", "NaCl"], 1e4
+        )
+        iscale.set_scaling_factor(
+            m.fs.RO.feed_side.mass_transfer_term[0, "Liq", "NaCl"], 1e4
+        )
 
     # calculate and propagate scaling factors
     iscale.calculate_scaling_factors(m)
@@ -277,18 +302,32 @@ def set_operating_conditions(
     m.fs.RO.permeate.pressure[0].fix(101325)  # atmospheric pressure [Pa]
     m.fs.RO.width.fix(5)  # stage width [m]
     # initialize RO
-    m.fs.RO.feed_side.properties_in[0].flow_mass_phase_comp["Liq", "H2O"] = value(
-        m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "H2O"]
-    )
-    m.fs.RO.feed_side.properties_in[0].flow_mass_phase_comp["Liq", "NaCl"] = value(
-        m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "NaCl"]
-    )
-    m.fs.RO.feed_side.properties_in[0].temperature = value(
-        m.fs.feed.properties[0].temperature
-    )
-    m.fs.RO.feed_side.properties_in[0].pressure = value(
-        m.fs.P1.control_volume.properties_out[0].pressure
-    )
+    if RO_1D:
+        m.fs.RO.feed_side.properties[0, 0].flow_mass_phase_comp["Liq", "H2O"] = value(
+            m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "H2O"]
+        )
+        m.fs.RO.feed_side.properties[0, 0].flow_mass_phase_comp["Liq", "NaCl"] = value(
+            m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "NaCl"]
+        )
+        m.fs.RO.feed_side.properties[0, 0].temperature = value(
+            m.fs.feed.properties[0].temperature
+        )
+        m.fs.RO.feed_side.properties[0, 0].pressure = value(
+            m.fs.P1.control_volume.properties_out[0].pressure
+        )
+    else:
+        m.fs.RO.feed_side.properties_in[0].flow_mass_phase_comp["Liq", "H2O"] = value(
+            m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "H2O"]
+        )
+        m.fs.RO.feed_side.properties_in[0].flow_mass_phase_comp["Liq", "NaCl"] = value(
+            m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "NaCl"]
+        )
+        m.fs.RO.feed_side.properties_in[0].temperature = value(
+            m.fs.feed.properties[0].temperature
+        )
+        m.fs.RO.feed_side.properties_in[0].pressure = value(
+            m.fs.P1.control_volume.properties_out[0].pressure
+        )
 
     m.fs.RO.area.fix(50)  # guess area for RO initialization
 
@@ -611,4 +650,4 @@ def display_state(m):
 
 
 if __name__ == "__main__":
-    m = main(erd_type=ERDtype.pump_as_turbine)
+    m = main(erd_type=ERDtype.pump_as_turbine, RO_1D=False)

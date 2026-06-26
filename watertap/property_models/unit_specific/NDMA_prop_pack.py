@@ -10,7 +10,7 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 """
-Initial property package for H2O-NDMA system
+Property package for H2O-NDMA system
 """
 
 # Import Python libraries
@@ -78,7 +78,7 @@ class NDMAParameterData(PhysicalParameterBlock):
         """
         Callable method for Block construction.
         """
-        super(NDMAParameterData, self).build()
+        super().build()
 
         self._state_block_class = NDMAStateBlock
 

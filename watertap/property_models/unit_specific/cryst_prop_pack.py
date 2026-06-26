@@ -10,7 +10,7 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 """
-Initial crystallization property package for H2O-NaCl system
+Crystallization property package for H2O-NaCl system
 """
 
 # Import Python libraries

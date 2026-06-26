@@ -694,7 +694,7 @@ the aggregation-based LCOW breakdowns are indexed by each unit model type and fl
 Each registered flow appears in multiple places within the LCOW breakdowns. For example, for the ``LCOW_component_variable_opex`` breakdown, the electricity flow 
 is included in the results for the `fs.pump1`, `fs.pump2`, and `fs.ERD` indexes; the sum of these values (i.e., the total aggregation of electricity) equals the ``LCOW_aggregate_variable_opex["electricity"]`` entry.
 Additionally, ``LCOW_aggregate_variable_opex["Pump"]`` corresponds to the sum of the variable costs for all pump unit models. 
-For this reason, the system LCOW is the summation of all indexes in any of the component or aggregate expressions *except* those indexed by flow.
+For this reason, the system LCOW is the summation of all indexes in any of the component or aggregate expressions *except* those indexed by a material/energy flow (see :ref:`how to cost a flow<how_to_cost_a_flow>`).
 
 .. code-block:: none
 

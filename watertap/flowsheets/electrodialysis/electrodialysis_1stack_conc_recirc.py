@@ -32,22 +32,26 @@ from idaes.models.unit_models.mixer import MixingType, MomentumMixingType
 import idaes.core.util.scaling as iscale
 import idaes.logger as idaeslogger
 
-from watertap.unit_models import Pump, Electrodialysis1D
-from watertap.unit_models.electrodialysis_1D import (
-    Electrodialysis1D,
-    ElectricalOperationMode as ElectricalOperationMode1D,
-    PressureDropMethod as PressureDropMethod1D,
-    FrictionFactorMethod as FrictionFactorMethod1D,
-    HydraulicDiameterMethod as HydraulicDiameterMethod1D,
-    LimitingCurrentDensityMethod as LimitingCurrentDensityMethod1D,
-)
-from watertap.unit_models.electrodialysis_0D import (
+from watertap.unit_models import (
+    Pump,
     Electrodialysis0D,
+    Electrodialysis1D,
+)
+
+# TODO: refactor where all these configs are
+from watertap.unit_models.electrodialysis_0D import (
     ElectricalOperationMode as ElectricalOperationMode0D,
     PressureDropMethod as PressureDropMethod0D,
     FrictionFactorMethod as FrictionFactorMethod0D,
     HydraulicDiameterMethod as HydraulicDiameterMethod0D,
     LimitingCurrentDensityMethod as LimitingCurrentDensityMethod0D,
+)
+from watertap.unit_models.electrodialysis_1D import (
+    ElectricalOperationMode as ElectricalOperationMode1D,
+    PressureDropMethod as PressureDropMethod1D,
+    FrictionFactorMethod as FrictionFactorMethod1D,
+    HydraulicDiameterMethod as HydraulicDiameterMethod1D,
+    LimitingCurrentDensityMethod as LimitingCurrentDensityMethod1D,
 )
 from watertap.costing.watertap_costing_package import WaterTAPCosting
 from watertap.property_models.multicomp_aq_sol_prop_pack import MCASParameterBlock

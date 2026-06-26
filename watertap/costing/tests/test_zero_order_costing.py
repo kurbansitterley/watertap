@@ -30,7 +30,6 @@ from pyomo.util.check_units import assert_units_consistent
 from pyomo.common.config import ConfigValue
 
 from idaes.core import FlowsheetBlock, declare_process_block_class
-from watertap.core.solvers import get_solver
 from idaes.core import UnitModelCostingBlock
 from idaes.core.util.model_statistics import (
     degrees_of_freedom,
@@ -46,6 +45,7 @@ from watertap.core.zero_order_base import ZeroOrderBaseData
 from watertap.property_models import ZOParameterBlock
 from watertap.core.wt_database import Database
 from watertap.unit_models.zero_order import ChemicalAdditionZO, NanofiltrationZO
+from watertap.core.solvers import get_solver
 
 
 @declare_process_block_class("DerivedZOBase")

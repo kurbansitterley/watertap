@@ -18,7 +18,7 @@ import pyomo.environ as pyo
 from idaes.core import FlowsheetBlock, UnitModelCostingBlock
 
 from watertap.property_models import NaClParameterBlock
-from watertap.unit_models.reverse_osmosis_0D import (
+from watertap.unit_models import (
     ReverseOsmosis0D,
     ConcentrationPolarizationType,
     MassTransferCoefficient,

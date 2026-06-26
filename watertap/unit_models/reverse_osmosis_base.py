@@ -247,7 +247,7 @@ class ReverseOsmosisBaseData(InitializationMixin, UnitModelBlockData):
             )
 
         if hasattr(self.mixed_permeate[0].params, "ion_set"):
-            if len(self.mixed_permeate[0].params.ion_set)> 1:
+            if len(self.mixed_permeate[0].params.ion_set) > 1:
                 # electroneutrality constraint for permeate
                 @self.Constraint(
                     self.flowsheet().config.time,

@@ -12,9 +12,8 @@
 __author__ = "Alejandro Garciadiego, Adam Atia"
 
 import pyomo.environ as pyo
-from pyomo.environ import (
-    units,
-)
+from pyomo.environ import units
+
 from idaes.core import FlowsheetBlock
 import idaes.core.util.scaling as iscale
 import idaes.logger as idaeslog

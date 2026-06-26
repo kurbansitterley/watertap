@@ -38,6 +38,8 @@ from idaes.core.util.tables import (
 from idaes.core.util.initialization import (
     propagate_state as _pro_state,
 )
+
+from watertap.unit_models import AD
 from watertap.property_models import (
     ModifiedADM1ParameterBlock,
     ADM1_vaporParameterBlock,
@@ -49,7 +51,6 @@ from watertap.unit_models.translators.translator_adm1_asm2d import (
     Translator_ADM1_ASM2D,
 )
 from watertap.unit_models.translators.translator_asm2d_adm1 import Translator_ASM2d_ADM1
-from watertap.unit_models.anaerobic_digester import AD
 from watertap.core.util.initialization import (
     check_solve,
 )

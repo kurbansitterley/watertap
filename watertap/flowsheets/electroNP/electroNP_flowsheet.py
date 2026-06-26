@@ -11,11 +11,13 @@
 #################################################################################
 __author__ = "Chenyu Wang"
 
-import pyomo.environ as pyo
 from pyomo.environ import (
+    ConcreteModel,
+    Var,
     units,
     value,
     assert_optimal_termination,
+    TransformationFactory,
     units as pyunits,
 )
 from pyomo.network import Arc
@@ -53,7 +55,7 @@ _log = idaeslog.getLogger(__name__)
 
 def build_flowsheet():
     # flowsheet set up
-    m = pyo.ConcreteModel()
+    m = ConcreteModel()
     m.fs = FlowsheetBlock(dynamic=False)
 
     m.fs.props_ADM1 = ModifiedADM1ParameterBlock()
@@ -95,7 +97,7 @@ def build_flowsheet():
     m.fs.stream_translator_electroNP = Arc(
         source=m.fs.translator_adm1_asm2d.outlet, destination=m.fs.electroNP.inlet
     )
-    pyo.TransformationFactory("network.expand_arcs").apply_to(m)
+    TransformationFactory("network.expand_arcs").apply_to(m)
 
     # Feed conditions based on mass balance in Flores-Alsina, where 0 terms are expressed as 1e-9
     m.fs.AD.inlet.flow_vol[0].fix(
@@ -147,7 +149,7 @@ def build_flowsheet():
     m.fs.electroNP.magnesium_chloride_dosage.fix(0.388)
 
     # Scaling
-    for var in m.fs.component_data_objects(pyo.Var, descend_into=True):
+    for var in m.fs.component_data_objects(Var, descend_into=True):
         if "flow_vol" in var.name:
             iscale.set_scaling_factor(var, 1e2)
         if "temperature" in var.name:

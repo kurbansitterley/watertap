@@ -10,7 +10,7 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 """
-Initial property package for seawater system
+Property package for seawater system
 """
 
 # Import Pyomo libraries

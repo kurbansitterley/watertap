@@ -10,7 +10,7 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 """
-Initial property package for pure water system (vapor or liquid)
+Property package for pure water system (vapor or liquid)
 """
 
 # Import Python libraries

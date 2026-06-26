@@ -45,7 +45,7 @@ from watertap.core.util.initialization import (
 from watertap.unit_models import (
     OsmoticallyAssistedReverseOsmosis0D,
     ReverseOsmosis0D,
-    ReverseOsmosis1D, 
+    ReverseOsmosis1D,
     ConcentrationPolarizationType,
     Pump,
     EnergyRecoveryDevice,

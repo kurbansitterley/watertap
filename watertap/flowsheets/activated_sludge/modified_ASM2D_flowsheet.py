@@ -38,6 +38,7 @@ from idaes.models.unit_models import (
     Separator,
     PressureChanger,
     Product,
+    MomentumMixingType,
 )
 from idaes.models.unit_models.separator import SplittingType
 from idaes.core.util.model_statistics import degrees_of_freedom
@@ -53,7 +54,6 @@ from watertap.property_models import (
     ModifiedASM2dParameterBlock,
     ModifiedASM2dReactionParameterBlock,
 )
-from idaes.models.unit_models.mixer import MomentumMixingType
 from watertap.core.util.initialization import check_solve
 from watertap.core.solvers import get_solver
 

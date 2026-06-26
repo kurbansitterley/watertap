@@ -44,7 +44,7 @@ def calculate_operating_pressure(
         state_block: the state block of the RO feed that has the non-pressure state variables set to desired values (default=None)
         over_pressure_factor: the amount of operating pressure above the brine osmotic pressure represented as a fraction (default=1.15)
         water_recovery_mass: the mass-based fraction of inlet H2O that becomes permeate (default=0.5)
-        salt_passage: the mass-based fraction of inlet salt that becomes permeate (default=0)
+        salt_passage: the mass-based fraction of inlet components that become permeate (default=0)
         solver: solver object to be used (default=None)
     """
 
@@ -64,7 +64,7 @@ def calculate_operating_pressure(
         ]
     ):
         raise TypeError(
-            "state_block must be created with SeawaterParameterBlock, NaClParameterBlock, NaClTDepParameterBlock, or MCASParameterBlock"
+            "state_block argument must be a SeawaterParameterBlock, NaClParameterBlock, NaClTDepParameterBlock, or MCASParameterBlock"
         )
 
     if not isinstance(salt_passage, dict):
@@ -78,15 +78,15 @@ def calculate_operating_pressure(
         # Assume same salt passage for all solutes if a single value is provided
         salt_passage = {comp: salt_passage for comp in comps}
     elif isinstance(salt_passage, dict):
-        for comp, sr in salt_passage.items():
-            if not 0 <= sr < 0.999:
+        for comp, sp in salt_passage.items():
+            if not 0 <= sp < 0.999:
                 raise ValueError(
-                    f"salt_passage values must be between 0 and 0.999, but found {sr} for solute {comp}"
+                    f"salt_passage values must be between 0 and 0.999, but found {sp} for solute {comp}"
                 )
-    if isinstance(salt_passage, dict) and set(salt_passage.keys()) != set(comps):
+    if set(salt_passage.keys()) != set(comps):
         # If it is a dict, keys must match the solute set
         raise ValueError(
-            f"salt_passage keys must match solute_set {comps} but found {salt_passage.keys()}"
+            f"salt_passage keys must match keys in {comps} but found {list(salt_passage.keys())}"
         )
 
     if not 1e-3 < water_recovery_mass < 0.999:
@@ -124,7 +124,7 @@ def calculate_operating_pressure(
 
     if not check_optimal_termination(results):
         raise RuntimeError(
-            "Failed to solve temporary state block for operating pressure"
+            f"Failed to calculate operating pressure for {state_block.name}"
         )
 
     op_pressure = value(tmp.feed[0].pressure_osm_phase["Liq"]) * over_pressure_factor

@@ -13,8 +13,11 @@
 import pytest
 
 from pyomo.environ import ConcreteModel, units as pyunits
+from pyomo.network import Arc
+
 from idaes.core import FlowsheetBlock, MaterialFlowBasis
 from idaes.models.unit_models import Feed
+from idaes.core.util.initialization import propagate_state
 
 from watertap.property_models.seawater_prop_pack import SeawaterParameterBlock
 from watertap.property_models.NaCl_prop_pack import NaClParameterBlock
@@ -185,6 +188,23 @@ def build_ro1d_model():
     return m
 
 
+def build_ro1d_mcas_model():
+    """
+    Create RO1D with MCAS model for testing
+    """
+    m = build_mcas_prop_model()
+    m.fs.RO = ReverseOsmosis1D(
+        property_package=m.fs.properties,
+        concentration_polarization_type="none",
+        mass_transfer_coefficient="none",
+        has_pressure_change=False,
+    )
+    m.fs.feed_to_RO = Arc(source=m.fs.feed.outlet, destination=m.fs.RO.inlet)
+    propagate_state(m.fs.feed_to_RO)
+
+    return m
+
+
 @pytest.mark.component
 def test_calculate_operating_pressure_sw():
 
@@ -254,21 +274,33 @@ def test_calculate_operating_pressure_ro1d():
     assert pytest.approx(osm1, rel=1e-3) == 6677498.9
 
 
+@pytest.mark.component
+def test_calculate_operating_pressure_ro1d_mcas():
+
+    m = build_ro1d_mcas_model()
+    osm0 = calculate_operating_pressure(m.fs.feed.properties[0])
+    osm1 = calculate_operating_pressure(m.fs.RO.feed_side.properties[0, 0])
+    osm2 = calculate_operating_pressure(m.fs.RO.feed_side)
+    assert osm0 == osm1
+    assert osm1 == osm2
+    assert pytest.approx(osm1, rel=1e-3) == 6349578.8
+
+
 @pytest.mark.unit
 def test_calculate_operating_pressure_errors():
 
     with pytest.raises(
         TypeError,
-        match="state_block must be created with SeawaterParameterBlock, NaClParameterBlock, NaClTDepParameterBlock, or MCASParameterBlock",
+        match="state_block argument must be a SeawaterParameterBlock, NaClParameterBlock, NaClTDepParameterBlock, or MCASParameterBlock",
     ):
         m = build_ro0d_model()
-        calculate_operating_pressure(state_block=m.fs.RO.inlet)
+        _ = calculate_operating_pressure(state_block=m.fs.RO.inlet)
 
     with pytest.raises(
         ValueError, match="salt_passage argument must be between 0 and 0.999"
     ):
         m = build_seawater_prop_model()
-        calculate_operating_pressure(
+        _ = calculate_operating_pressure(
             state_block=m.fs.feed.properties[0], salt_passage=1.1
         )
 
@@ -285,7 +317,20 @@ def test_calculate_operating_pressure_errors():
             "Cl_-": 0.05,
             "Al_3+": 1759328490,
         }
-        osm = calculate_operating_pressure(
+        _ = calculate_operating_pressure(
+            m.fs.feed.properties[0], salt_passage=salt_passage
+        )
+
+    with pytest.raises(
+        ValueError,
+        match="salt_passage keys must match keys in fs.properties.solute_set but found \\['cats'\\]",
+    ):
+
+        m = build_mcas_prop_model()
+        salt_passage = {
+            "cats": 0.2,
+        }
+        _ = calculate_operating_pressure(
             m.fs.feed.properties[0], salt_passage=salt_passage
         )
 
@@ -293,7 +338,7 @@ def test_calculate_operating_pressure_errors():
         ValueError, match="water_recovery_mass argument must be between 0.001 and 0.999"
     ):
         m = build_nacl_prop_model()
-        calculate_operating_pressure(
+        _ = calculate_operating_pressure(
             state_block=m.fs.feed.properties[0], water_recovery_mass=2.5
         )
 
@@ -302,6 +347,18 @@ def test_calculate_operating_pressure_errors():
         match="over_pressure_factor argument must be greater than or equal to 1.0",
     ):
         m = build_nacl_prop_model()
-        calculate_operating_pressure(
+        _ = calculate_operating_pressure(
             state_block=m.fs.feed.properties[0], over_pressure_factor=0.9
+        )
+
+    with pytest.raises(
+        RuntimeError,
+        match="Failed to calculate operating pressure for fs.feed.properties\\[0.0\\]",
+    ):
+
+        m = build_seawater_prop_model()
+        _ = calculate_operating_pressure(
+            m.fs.feed.properties[0],
+            water_recovery_mass=0.998,
+            over_pressure_factor=10010,
         )

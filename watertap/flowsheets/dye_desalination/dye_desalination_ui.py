@@ -10,6 +10,10 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 from idaes_flowsheet_processor.api import FlowsheetInterface
+
+from pyomo.environ import units as pyunits, assert_optimal_termination
+from pyomo.util.check_units import assert_units_consistent
+
 from watertap.core.util.initialization import assert_degrees_of_freedom
 from watertap.flowsheets.dye_desalination.dye_desalination import (
     build,
@@ -18,8 +22,6 @@ from watertap.flowsheets.dye_desalination.dye_desalination import (
     solve,
     add_costing,
 )
-from pyomo.environ import units as pyunits, assert_optimal_termination
-from pyomo.util.check_units import assert_units_consistent
 
 
 def export_to_ui():

@@ -23,7 +23,7 @@ from idaes.core import UnitModelCostingBlock
 
 from watertap.core.solvers import get_solver
 from watertap.property_models import CrystallizerParameterBlock
-from watertap.unit_models.crystallizer import Crystallization
+from watertap.unit_models import Crystallization
 from watertap.costing import WaterTAPCosting, CrystallizerCostType
 
 

@@ -23,11 +23,10 @@ from .air_water_equilibrium_prop_pack import (
     LiqDiffusivityCalculation,
     VapDiffusivityCalculation,
     SaturationVaporPressureCalculation,
-    VaporPressureCalculation, 
+    VaporPressureCalculation,
     RelativeHumidityCalculation,
     LatentHeatVaporizationCalculation,
     SpecificHeatWaterCalculation,
-    
 )
 from .multicomp_aq_sol_prop_pack import (
     MCASParameterBlock,

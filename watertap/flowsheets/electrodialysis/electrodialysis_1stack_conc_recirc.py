@@ -39,6 +39,7 @@ from watertap.unit_models import (
     Electrodialysis0D,
     Electrodialysis1D,
 )
+
 # TODO: refactor where all these configs are
 from watertap.unit_models.electrodialysis_0D import (
     ElectricalOperationMode as ElectricalOperationMode0D,

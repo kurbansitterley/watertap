@@ -16,13 +16,12 @@ from pyomo.environ import ConcreteModel
 from idaes.core import FlowsheetBlock
 from idaes.models.unit_models import Feed
 
-from watertap.property_models.seawater_prop_pack import SeawaterParameterBlock
-from watertap.property_models.NaCl_prop_pack import NaClParameterBlock
-from watertap.property_models.NaCl_T_dep_prop_pack import (
-    NaClParameterBlock as NaClTDepParameterBlock,
+from watertap.property_models import (
+    SeawaterParameterBlock,
+    NaClParameterBlock,
+    NaClTDepParameterBlock,
+    MCASParameterBlock,
 )
-from watertap.property_models.multicomp_aq_sol_prop_pack import MCASParameterBlock
-
 from watertap.core.util.unit_models import calculate_operating_pressure
 from watertap.unit_models import ReverseOsmosis0D, ReverseOsmosis1D
 from watertap.core.solvers import get_solver

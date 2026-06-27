@@ -16,9 +16,11 @@ The example below shows how to setup and initialize a simple RO unit model.
     from idaes.core import FlowsheetBlock
     from idaes.core.util.scaling import calculate_scaling_factors
     from watertap.property_models import NaClParameterBlock
-    from watertap.unit_models.reverse_osmosis_0D import ReverseOsmosis0D
-    from watertap.unit_models.reverse_osmosis_0D import ConcentrationPolarizationType
-    from watertap.unit_models.reverse_osmosis_0D import MassTransferCoefficient
+    from watertap.unit_models import ReverseOsmosis0D
+    from watertap.unit_models.reverse_osmosis_0D import (
+        ConcentrationPolarizationType,
+        MassTransferCoefficient,
+    )
 
 
     # Create a concrete model, flowsheet, and NaCl property parameter block.

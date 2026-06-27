@@ -9,10 +9,12 @@ Example: Configure the RO model to account for concentration polarization and pr
 .. testcode::
 
     # Import RO model and configuration classes
-    from watertap.unit_models.reverse_osmosis_0D import ReverseOsmosis0D
-    from watertap.unit_models.reverse_osmosis_0D import ConcentrationPolarizationType
-    from watertap.unit_models.reverse_osmosis_0D import MassTransferCoefficient
-    from watertap.unit_models.reverse_osmosis_0D import PressureChangeType
+    from watertap.unit_models import ReverseOsmosis0D
+    from watertap.unit_models.reverse_osmosis_0D import (
+        ConcentrationPolarizationType,
+        MassTransferCoefficient,
+        PressureChangeType,
+    )
 
     # Import concrete model from Pyomo
     from pyomo.environ import ConcreteModel
@@ -37,3 +39,4 @@ Example: Configure the RO model to account for concentration polarization and pr
         mass_transfer_coefficient=MassTransferCoefficient.calculated,
         pressure_change_type=PressureChangeType.calculated,
     )
+

@@ -67,7 +67,7 @@ Example: Python file with recommended structure
     # Import utility tool for calculating scaling factors
     from idaes.core.util.scaling import calculate_scaling_factors
     # Import RO model
-    from watertap.unit_models.reverse_osmosis_0D import ReverseOsmosis0D
+    from watertap.unit_models import ReverseOsmosis0D
     # import the solver
     from watertap.core.solvers import get_solver
 
@@ -132,7 +132,7 @@ Example: the same code without recommended structure (may cause errors on Window
    # Import utility tool for calculating scaling factors
    from idaes.core.util.scaling import calculate_scaling_factors
    # Import RO model
-   from watertap.unit_models.reverse_osmosis_0D import ReverseOsmosis0D
+   from watertap.unit_models import ReverseOsmosis0D
    # import the solver
    from watertap.core.solvers import get_solver
 

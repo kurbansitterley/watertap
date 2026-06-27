@@ -566,7 +566,7 @@ def test_sec():
 
     m.fs = FlowsheetBlock(dynamic=False)
 
-    m.fs.params = WaterParameterBlock(solute_list=["tds"])
+    m.fs.params = ZOParameterBlock(solute_list=["tds"])
 
     m.fs.costing = ZeroOrderCosting()
     m.fs.costing.base_currency = pyunits.USD_2014

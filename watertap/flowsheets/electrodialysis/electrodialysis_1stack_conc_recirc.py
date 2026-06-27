@@ -55,6 +55,7 @@ from watertap.unit_models.electrodialysis_1D import (
     HydraulicDiameterMethod as HydraulicDiameterMethod1D,
     LimitingCurrentDensityMethod as LimitingCurrentDensityMethod1D,
 )
+from watertap.core.solvers import get_solver
 
 __author__ = "Xiangyu Bi"
 _log = idaeslogger.getLogger(__name__)

@@ -16,7 +16,19 @@ from idaes.core import (
     MaterialFlowBasis,
     MomentumBalanceType,
 )
-
+from .air_water_equilibrium_prop_pack import (
+    AirWaterEq,
+    AirWaterEqStateBlock,
+    MolarVolumeCalculation,
+    LiqDiffusivityCalculation,
+    VapDiffusivityCalculation,
+    SaturationVaporPressureCalculation,
+    VaporPressureCalculation, 
+    RelativeHumidityCalculation,
+    LatentHeatVaporizationCalculation,
+    SpecificHeatWaterCalculation,
+    
+)
 from .multicomp_aq_sol_prop_pack import (
     MCASParameterBlock,
     MCASStateBlock,

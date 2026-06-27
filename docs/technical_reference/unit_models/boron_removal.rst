@@ -11,7 +11,6 @@ Introduction
 ------------
 
 Boron removal is generally applied as a post-treatment process after the first
-
 Reverse Osmosis (RO) stage to shift the equilibrium of Boron (B[OH]\ :sub:`3`\) to Borate (B[OH]\ :sub:`4`\ :sup:`-`)
 so that a second RO stage can remove Borate ions from solution such that the total boron
 concentration can go below ~1 mg/L per the World Health Organization standards. This

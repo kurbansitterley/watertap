@@ -1,3 +1,5 @@
+.. _nanofiltration_0D:
+
 Nanofiltration (0D)
 ====================
 .. code-block:: python

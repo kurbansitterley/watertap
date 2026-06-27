@@ -48,7 +48,7 @@ from watertap.core import ControlVolume0DBlock, InitializationMixin
 from watertap.costing.unit_models.electrodialysis import cost_electrodialysis
 from watertap.core.solvers import get_solver
 
-__author__ = " Xiangyu Bi, Austin Ladshaw, Kejia Hu"
+__author__ = "Xiangyu Bi, Austin Ladshaw, Kejia Hu"
 
 _log = idaeslog.getLogger(__name__)
 

@@ -19,6 +19,7 @@ from .crystallizer import Crystallization
 from .cstr import CSTR, CSTRScaler
 from .cstr_injection import CSTR_Injection, CSTR_InjectionScaler
 from .dewatering import DewateringUnit, DewatererScaler, ActivatedSludgeModelType
+from .electrocoagulation import Electrocoagulation
 from .electrodialysis_0D import Electrodialysis0D
 from .electrodialysis_1D import Electrodialysis1D
 from .electrodialysis_bipolar_1D import (

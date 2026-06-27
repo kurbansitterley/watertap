@@ -9,6 +9,7 @@
 # information, respectively. These files are also available online at the URL
 # https://github.com/watertap-org/watertap/
 #################################################################################
+
 # IDAES imports
 from idaes.core import (
     MaterialBalanceType,
@@ -16,9 +17,13 @@ from idaes.core import (
     MaterialFlowBasis,
     MomentumBalanceType,
 )
+
+# WaterTAP Property Models
 from .air_water_equilibrium_prop_pack import (
     AirWaterEq,
+    AirWaterEqData,
     AirWaterEqStateBlock,
+    AirWaterEqStateBlockData,
     MolarVolumeCalculation,
     LiqDiffusivityCalculation,
     VapDiffusivityCalculation,
@@ -39,11 +44,36 @@ from .multicomp_aq_sol_prop_pack import (
     TransportNumberCalculation,
     MCASScaler,
 )
-from .NaCl_prop_pack import NaClParameterBlock, NaClParameterData
-from .NaCl_T_dep_prop_pack import NaClTDepParameterBlock, NaClTDepParameterData
-from .seawater_prop_pack import SeawaterParameterBlock, SeawaterParameterData
-from .water_prop_pack import WaterParameterBlock, WaterParameterData
-from .zero_order_prop_pack import ZOParameterBlock, ZOParameterData, ZOStateBlock
+from .NaCl_prop_pack import (
+    NaClParameterBlock,
+    NaClParameterData,
+    NaClStateBlock,
+    NaClStateBlockData,
+)
+from .NaCl_T_dep_prop_pack import (
+    NaClTDepParameterBlock,
+    NaClTDepParameterData,
+    NaClTDepStateBlock,
+    NaClTDepStateBlockData,
+)
+from .seawater_prop_pack import (
+    SeawaterParameterBlock,
+    SeawaterParameterData,
+    SeawaterStateBlock,
+    SeawaterStateBlockData,
+)
+from .water_prop_pack import (
+    WaterParameterBlock,
+    WaterParameterData,
+    WaterStateBlock,
+    WaterStateBlockData,
+)
+from .zero_order_prop_pack import (
+    ZOParameterBlock,
+    ZOParameterData,
+    ZOStateBlock,
+    ZOStateBlockData,
+)
 
 # Unit Specific
 from .unit_specific.coagulation_prop_pack import (

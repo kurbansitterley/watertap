@@ -26,7 +26,6 @@ from pyomo.network import Arc
 from pyomo.util.check_units import assert_units_consistent
 from pyomo.network import Port
 
-import idaes.logger as idaeslog
 from idaes.core import (
     FlowsheetBlock,
     MaterialBalanceType,

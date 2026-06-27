@@ -44,7 +44,7 @@ import idaes.core.util.scaling as iscale
 import idaes.logger as idaeslogger
 from idaes.core.util.model_statistics import fixed_variables_in_activated_equalities_set
 
-from watertap.unit_models.reverse_osmosis_1D import (
+from watertap.unit_models import (
     Pump,
     EnergyRecoveryDevice,
     ReverseOsmosis0D,

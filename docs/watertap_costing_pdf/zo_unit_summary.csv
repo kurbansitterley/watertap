@@ -1,0 +1,90 @@
+unit_model_class,subtypes,validity_range,tech_type
+AerationBasinZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",aeration_basin
+AirFlotationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 200}",air_flotation
+AnaerobicDigestionOxidationZO,['default'],,anaerobic_digestion_oxidation
+AnaerobicDigestionReactiveZO,"['default', 'GLSD_anaerobic_digester']",,anaerobic_digestion_reactive
+AnaerobicMBRMECZO,['default'],,anaerobic_mbr_mec
+BackwashSolidsHandlingZO,['default'],,backwash_solids_handling
+BioActiveFiltrationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",bio_active_filtration
+BioreactorZO,['default'],,bioreactor
+BlendingReservoirZO,['default'],,blending_reservoir
+BrineConcentratorZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0.06, 'upper_bound': 20}",brine_concentrator
+BufferTankZO,['default'],,buffer_tank
+CANDOPZO,['default'],,CANDO_P
+CartridgeFiltrationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",cartridge_filtration
+CentrifugeZO,,,centrifuge
+ChemicalAdditionZO,"['default', 'alum', 'ammonia', 'anhydrous_ammonia', 'anti-scalant', 'caustic_soda', 'ferric_chloride', 'hydrochloric_acid', 'lime', 'sodium_bisulfite', 'sulfuric_acid', 'chlorine']","{'units': 'gal/day', 'lower_bound': 50, 'upper_bound': 750}",chemical_addition
+ChlorinationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 1, 'upper_bound': 25}",chlorination
+ClarifierZO,"['default', 'HRCS_clarifier']","{'units': 'ft^2', 'lower_bound': 0, 'upper_bound': 160000}",clarifier
+ClothMediaFiltrationZO,['default'],,cloth_media_filtration
+CO2AdditionZO,['default'],,co2_addition
+CoagulationFlocculationZO,['default'],"{'units': 'gallons', 'lower_bound': 800, 'upper_bound': 145000}",coag_and_floc
+CofermentationZO,['default'],,cofermentation
+ConstructedWetlandsZO,['default'],,constructed_wetlands
+CASZO,"['default', 'cas_nitrification', 'cas_denitrification']","{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",conventional_activated_sludge
+CoolingSupplyZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 300}",cooling_supply
+CoolingTowerZO,['default'],,cooling_tower
+DecarbonatorZO,['default'],,decarbonator
+DeepWellInjectionZO,['default'],,deep_well_injection
+DissolvedAirFlotationZO,['default'],,dissolved_air_flotation
+DMBRZO,['default'],,dmbr
+DualMediaFiltrationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",dual_media_filtration
+ElectroNPZO,,,electrochemical_nutrient_removal
+ElectrocoagulationZO,['default'],"{'units': 'm^3', 'lower_bound': 1, 'upper_bound': 50}",electrocoagulation
+ElectrodialysisReversalZO,['default'],"{'units': 'mg/L', 'lower_bound': 0, 'upper_bound': 20000}",electrodialysis_reversal
+EnergyRecoveryZO,['default'],,energy_recovery
+EvaporationPondZO,['default'],"{'units': 'acre', 'lower_bound': 10, 'upper_bound': 100}",evaporation_pond
+FeedWaterTankZO,['default'],,feed_water_tank
+FeedZO,,,feed
+FilterPressZO,['default'],"{'units': 'ft3', 'lower_bound': 10, 'upper_bound': 1000}",filter_press
+FixedBedZO,"['default', 'gravity_basin', 'pressure_vessel']","{'units': 'Mgallons/day', 'lower_bound': 0.74, 'upper_bound': 75.072}",fixed_bed
+GACZO,"['default', 'pressure_vessel', 'gravity']","{'units': 'Mgallons/day', 'lower_bound': 0.124, 'upper_bound': 75.072}",gac
+GasSpargedMembraneZO,['default'],,gas_sparged_membrane
+HRCSZO,['default'],,hrcs
+HTGZO,,,hydrothermal_gasification
+InjectionWellDisposalZO,['default'],,injection_well_disposal
+IntrusionMitigationZO,['default'],,intrusion_mitigation
+IonExchangeZO,"['default', 'anion_exchange', 'cation_exchange', 'clinoptilolite']","{'units': 'Mgallons/day', 'lower_bound': 0.305, 'upper_bound': 75.072}",ion_exchange
+IronManganeseRemovalZO,['default'],"{'units': 'ft^2', 'lower_bound': 90, 'upper_bound': 1500}",iron_and_manganese_removal
+LandfillZO,"['default', 'landfill_zld']",,landfill
+MABRZO,,,mabr
+MagprexZO,,,magprex
+MBRZO,"['default', 'mbr_denitrification']","{'units': 'Mgallons/day', 'lower_bound': 0.000317, 'upper_bound': 1.49785}",mbr
+MediaFiltrationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",media_filtration
+MembraneEvaporatorZO,['default'],,membrane_evaporator
+MetabZO,,,metab
+MicrobialBatteryZO,,,microbial_battery
+MicroFiltrationZO,['default'],,microfiltration
+MunicipalDrinkingZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 300}",municipal_drinking
+MunicipalWWTPZO,['default'],,municipal_wwtp
+NanofiltrationZO,"['default', 'rHGO_dye_rejection']",,nanofiltration
+OzoneAOPZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 1, 'upper_bound': 25}",ozone_aop
+OzoneZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 1, 'upper_bound': 25}",ozone
+PeraceticAcidDisinfectionZO,,,peracetic_acid_disinfection
+PhotothermalMembraneZO,['default'],,photothermal_membrane
+PrimarySeparatorZO,['default'],"{'units': 'ft^2', 'lower_bound': 0, 'upper_bound': 160000}",primary_separator
+PumpElectricityZO,['default'],,pump_electricity
+PumpZO,"['default', 'abmet', 'gac_feed', 'raw_water', 'recharge_well', 'ultrafiltration_feed']","{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 300}",pump
+ScreenZO,"['default', 'drum', 'band', 'micro']","{'units': 'm^3/day', 'lower_bound': 10000, 'upper_bound': 400000}",screen
+SecondaryTreatmentWWTPZO,['default'],,secondary_treatment_wwtp
+SedimentationZO,"['default', 'phosphorus_capture']",,sedimentation
+SettlingPondZO,['default'],"{'units': 'ft^2', 'lower_bound': 0, 'upper_bound': 160000}",settling_pond
+SludgeTankZO,['default'],,sludge_tank
+SMPZO,['default'],,smp
+StaticMixerZO,['default'],"{'units': 'liter/second', 'lower_bound': 1, 'upper_bound': 50}",static_mixer
+StorageTankZO,"['default', 'treated_storage']",,storage_tank
+StruviteClassifierZO,,,struvite_classifier
+SuboxicASMZO,['default'],,suboxic_activated_sludge_process
+SaltPrecipitationZO,['default'],,supercritical_salt_precipitation
+SurfaceDischargeZO,"['default', 'emwd']",,surface_discharge
+SWOnshoreIntakeZO,['default'],"{'units': 'm^3/day', 'lower_bound': 0, 'upper_bound': 400000}",sw_onshore_intake
+TrampOilTankZO,['default'],,tramp_oil_tank
+TriMediaFiltrationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",tri_media_filtration
+UltraFiltrationZO,['default'],,ultra_filtration
+UVAOPZO,"['default', 'hydrogen_peroxide']",,uv_aop
+UVZO,['default'],,uv
+VFARecoveryZO,['default'],,vfa_recovery
+WAIVZO,['default'],,waiv
+WalnutShellFilterZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",walnut_shell_filter
+WaterPumpingStationZO,"['default', 'raw', 'treated']","{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 200}",water_pumping_station
+WellFieldZO,"['default', 'emwd']","{'units': 'm^3/day', 'lower_bound': 1000, 'upper_bound': 300000}",well_field

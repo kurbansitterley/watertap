@@ -13,10 +13,6 @@
 Property package for H2O-NaCl system
 """
 
-# Import Python libraries
-import idaes.logger as idaeslog
-
-# Import Pyomo libraries
 from pyomo.environ import (
     Constraint,
     Expression,
@@ -30,7 +26,7 @@ from pyomo.environ import (
     units as pyunits,
 )
 
-# Import IDAES cores
+import idaes.logger as idaeslog
 from idaes.core import (
     declare_process_block_class,
     MaterialFlowBasis,

@@ -14,6 +14,7 @@ import itertools
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from parameter_sweep import LinearSample, parameter_sweep
 
 from pyomo.environ import (
     ConcreteModel,
@@ -64,8 +65,6 @@ from watertap.costing import (
 )
 from watertap.core.solvers import get_solver
 from watertap.property_models import NaClParameterBlock
-
-from parameter_sweep import LinearSample, parameter_sweep
 
 _log = idaeslogger.getLogger(__name__)
 

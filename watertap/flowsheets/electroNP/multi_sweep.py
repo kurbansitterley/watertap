@@ -9,11 +9,13 @@
 # information, respectively. These files are also available online at the URL
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
-from pyomo.environ import units as pyunits
 from parameter_sweep import (
     LinearSample,
     parameter_sweep,
 )
+
+from pyomo.environ import units as pyunits
+
 import watertap.flowsheets.electroNP.electroNP_flowsheet as electroNP_flowsheet
 
 

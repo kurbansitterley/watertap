@@ -10,8 +10,8 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 
-import pytest
 import abc
+import pytest
 
 from pyomo.environ import Block, assert_optimal_termination, ComponentMap, value
 from pyomo.util.check_units import assert_units_consistent

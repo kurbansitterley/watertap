@@ -28,20 +28,19 @@ from pyomo.environ import (
 from pyomo.util.check_units import assert_units_consistent
 
 from idaes.core import FlowsheetBlock
-from watertap.core.solvers import get_solver
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.testing import initialization_tester
 from idaes.core import UnitModelCostingBlock
 
 from watertap.unit_models.zero_order import MicroFiltrationZO
 from watertap.core.wt_database import Database
-from watertap.property_models import ZOParameterBlock
-from watertap.property_models.multicomp_aq_sol_prop_pack import (
+from watertap.property_models import (
+    ZOParameterBlock,
     MCASParameterBlock,
     MaterialFlowBasis,
 )
-
 from watertap.costing.zero_order_costing import ZeroOrderCosting
+from watertap.core.solvers import get_solver
 
 solver = get_solver()
 

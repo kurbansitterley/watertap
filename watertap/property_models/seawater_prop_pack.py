@@ -13,7 +13,6 @@
 Property package for seawater system
 """
 
-# Import Pyomo libraries
 from pyomo.environ import (
     Constraint,
     Expression,
@@ -27,10 +26,9 @@ from pyomo.environ import (
     log10,
     exp,
     check_optimal_termination,
+    units as pyunits,
 )
-from pyomo.environ import units as pyunits
 
-# Import IDAES cores
 from idaes.core import (
     declare_process_block_class,
     MaterialFlowBasis,

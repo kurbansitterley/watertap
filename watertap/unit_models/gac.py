@@ -10,8 +10,8 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 import os
-import pandas as pd
 from enum import Enum, auto
+import pandas as pd
 
 from pyomo.environ import (
     Var,

@@ -33,8 +33,9 @@ Unit operations are modeled as follows:
 
 __author__ = "Adam Atia"
 
-import pandas as pd
 from enum import auto
+import pandas as pd
+
 import pyomo.environ as pyo
 from pyomo.network import Arc, SequentialDecomposition
 

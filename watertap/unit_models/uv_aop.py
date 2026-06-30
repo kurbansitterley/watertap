@@ -25,7 +25,6 @@ from pyomo.environ import (
     units as pyunits,
     Constraint,
 )
-from idaes.core.util.math import smooth_max
 from pyomo.common.config import ConfigBlock, ConfigValue, In
 
 # Import IDAES cores
@@ -44,6 +43,7 @@ from idaes.core.util.exceptions import ConfigurationError, InitializationError
 import idaes.core.util.scaling as iscale
 import idaes.logger as idaeslog
 from idaes.core.util.misc import add_object_reference
+from idaes.core.util.math import smooth_max
 
 from watertap.core import InitializationMixin
 from watertap.costing.unit_models.uv_aop import cost_uv_aop

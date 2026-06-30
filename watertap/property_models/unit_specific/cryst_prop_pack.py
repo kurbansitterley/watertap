@@ -13,12 +13,8 @@
 Crystallization property package for H2O-NaCl system
 """
 
-# Import Python libraries
-import idaes.logger as idaeslog
-
 from enum import Enum, auto
 
-# Import Pyomo libraries
 from pyomo.environ import (
     Constraint,
     Expression,
@@ -30,11 +26,11 @@ from pyomo.environ import (
     log,
     value,
     check_optimal_termination,
+    units as pyunits,
 )
-from pyomo.environ import units as pyunits
 from pyomo.common.config import ConfigValue, In
 
-# Import IDAES cores
+import idaes.logger as idaeslog
 from idaes.core import (
     declare_process_block_class,
     MaterialFlowBasis,
@@ -58,7 +54,6 @@ from idaes.core.util.initialization import (
     solve_indexed_blocks,
 )
 from idaes.core.util.misc import extract_data
-from watertap.core.solvers import get_solver
 from idaes.core.util.model_statistics import (
     degrees_of_freedom,
     number_unfixed_variables,
@@ -69,6 +64,8 @@ from idaes.core.util.exceptions import (
     PropertyPackageError,
 )
 import idaes.core.util.scaling as iscale
+
+from watertap.core.solvers import get_solver
 
 # Set up logger
 _log = idaeslog.getLogger(__name__)

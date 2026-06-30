@@ -10,9 +10,8 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 import pytest
-from pyomo.environ import (
-    ConcreteModel,
-)
+
+from pyomo.environ import ConcreteModel
 
 import idaes.core.util.scaling as iscale
 from idaes.core import FlowsheetBlock, UnitModelCostingBlock

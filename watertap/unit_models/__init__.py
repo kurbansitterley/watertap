@@ -56,7 +56,7 @@ from .reverse_osmosis_0D import (
 )
 from .reverse_osmosis_1D import ReverseOsmosis1D
 from .steam_ejector import SteamEjector
-from .steam_heater_0D import SteamHeater0D, Mode
+from .steam_heater_0D import SteamHeater0D
 from .stoichiometric_reactor import StoichiometricReactor
 from .surrogate_crystallizer import SurrogateCrystallizer
 from .thickener import Thickener, ThickenerScaler

@@ -10,15 +10,6 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 
-
-from enum import Enum, auto
-
-from pyomo.common.config import ConfigValue
-
-from enum import Enum, auto
-
-from pyomo.common.config import ConfigValue
-
 from pyomo.environ import NonNegativeReals, Var, units as pyunits
 
 from idaes.core import declare_process_block_class

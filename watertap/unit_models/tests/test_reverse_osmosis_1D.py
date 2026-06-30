@@ -9,21 +9,16 @@
 # information, respectively. These files are also available online at the URL
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
-from pyomo.environ import ConcreteModel, assert_optimal_termination
 
-from watertap.core.solvers import get_solver
+import pytest
+import numpy as np
+from pyomo.environ import ConcreteModel, assert_optimal_termination
 
 from idaes.core import FlowsheetBlock
 import idaes.core.util.scaling as iscale
 
 from watertap.unit_models.reverse_osmosis_base import TransportModel, ModuleType
-
-import watertap.property_models.NaCl_prop_pack as props
-
-from watertap.property_models.multicomp_aq_sol_prop_pack import (
-    MCASParameterBlock,
-)
-
+from watertap.property_models import MCASParameterBlock, NaClParameterBlock
 from watertap.unit_models.tests.unit_test_harness import UnitTestHarness
 from watertap.unit_models import ReverseOsmosis1D
 from watertap.unit_models.reverse_osmosis_1D import (
@@ -31,8 +26,7 @@ from watertap.unit_models.reverse_osmosis_1D import (
     MassTransferCoefficient,
     PressureChangeType,
 )
-import pytest
-import numpy as np
+from watertap.core.solvers import get_solver
 
 # -----------------------------------------------------------------------------
 # Get default solver for testing

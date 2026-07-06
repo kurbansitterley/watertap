@@ -37,7 +37,7 @@ EvaporationPondZO,['default'],"{'units': 'acre', 'lower_bound': 10, 'upper_bound
 FeedWaterTankZO,['default'],,feed_water_tank
 FeedZO,,,feed
 FilterPressZO,['default'],"{'units': 'ft3', 'lower_bound': 10, 'upper_bound': 1000}",filter_press
-FixedBedZO,"['default', 'gravity_basin', 'pressure_vessel']","{'units': 'Mgallons/day', 'lower_bound': 0.74, 'upper_bound': 75.072}",fixed_bed
+FixedBedZO,"['default', 'gravity_basin']","{'units': 'Mgallons/day', 'lower_bound': 0.74, 'upper_bound': 75.072}",fixed_bed
 GACZO,"['default', 'pressure_vessel', 'gravity']","{'units': 'Mgallons/day', 'lower_bound': 0.124, 'upper_bound': 75.072}",gac
 GasSpargedMembraneZO,['default'],,gas_sparged_membrane
 HRCSZO,['default'],,hrcs

@@ -52,8 +52,6 @@ pretty_subtypes = {
     "ultra_filtration": "Ultrafiltration",
 }
 
-# def create_chem_addition_page(df):
-
 categories = {
     "intake": {
         "pretty_name": "Intake & Conveyance",
@@ -68,7 +66,7 @@ categories = {
         "unit_mask": {
             "water_pumping_station": {"subtype": "raw"},
             "screen": {"subtype": ["micro"]},
-            "well_field": {"subtype": ["default"], "pipe_distance": 1},
+            # "well_field": {"subtype": ["default"], "pipe_distance": 1},
         },
     },
     "pretreatment": {

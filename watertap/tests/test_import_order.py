@@ -21,7 +21,7 @@ files_to_test = list()  # NOTE: test files aren't included
 for f in watertap_pkg.rglob("*.py"):
     if f.name.startswith("test_"):
         continue
-    if any(x in str(f) for x in ["docs", "tutorials", "kurby"]):
+    if any(x in str(f) for x in ["docs", "tutorials"]):
         continue
     files_to_test.append(f)
 

@@ -35,7 +35,9 @@ from .air_water_equilibrium_prop_pack import (
 )
 from .multicomp_aq_sol_prop_pack import (
     MCASParameterBlock,
+    MCASParameterData,
     MCASStateBlock,
+    MCASStateBlockData,
     ActivityCoefficientModel,
     DensityCalculation,
     DiffusivityCalculation,

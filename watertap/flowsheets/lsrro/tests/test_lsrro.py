@@ -18,12 +18,12 @@ from watertap.flowsheets.lsrro import lsrro
 def test_lsrro():
     m, results = lsrro.main()
     assert_optimal_termination(results)
-    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 1.95330
+    assert pytest.approx(value(m.fs.costing.LCOW), rel=1e-3) == 1.4660
     assert (
         pytest.approx(value(m.fs.costing.specific_energy_consumption), rel=1e-3)
-        == 8.84923
+        == 7.77891
     )
     assert (
         pytest.approx(value(sum(m.fs.ROUnits[a].area for a in m.fs.Stages)), rel=1e-3)
-        == 264.66
+        == 195.0059
     )

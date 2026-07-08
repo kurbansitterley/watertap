@@ -1868,7 +1868,7 @@ def _lsrro_presweep(
     return m
 
 
-def main():
+if __name__ == "__main__":
     m, results = run_lsrro_case(
         number_of_stages=3,
         water_recovery=0.50,
@@ -1889,9 +1889,3 @@ def main():
         RO_1D=False,
         set_default_bounds_on_module_dimensions=True,
     )
-
-    return m, results
-
-
-if __name__ == "__main__":
-    m, results = main()

@@ -222,3 +222,34 @@ def test_plot_LCOW_and_SEC_breakdowns():
                 )
                 assert os.path.isfile(f"{here}/test_breakdown.png")
                 os.remove(f"{here}/test_breakdown.png")
+
+
+@pytest.mark.component
+def test_breakdowns_with_no_unit():
+    m = lsrro.build()
+
+    m.fs.BoosterPumps[:].control_volume.work[0.0].value = 42e6
+    m.fs.EnergyRecoveryDevices[:].control_volume.work[0.0].value = -42e6
+    m.fs.electricity_flow_with_no_unit = pyo.Var(units=pyo.units.kW, initialize=1234)
+
+    m.fs.costing.cost_flow(m.fs.electricity_flow_with_no_unit, "electricity")
+
+    m.fs.costing.add_flow_component_breakdown(
+        "electricity",
+        m.fs.product.properties[0].flow_vol,
+        period=pyo.units.year,
+    )
+    assert hasattr(m.fs.costing, "electricity_component")
+    assert (
+        "fs.electricity_flow_with_no_unit"
+        in m.fs.costing.electricity_component.index_set()
+    )
+
+    m.fs.costing.add_flow_component_breakdown(
+        "electricity",
+        m.fs.product.properties[0].flow_vol,
+        name="biff",
+        period=pyo.units.millisecond,
+    )
+    assert hasattr(m.fs.costing, "biff_component")
+    assert "fs.electricity_flow_with_no_unit" in m.fs.costing.biff_component.index_set()

@@ -829,11 +829,8 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         bottom = 0
 
         # Create legend
-        handles = [
-            Patch(facecolor="white", edgecolor="k", label=k, hatch=v)
-            for k, v in hatch_dict.items()
-        ]
-        labels = list(hatch_dict.keys())
+        handles = list()
+        labels = list()
 
         # For checking LCOW calculation
         lcow_check = 0
@@ -885,6 +882,17 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
 
             handles.append(Patch(facecolor=color_dict[u], edgecolor="k"))
             labels.append(u)
+        
+        # Reverse order to align with plot order (bottom to top)
+        handles = handles[::-1]
+        labels = labels[::-1]
+
+        # Add hatch legends
+        handles[0:0] = [
+            Patch(facecolor="white", edgecolor="k", label=k, hatch=v)
+            for k, v in hatch_dict.items()
+        ]
+        labels[0:0] = list(hatch_dict.keys())
 
         ax.set_axisbelow(True)
         ax.grid(visible=True)
@@ -989,6 +997,10 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             handles.append(Patch(facecolor=color_dict[u], edgecolor="k"))
             labels.append(u)
 
+        # Reverse order to align with plot order (bottom to top)
+        handles = handles[::-1]
+        labels = labels[::-1]
+        
         ax.set_axisbelow(True)
         ax.grid(visible=True)
         ax.legend(handles=handles, labels=labels)

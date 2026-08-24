@@ -68,7 +68,14 @@ import idaes.core.util.scaling as iscale
 import idaes.logger as idaeslog
 
 from watertap.core.util.scaling import transform_property_constraints
-
+from watertap.core.util.property_helpers import (
+    get_property_metadata,
+    print_property_metadata,
+    add_dens_mass_params,
+    add_dens_mass_phase_method,
+    add_visc_d_params,
+    add_visc_d_method,
+)
 boltzmann = pyunits.convert(
     Constants.boltzmann_constant,
     to_units=(pyunits.g * pyunits.cm**2) / (pyunits.second**2 * pyunits.degK),
@@ -209,6 +216,11 @@ class DensityCalculation(Enum):
 
     constant = auto()
     calculated = auto()
+
+
+class ViscosityCalculation(Enum):
+    constant = auto()  # constant @ 1e-3 Pa.s
+    seawater = auto()  # seawater correlation for TDS from Sharqawy
 
 
 @declare_process_block_class("AirWaterEq")
@@ -569,6 +581,25 @@ class AirWaterEqData(PhysicalParameterBlock):
         ),
     )
 
+    CONFIG.declare(
+        "viscosity_calculation",
+        ConfigValue(
+            default=ViscosityCalculation.constant,
+            domain=In(ViscosityCalculation),
+            description="Solution viscosity calculation construction flag",
+            doc="""
+           Options to account for solution viscosity.
+
+           **default** - ``ViscosityCalculation.constant``
+
+       .. csv-table::
+           :header: "Configuration Options", "Description"
+
+           "``ViscosityCalculation.constant``", "Solution viscosity assumed constant at 1e-3 Pa.s by default in visc_d_const parameter"
+           "``ViscosityCalculation.seawater``", "Solution viscosity based on correlation for seawater (TDS)"
+       """,
+        ),
+    )
     def build(self):
         super().build()
 
@@ -777,56 +808,8 @@ class AirWaterEqData(PhysicalParameterBlock):
         dens_units = pyunits.kg / pyunits.m**3
         t_inv_units = pyunits.K**-1
 
-        self.dens_mass_param_A1 = Param(
-            initialize=9.999e2,
-            units=dens_units,
-            doc="Mass density parameter A1",
-        )
-        self.dens_mass_param_A2 = Param(
-            initialize=2.034e-2,
-            units=dens_units * t_inv_units,
-            doc="Mass density parameter A2",
-        )
-        self.dens_mass_param_A3 = Param(
-            initialize=-6.162e-3,
-            units=dens_units * t_inv_units**2,
-            doc="Mass density parameter A3",
-        )
-        self.dens_mass_param_A4 = Param(
-            initialize=2.261e-5,
-            units=dens_units * t_inv_units**3,
-            doc="Mass density parameter A4",
-        )
-        self.dens_mass_param_A5 = Param(
-            initialize=-4.657e-8,
-            units=dens_units * t_inv_units**4,
-            doc="Mass density parameter A5",
-        )
-        self.dens_mass_param_B1 = Param(
-            initialize=8.020e2,
-            units=dens_units,
-            doc="Mass density parameter B1",
-        )
-        self.dens_mass_param_B2 = Param(
-            initialize=-2.001,
-            units=dens_units * t_inv_units,
-            doc="Mass density parameter B2",
-        )
-        self.dens_mass_param_B3 = Param(
-            initialize=1.677e-2,
-            units=dens_units * t_inv_units**2,
-            doc="Mass density parameter B3",
-        )
-        self.dens_mass_param_B4 = Param(
-            initialize=-3.060e-5,
-            units=dens_units * t_inv_units**3,
-            doc="Mass density parameter B4",
-        )
-        self.dens_mass_param_B5 = Param(
-            initialize=-1.613e-5,
-            units=dens_units * t_inv_units**2,
-            doc="Mass density parameter B5",
-        )
+        add_dens_mass_params(self)
+        add_visc_d_params(self)
 
         # Parameters for air density, Eq. A1.1, EURAMET (2010)
         # Simplified version of CIPM-formula
@@ -1316,10 +1299,16 @@ class _AirWaterEqStateBlock(StateBlock):
                             b.params.config.density_calculation
                             == DensityCalculation.calculated
                         ):
-                            calculate_variable_from_constraint(
-                                b.dens_mass_phase[p],
-                                b.eq_dens_mass_phase[p],
-                            )
+                            if p == "Liq":
+                                calculate_variable_from_constraint(
+                                    b.dens_mass_phase[p],
+                                    b.eq_dens_mass_phase[p],
+                                )
+                            if p == "Vap":
+                                calculate_variable_from_constraint(
+                                    b.dens_mass_phase[p],
+                                    b.eq_dens_mass_phase_vap[p],
+                                )
                         else:
                             b.dens_mass_phase[p].set_value(
                                 b.params.config.density_data[p]
@@ -1623,37 +1612,14 @@ class AirWaterEqStateBlockData(StateBlockData):
             # TODO: add McCain relationship for higher salinity brines (>150 g/L)
             # W.D. McCaln Jr. (1991)
             # Reservoir-Fluid Property Correlations-State of the Art
-            self.dens_mass_phase = Var(
-                self.params.phase_list,
-                initialize=1e3,
-                bounds=(1, 1e6),
-                units=pyunits.kg * pyunits.m**-3,
-                doc="Mass density of water and air",
-            )
+            add_dens_mass_phase_method(self)
 
-            def rule_dens_mass_phase(b, p):
-                if p == "Liq":
-                    # Sharqawy et al. (2010), eq. 8, 0-180 C, 0-150 g/kg, 0-12 MPa
-                    t = b.temperature[p] - 273.15 * pyunits.K
-                    x = b.mass_frac_phase_comp[p, "TDS"]
-                    dens_mass_sw = (
-                        b.dens_mass_solvent["H2O"]
-                        + b.params.dens_mass_param_B1 * x
-                        + b.params.dens_mass_param_B2 * x * t
-                        + b.params.dens_mass_param_B3 * x * t**2
-                        + b.params.dens_mass_param_B4 * x * t**3
-                        + b.params.dens_mass_param_B5 * x**2 * t**2
-                    )
-                    return b.dens_mass_phase[p] == dens_mass_sw
-
-                if p == "Vap":
-                    # Eq. A1.1, EURAMET (2010)
-                    # density of air
-                    return b.dens_mass_phase[p] == b.dens_mass_solvent["Air"]
-
-            self.eq_dens_mass_phase = Constraint(
-                self.params.phase_list, rule=rule_dens_mass_phase
-            )
+            def rule_dens_mass_phase_vap(b, p):
+                # Eq. A1.1, EURAMET (2010)
+                # density of air
+                return b.dens_mass_phase[p] == b.dens_mass_solvent["Air"]
+            
+            self.eq_dens_mass_phase_vap = Constraint(["Vap"], rule=rule_dens_mass_phase_vap)
 
         else:
             add_object_reference(self, "dens_mass_phase", self.params.dens_mass_phase)
@@ -2438,7 +2404,10 @@ class AirWaterEqStateBlockData(StateBlockData):
         add_object_reference(self, "mw_comp", self.params.mw_comp)
 
     def _visc_d_phase(self):
-        add_object_reference(self, "visc_d_phase", self.params.visc_d_phase)
+        if self.params.config.viscosity_calculation == ViscosityCalculation.constant:
+            add_object_reference(self, "visc_d_phase", self.params.visc_d_phase)
+        elif self.params.config.viscosity_calculation == ViscosityCalculation.seawater:
+            add_visc_d_method(self)
 
     def _enth_change_dissolution_comp(self):
         add_object_reference(

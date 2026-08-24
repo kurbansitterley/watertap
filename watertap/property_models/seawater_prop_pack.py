@@ -66,6 +66,10 @@ from watertap.core.util.scaling import transform_property_constraints
 from watertap.core.util.property_helpers import (
     get_property_metadata,
     print_property_metadata,
+    add_dens_mass_params,
+    add_dens_mass_phase_method,
+    add_visc_d_params,
+    add_visc_d_method,
 )
 
 # Set up logger
@@ -122,137 +126,15 @@ class SeawaterParameterData(PhysicalParameterBlock):
             doc="Molecular weight",
         )
 
-        # mass density parameters, 0-180 C, 0-150 g/kg, 0-12 MPa
-        # eq. 8 in Sharqawy et al. (2010)
-        dens_units = pyunits.kg / pyunits.m**3
+        add_dens_mass_params(self)
+
+        # # mass density parameters, 0-180 C, 0-150 g/kg, 0-12 MPa
+        # # eq. 8 in Sharqawy et al. (2010)
+        # dens_units = pyunits.kg / pyunits.m**3
         t_inv_units = pyunits.K**-1
         s_inv_units = pyunits.kg / pyunits.g
 
-        self.dens_mass_param_A1 = Var(
-            within=Reals,
-            initialize=9.999e2,
-            units=dens_units,
-            doc="Mass density parameter A1",
-        )
-        self.dens_mass_param_A2 = Var(
-            within=Reals,
-            initialize=2.034e-2,
-            units=dens_units * t_inv_units,
-            doc="Mass density parameter A2",
-        )
-        self.dens_mass_param_A3 = Var(
-            within=Reals,
-            initialize=-6.162e-3,
-            units=dens_units * t_inv_units**2,
-            doc="Mass density parameter A3",
-        )
-        self.dens_mass_param_A4 = Var(
-            within=Reals,
-            initialize=2.261e-5,
-            units=dens_units * t_inv_units**3,
-            doc="Mass density parameter A4",
-        )
-        self.dens_mass_param_A5 = Var(
-            within=Reals,
-            initialize=-4.657e-8,
-            units=dens_units * t_inv_units**4,
-            doc="Mass density parameter A5",
-        )
-        self.dens_mass_param_B1 = Var(
-            within=Reals,
-            initialize=8.020e2,
-            units=dens_units,
-            doc="Mass density parameter B1",
-        )
-        self.dens_mass_param_B2 = Var(
-            within=Reals,
-            initialize=-2.001,
-            units=dens_units * t_inv_units,
-            doc="Mass density parameter B2",
-        )
-        self.dens_mass_param_B3 = Var(
-            within=Reals,
-            initialize=1.677e-2,
-            units=dens_units * t_inv_units**2,
-            doc="Mass density parameter B3",
-        )
-        self.dens_mass_param_B4 = Var(
-            within=Reals,
-            initialize=-3.060e-5,
-            units=dens_units * t_inv_units**3,
-            doc="Mass density parameter B4",
-        )
-        self.dens_mass_param_B5 = Var(
-            within=Reals,
-            initialize=-1.613e-5,
-            units=dens_units * t_inv_units**2,
-            doc="Mass density parameter B5",
-        )
-
-        visc_d_units = pyunits.Pa * pyunits.s
-        # dynamic viscosity parameters, 0-180 C, 0-150 g/kg
-        # eq. 22 and 23 in Sharqawy et al. (2010)
-        self.visc_d_param_muw_A = Var(
-            within=Reals,
-            initialize=4.2844e-5,
-            units=visc_d_units,
-            doc="Dynamic viscosity parameter A for pure water",
-        )
-        self.visc_d_param_muw_B = Var(
-            within=Reals,
-            initialize=0.157,
-            units=t_inv_units**2 * visc_d_units**-1,
-            doc="Dynamic viscosity parameter B for pure water",
-        )
-        self.visc_d_param_muw_C = Var(
-            within=Reals,
-            initialize=64.993,
-            units=pyunits.K,
-            doc="Dynamic viscosity parameter C for pure water",
-        )
-        self.visc_d_param_muw_D = Var(
-            within=Reals,
-            initialize=91.296,
-            units=visc_d_units**-1,
-            doc="Dynamic viscosity parameter D for pure water",
-        )
-        self.visc_d_param_A_1 = Var(
-            within=Reals,
-            initialize=1.541,
-            units=pyunits.dimensionless,
-            doc="Dynamic viscosity parameter 1 for term A",
-        )
-        self.visc_d_param_A_2 = Var(
-            within=Reals,
-            initialize=1.998e-2,
-            units=t_inv_units,
-            doc="Dynamic viscosity parameter 2 for term A",
-        )
-        self.visc_d_param_A_3 = Var(
-            within=Reals,
-            initialize=-9.52e-5,
-            units=t_inv_units**2,
-            doc="Dynamic viscosity parameter 3 for term A",
-        )
-        self.visc_d_param_B_1 = Var(
-            within=Reals,
-            initialize=7.974,
-            units=pyunits.dimensionless,
-            doc="Dynamic viscosity parameter 1 for term B",
-        )
-        self.visc_d_param_B_2 = Var(
-            within=Reals,
-            initialize=-7.561e-2,
-            units=t_inv_units,
-            doc="Dynamic viscosity parameter 2 for term B",
-        )
-        self.visc_d_param_B_3 = Var(
-            within=Reals,
-            initialize=4.724e-4,
-            units=t_inv_units**2,
-            doc="Dynamic viscosity parameter 3 for term B",
-        )
-
+        add_visc_d_params(self)
         # diffusivity parameters, 25 C
         # eq. 6 in Bartholomew & Mauter (2019)
         diffus_param_dict = {
@@ -1123,31 +1005,8 @@ class SeawaterStateBlockData(StateBlockData):
         )
 
     def _dens_mass_phase(self):
-        self.dens_mass_phase = Var(
-            self.params.phase_list,
-            initialize=1e3,
-            bounds=(1, 1e6),
-            units=pyunits.kg * pyunits.m**-3,
-            doc="Mass density of seawater",
-        )
 
-        # Sharqawy et al. (2010), eq. 8, 0-180 C, 0-150 g/kg, 0-12 MPa
-        def rule_dens_mass_phase(b, p):
-            t = b.temperature - 273.15 * pyunits.K
-            s = b.mass_frac_phase_comp[p, "TDS"]
-            dens_mass = (
-                b.dens_mass_solvent
-                + b.params.dens_mass_param_B1 * s
-                + b.params.dens_mass_param_B2 * s * t
-                + b.params.dens_mass_param_B3 * s * t**2
-                + b.params.dens_mass_param_B4 * s * t**3
-                + b.params.dens_mass_param_B5 * s**2 * t**2
-            )
-            return b.dens_mass_phase[p] == dens_mass
-
-        self.eq_dens_mass_phase = Constraint(
-            self.params.phase_list, rule=rule_dens_mass_phase
-        )
+        add_dens_mass_phase_method(self)
 
     def _dens_mass_solvent(self):
         self.dens_mass_solvent = Var(
@@ -1285,42 +1144,44 @@ class SeawaterStateBlockData(StateBlockData):
         )
 
     def _visc_d_phase(self):
-        self.visc_d_phase = Var(
-            self.params.phase_list,
-            initialize=1e-3,
-            bounds=(0.0, 1),
-            units=pyunits.Pa * pyunits.s,
-            doc="Viscosity",
-        )
 
-        # Sharqawy et al. (2010), eq. 22 and 23, 0-180 C, 0-150 g/kg
-        def rule_visc_d_phase(b, p):
-            # temperature in degC, but pyunits are K
-            t = b.temperature - 273.15 * pyunits.K
-            s = b.mass_frac_phase_comp[p, "TDS"]
-            mu_w = (
-                b.params.visc_d_param_muw_A
-                + (
-                    b.params.visc_d_param_muw_B * (t + b.params.visc_d_param_muw_C) ** 2
-                    - b.params.visc_d_param_muw_D
-                )
-                ** -1
-            )
-            A = (
-                b.params.visc_d_param_A_1
-                + b.params.visc_d_param_A_2 * t
-                + b.params.visc_d_param_A_3 * t**2
-            )
-            B = (
-                b.params.visc_d_param_B_1
-                + b.params.visc_d_param_B_2 * t
-                + b.params.visc_d_param_B_3 * t**2
-            )
-            return b.visc_d_phase[p] == mu_w * (1 + A * s + B * s**2)
+        add_visc_d_method(self)
+        # self.visc_d_phase = Var(
+        #     self.params.phase_list,
+        #     initialize=1e-3,
+        #     bounds=(0.0, 1),
+        #     units=pyunits.Pa * pyunits.s,
+        #     doc="Viscosity",
+        # )
 
-        self.eq_visc_d_phase = Constraint(
-            self.params.phase_list, rule=rule_visc_d_phase
-        )
+        # # Sharqawy et al. (2010), eq. 22 and 23, 0-180 C, 0-150 g/kg
+        # def rule_visc_d_phase(b, p):
+        #     # temperature in degC, but pyunits are K
+        #     t = b.temperature - 273.15 * pyunits.K
+        #     s = b.mass_frac_phase_comp[p, "TDS"]
+        #     mu_w = (
+        #         b.params.visc_d_param_muw_A
+        #         + (
+        #             b.params.visc_d_param_muw_B * (t + b.params.visc_d_param_muw_C) ** 2
+        #             - b.params.visc_d_param_muw_D
+        #         )
+        #         ** -1
+        #     )
+        #     A = (
+        #         b.params.visc_d_param_A_1
+        #         + b.params.visc_d_param_A_2 * t
+        #         + b.params.visc_d_param_A_3 * t**2
+        #     )
+        #     B = (
+        #         b.params.visc_d_param_B_1
+        #         + b.params.visc_d_param_B_2 * t
+        #         + b.params.visc_d_param_B_3 * t**2
+        #     )
+        #     return b.visc_d_phase[p] == mu_w * (1 + A * s + B * s**2)
+
+        # self.eq_visc_d_phase = Constraint(
+        #     self.params.phase_list, rule=rule_visc_d_phase
+        # )
 
     # TODO: diffusivity from NaCl prop model used temporarily--reconsider this
     def _diffus_phase_comp(self):

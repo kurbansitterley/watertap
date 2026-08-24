@@ -74,6 +74,7 @@ from watertap.property_models.multicomp_aq_sol_prop_pack import (
     MCASStateBlock,
     ActivityCoefficientModel,
     DensityCalculation,
+    ViscosityCalculation,
     DiffusivityCalculation,
     ElectricalMobilityCalculation,
     EquivalentConductivityCalculation,
@@ -114,7 +115,7 @@ def test_config():
         charge={"A": 0},
     )
 
-    assert len(m.fs.properties.config) == 18
+    assert len(m.fs.properties.config) == 19
     config_options = [
         "default_arguments",
         "solute_list",
@@ -130,6 +131,7 @@ def test_config():
         "activity_coefficient_model",
         "density_calculation",
         "diffus_calculation",
+        "viscosity_calculation",
         "elec_mobility_calculation",
         "trans_num_calculation",
         "equiv_conductivity_calculation",
@@ -143,6 +145,7 @@ def test_config():
         == ActivityCoefficientModel.ideal
     )
     assert m.fs.properties.config.density_calculation == DensityCalculation.constant
+    assert m.fs.properties.config.viscosity_calculation == ViscosityCalculation.constant
     assert m.fs.properties.config.diffus_calculation == DiffusivityCalculation.none
     assert (
         m.fs.properties.config.elec_mobility_calculation
@@ -495,9 +498,9 @@ def test_build(model3):
         c = getattr(m.fs.stream[0], "eq_" + v)
         assert isinstance(c, Constraint)
 
-    assert number_variables(m) == 126
+    assert number_variables(m) == 136
     assert number_total_constraints(m) == 73
-    assert number_unused_variables(m) == 5
+    assert number_unused_variables(m) == 15
 
 
 @pytest.mark.unit
@@ -604,6 +607,7 @@ def test_seawater_data():
         charge={"Na_+": 1, "Ca_2+": 2, "Mg_2+": 2, "Cl_-": -1, "SO4_2-": -2},
         elec_mobility_calculation=ElectricalMobilityCalculation.EinsteinRelation,
         density_calculation=DensityCalculation.seawater,
+        viscosity_calculation=ViscosityCalculation.seawater,
         activity_coefficient_model=ActivityCoefficientModel.davies,
     )
 

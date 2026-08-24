@@ -88,6 +88,11 @@ from watertap.core.util.chemistry import (
 from watertap.core.util.property_helpers import (
     get_property_metadata,
     print_property_metadata,
+    add_dens_mass_params,
+    add_dens_mass_phase_method,
+    add_dens_mass_solvent_method,
+    add_visc_d_params,
+    add_visc_d_method,
 )
 
 __author__ = "Adam Atia, Xiangyu Bi, Hunter Barber, Kurban Sitterley"
@@ -98,6 +103,11 @@ _log = idaeslog.getLogger(__name__)
 class ActivityCoefficientModel(Enum):
     ideal = auto()  # Ideal
     davies = auto()  # Davies
+
+
+class ViscosityCalculation(Enum):
+    constant = auto()  # constant @ 1e-3 Pa.s
+    seawater = auto()  # seawater correlation for TDS from Sharqawy
 
 
 class DensityCalculation(Enum):
@@ -499,6 +509,25 @@ class MCASParameterData(PhysicalParameterBlock):
         ),
     )
     CONFIG.declare(
+        "viscosity_calculation",
+        ConfigValue(
+            default=ViscosityCalculation.constant,
+            domain=In(ViscosityCalculation),
+            description="Solution viscosity calculation construction flag",
+            doc="""
+           Options to account for solution viscosity.
+
+           **default** - ``ViscosityCalculation.constant``
+
+       .. csv-table::
+           :header: "Configuration Options", "Description"
+
+           "``ViscosityCalculation.constant``", "Solution viscosity assumed constant at 1e-3 Pa.s by default in visc_d_const parameter"
+           "``ViscosityCalculation.seawater``", "Solution viscosity based on correlation for seawater (TDS)"
+       """,
+        ),
+    )
+    CONFIG.declare(
         "diffus_calculation",
         ConfigValue(
             default=DiffusivityCalculation.none,
@@ -807,66 +836,70 @@ class MCASParameterData(PhysicalParameterBlock):
         dens_units = pyunits.kg / pyunits.m**3
         t_inv_units = pyunits.K**-1
 
-        self.dens_mass_param_A1 = Var(
-            within=Reals,
-            initialize=9.999e2,
-            units=dens_units,
-            doc="Mass density parameter A1",
-        )
-        self.dens_mass_param_A2 = Var(
-            within=Reals,
-            initialize=2.034e-2,
-            units=dens_units * t_inv_units,
-            doc="Mass density parameter A2",
-        )
-        self.dens_mass_param_A3 = Var(
-            within=Reals,
-            initialize=-6.162e-3,
-            units=dens_units * t_inv_units**2,
-            doc="Mass density parameter A3",
-        )
-        self.dens_mass_param_A4 = Var(
-            within=Reals,
-            initialize=2.261e-5,
-            units=dens_units * t_inv_units**3,
-            doc="Mass density parameter A4",
-        )
-        self.dens_mass_param_A5 = Var(
-            within=Reals,
-            initialize=-4.657e-8,
-            units=dens_units * t_inv_units**4,
-            doc="Mass density parameter A5",
-        )
-        self.dens_mass_param_B1 = Var(
-            within=Reals,
-            initialize=8.020e2,
-            units=dens_units,
-            doc="Mass density parameter B1",
-        )
-        self.dens_mass_param_B2 = Var(
-            within=Reals,
-            initialize=-2.001,
-            units=dens_units * t_inv_units,
-            doc="Mass density parameter B2",
-        )
-        self.dens_mass_param_B3 = Var(
-            within=Reals,
-            initialize=1.677e-2,
-            units=dens_units * t_inv_units**2,
-            doc="Mass density parameter B3",
-        )
-        self.dens_mass_param_B4 = Var(
-            within=Reals,
-            initialize=-3.060e-5,
-            units=dens_units * t_inv_units**3,
-            doc="Mass density parameter B4",
-        )
-        self.dens_mass_param_B5 = Var(
-            within=Reals,
-            initialize=-1.613e-5,
-            units=dens_units * t_inv_units**2,
-            doc="Mass density parameter B5",
-        )
+        add_dens_mass_params(self)
+
+        # self.dens_mass_param_A1 = Var(
+        #     within=Reals,
+        #     initialize=9.999e2,
+        #     units=dens_units,
+        #     doc="Mass density parameter A1",
+        # )
+        # self.dens_mass_param_A2 = Var(
+        #     within=Reals,
+        #     initialize=2.034e-2,
+        #     units=dens_units * t_inv_units,
+        #     doc="Mass density parameter A2",
+        # )
+        # self.dens_mass_param_A3 = Var(
+        #     within=Reals,
+        #     initialize=-6.162e-3,
+        #     units=dens_units * t_inv_units**2,
+        #     doc="Mass density parameter A3",
+        # )
+        # self.dens_mass_param_A4 = Var(
+        #     within=Reals,
+        #     initialize=2.261e-5,
+        #     units=dens_units * t_inv_units**3,
+        #     doc="Mass density parameter A4",
+        # )
+        # self.dens_mass_param_A5 = Var(
+        #     within=Reals,
+        #     initialize=-4.657e-8,
+        #     units=dens_units * t_inv_units**4,
+        #     doc="Mass density parameter A5",
+        # )
+        # self.dens_mass_param_B1 = Var(
+        #     within=Reals,
+        #     initialize=8.020e2,
+        #     units=dens_units,
+        #     doc="Mass density parameter B1",
+        # )
+        # self.dens_mass_param_B2 = Var(
+        #     within=Reals,
+        #     initialize=-2.001,
+        #     units=dens_units * t_inv_units,
+        #     doc="Mass density parameter B2",
+        # )
+        # self.dens_mass_param_B3 = Var(
+        #     within=Reals,
+        #     initialize=1.677e-2,
+        #     units=dens_units * t_inv_units**2,
+        #     doc="Mass density parameter B3",
+        # )
+        # self.dens_mass_param_B4 = Var(
+        #     within=Reals,
+        #     initialize=-3.060e-5,
+        #     units=dens_units * t_inv_units**3,
+        #     doc="Mass density parameter B4",
+        # )
+        # self.dens_mass_param_B5 = Var(
+        #     within=Reals,
+        #     initialize=-1.613e-5,
+        #     units=dens_units * t_inv_units**2,
+        #     doc="Mass density parameter B5",
+        # )
+
+        add_visc_d_params(self)
 
         # traditional parameters are the only Vars currently on the block and should be fixed
         for v in self.component_objects(Var):
@@ -1564,57 +1597,84 @@ class MCASStateBlockData(StateBlockData):
         )
 
     def _dens_mass_phase(self):
-        self.dens_mass_phase = Var(
-            ["Liq"],
-            initialize=1e3,
-            bounds=(5e2, 2e3),
-            units=pyunits.kg * pyunits.m**-3,
-            doc="Mass density",
-        )
+
+        if self.params.config.density_calculation == DensityCalculation.constant:
+            add_object_reference(
+                self, "dens_mass_const", self.params.dens_mass_const
+            )
+            # self.dens_mass_phase = Var(
+            #     ["Liq"],
+            #     initialize=1e3,
+            #     bounds=(5e2, 2e3),
+            #     units=pyunits.kg * pyunits.m**-3,
+            #     doc="Mass density",
+            # )
+        # TODO: reconsider this approach for solution density based on arbitrary solute_list
+            # def rule_dens_mass_phase(b, p):
+            #     # if b.params.config.density_calculation == DensityCalculation.constant:
+            #     add_object_reference(
+            #         self, "dens_mass_const", self.params.dens_mass_const
+            #     )
+            #     return b.dens_mass_phase[p] == self.dens_mass_const
+
+
+            # self.eq_dens_mass_phase = Constraint(["Liq"], rule=rule_dens_mass_phase)
+        elif self.params.config.density_calculation == DensityCalculation.seawater:
+            # TODO: reconsider this approach for solution density based on arbitrary solute_list
+            add_dens_mass_phase_method(self)
+
+        # self.dens_mass_phase = Var(
+        #     ["Liq"],
+        #     initialize=1e3,
+        #     bounds=(5e2, 2e3),
+        #     units=pyunits.kg * pyunits.m**-3,
+        #     doc="Mass density",
+        # )
 
         # TODO: reconsider this approach for solution density based on arbitrary solute_list
-        def rule_dens_mass_phase(b, p):
-            if b.params.config.density_calculation == DensityCalculation.constant:
-                add_object_reference(
-                    self, "dens_mass_const", self.params.dens_mass_const
-                )
-                return b.dens_mass_phase[p] == self.dens_mass_const
-            elif b.params.config.density_calculation == DensityCalculation.seawater:
-                # density, eq. 8 in Sharqawy #TODO- add Sharqawy reference
-                t = b.temperature - 273.15 * pyunits.K
-                s = sum(b.mass_frac_phase_comp[p, j] for j in b.params.solute_set)
-                dens_mass = (
-                    b.dens_mass_solvent
-                    + b.params.dens_mass_param_B1 * s
-                    + b.params.dens_mass_param_B2 * s * t
-                    + b.params.dens_mass_param_B3 * s * t**2
-                    + b.params.dens_mass_param_B4 * s * t**3
-                    + b.params.dens_mass_param_B5 * s**2 * t**2
-                )
-                return b.dens_mass_phase[p] == dens_mass
+        # def rule_dens_mass_phase(b, p):
+        #     if b.params.config.density_calculation == DensityCalculation.constant:
+        #         add_object_reference(
+        #             self, "dens_mass_const", self.params.dens_mass_const
+        #         )
+        #         return b.dens_mass_phase[p] == self.dens_mass_const
+        #     elif b.params.config.density_calculation == DensityCalculation.seawater:
+        #         # density, eq. 8 in Sharqawy #TODO- add Sharqawy reference
+        #         t = b.temperature - 273.15 * pyunits.K
+        #         s = sum(b.mass_frac_phase_comp[p, j] for j in b.params.solute_set)
+        #         dens_mass = (
+        #             b.dens_mass_solvent
+        #             + b.params.dens_mass_param_B1 * s
+        #             + b.params.dens_mass_param_B2 * s * t
+        #             + b.params.dens_mass_param_B3 * s * t**2
+        #             + b.params.dens_mass_param_B4 * s * t**3
+        #             + b.params.dens_mass_param_B5 * s**2 * t**2
+        #         )
+        #         return b.dens_mass_phase[p] == dens_mass
 
-        self.eq_dens_mass_phase = Constraint(["Liq"], rule=rule_dens_mass_phase)
+        # self.eq_dens_mass_phase = Constraint(["Liq"], rule=rule_dens_mass_phase)
 
     def _dens_mass_solvent(self):
-        self.dens_mass_solvent = Var(
-            initialize=1e3,
-            bounds=(1, 1e6),
-            units=pyunits.kg * pyunits.m**-3,
-            doc="Mass density of pure water",
-        )
+        add_dens_mass_solvent_method(self)
+        # self.dens_mass_solvent = Var(
+        #     initialize=1e3,
+        #     bounds=(1, 1e6),
+        #     units=pyunits.kg * pyunits.m**-3,
+        #     doc="Mass density of pure water",
+        # )
 
-        def rule_dens_mass_solvent(b):  # density, eq. 8 in Sharqawy
-            t = b.temperature - 273.15 * pyunits.K
-            dens_mass_w = (
-                b.params.dens_mass_param_A1
-                + b.params.dens_mass_param_A2 * t
-                + b.params.dens_mass_param_A3 * t**2
-                + b.params.dens_mass_param_A4 * t**3
-                + b.params.dens_mass_param_A5 * t**4
-            )
-            return b.dens_mass_solvent == dens_mass_w
+        # def rule_dens_mass_solvent(b):  # density, eq. 8 in Sharqawy
+        #     t = b.temperature - 273.15 * pyunits.K
+        #     dens_mass_w = (
+        #         b.params.dens_mass_param_A1
+        #         + b.params.dens_mass_param_A2 * t
+        #         + b.params.dens_mass_param_A3 * t**2
+        #         + b.params.dens_mass_param_A4 * t**3
+        #         + b.params.dens_mass_param_A5 * t**4
+        #     )
+        #     return b.dens_mass_solvent == dens_mass_w
 
-        self.eq_dens_mass_solvent = Constraint(rule=rule_dens_mass_solvent)
+        # self.eq_dens_mass_solvent = Constraint(rule=rule_dens_mass_solvent)
 
     def _flow_vol_phase(self):
         self.flow_vol_phase = Var(
@@ -1906,7 +1966,10 @@ class MCASStateBlockData(StateBlockData):
             )
 
     def _visc_d_phase(self):
-        add_object_reference(self, "visc_d_phase", self.params.visc_d_phase)
+        if self.params.config.viscosity_calculation == ViscosityCalculation.constant:
+            add_object_reference(self, "visc_d_phase", self.params.visc_d_phase)
+        elif self.params.config.viscosity_calculation == ViscosityCalculation.seawater:
+            add_visc_d_method(self)
 
     def _mw_comp(self):
         add_object_reference(self, "mw_comp", self.params.mw_comp)

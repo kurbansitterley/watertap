@@ -510,19 +510,19 @@ def create_detailed_costing_story(story):
             "Membrane Distillation",
             f" {membrane_cost} × {area_mem}",
             f"{membrane_cost} = $56/m<super>2</super><br/><br/>replacement = 20 %/yr",
-            "",
+            "Shamlou, E., Vidic, R., & Khanna, V. (2022).",
         ],
         [
             "Electrodialysis",
             f" {membrane_cost} × {area_mem} + {electrode_cost}",
             f"{membrane_cost} = $160/m<super>2</super><br/><br/>{electrode_cost} = $2100/m<super>2</super><br/><br/>replacement = 20 %/yr (mem + electrode)",
-            "",
+            "Bian et al., 2018",
         ],
         [
             "Electrolyzer",
             "C<sub>mem</sub> + C<sub>anode</sub> + C<sub>cathode</sub>",
             "C<sub>mem</sub> = $25/m<super>2</super><br/><br/>C<sub>anode</sub> = $300/m<super>2</super><br/><br/>C<sub>cathode</sub> = $600/m<super>2</super><br/><br/>mat fraction = 65 %",
-            "Desalination 452 (2019) 265–278",
+            "Bommaraju & O’Brien, 2015; Kent (Ed.), 2007; O’Brien, Bommaraju, & Hine, 2005; Yee, 2012",
         ],
         [
             "Ion Exchange (Cation / Anion)",
@@ -546,7 +546,7 @@ def create_detailed_costing_story(story):
             "Pump (low pressure)",
             f" {pump_cost} × Q",
             f"{pump_cost} = $889/(m<super>3</super>/s)",
-            "",
+            "Bartholomew et al. 2018",
         ],
         [
             "Pressure Exchanger",
@@ -576,7 +576,7 @@ def create_detailed_costing_story(story):
             "Crystallizer",
             " A × (Q/Q<sub>ref</sub>)<super>B</super> × IEC",
             "A = $675,000<br/><br/>Q<sub>ref</sub> = 1 m<super>3</super>/hr<br/><br/>B = 0.53<br/><br/>IEC = 1.43<br/><br/>steam = $0.004/kg",
-            "Woods, 2007; Diab and Gerogiorgis, 2017; Yusuf et al., 2019; Panagopoulos (2019)",
+            "Woods, 2007; Diab and Gerogiorgis, 2017; Yusuf et al., 2019; Panagopoulos, 2019",
         ],
         [
             "Compressor",
@@ -588,7 +588,7 @@ def create_detailed_costing_story(story):
             "UV+AOP",
             f"{reactor_cost} + C<sub>lamp</sub>",
             f"{reactor_cost} = $202.35/kW<br/><br/>C<sub>lamp</sub> = $235.50/kW<br/><br/>lamp replacement = 33.3 %/yr",
-            "",
+            "UV System Cost Analysis Tool (UVCAT); Wright, Gaithuma, Greene, Aieta, 2006",
         ],
         [
             "Clarifier (Primary)",
@@ -648,7 +648,7 @@ def create_detailed_costing_story(story):
             "Steam Ejector",
             " A × (M)<super>B</super>",
             "M = motive steam + entrained vapor; kg/hr<br/><br/>A = $1949<br/><br/>B = 0.3<br/><br/>steam = $0.008/kg",
-            "Gabriel 2015, Desalination",
+            "Gabriel, 2015",
         ],
         [
             "Mixer",

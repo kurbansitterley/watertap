@@ -50,6 +50,11 @@ pretty_subtypes = {
     "coag_and_floc": "Coagulation & Flocculation",
     "sw_onshore_intake": "Seawater Intake",
     "ultra_filtration": "Ultrafiltration",
+    "CANDO_P": "CANDO-P",
+    "anaerobic_mbr_mec": "Anaerobic MBR-MEC",
+    "dmbr": "DMBR",
+    "hrcs": "HRCS",
+    "vfa_recovery": "VFA Recovery"
 }
 
 categories = {
@@ -60,12 +65,14 @@ categories = {
             "sw_onshore_intake",
             "screen",
             "well_field",
+            "storage_tank", 
         ],
         "hue_col": "unit",
         "mask": {"flow_mgd": (0.1, 20)},
         "unit_mask": {
             "water_pumping_station": {"subtype": "raw"},
             "screen": {"subtype": ["default"]},
+            "storage_tank": {"subtype": ["default"]},
             "well_field": {"subtype": ["default"], "pipe_distance": 1},
         },
     },
@@ -74,8 +81,9 @@ categories = {
         "units": [
             "coag_and_floc",
             "electrocoagulation",
-            # "sedimentation",
-            # "filtration",
+            "sedimentation",
+            "filtration",
+            "iron_and_manganese_removal", 
         ],
         "hue_col": "unit",
         "unit_mask": {
@@ -83,7 +91,8 @@ categories = {
                 "tds": 1000,
                 "metal_dose": 10,
                 "elec_material": "aluminum",
-            }
+            },
+            "sedimentation": {"subtype": ["default"]},
         },
     },
     "chemical_addition": {
@@ -133,18 +142,22 @@ categories = {
             "microfiltration",
             "reverse_osmosis",
             "electrodialysis_reversal",
+            "membrane_evaporator",
+            "photothermal_membrane",
+            "gas_sparged_membrane",
         ],
         "hue_col": "unit",
         "mask": {"flow_mgd": (0.1, 20), "subtype": ["default"]},
     },
     "media_filtration_technologies": {
-        "pretty_name": "Media Filtration",
+        "pretty_name": "Filtration Technologies",
         "units": [
             "dual_media_filtration",
-            # "media_filtration",
+            "media_filtration",
             "cartridge_filtration",
-            # "tri_media_filtration",
-            # "walnut_shell_filter",
+            "tri_media_filtration",
+            "walnut_shell_filter",
+            "cloth_media_filtration",
         ],
         "hue_col": "unit",
         "mask": {"flow_mgd": (0.1, 20)},
@@ -166,14 +179,24 @@ categories = {
         },
         "hue_col": "unit",
     },
-    "bio_treatment": {
-        "pretty_name": "Biological Treatment",
+    "wastewater_treatment": {
+        "pretty_name": "Wastewater Treatment",
         "units": [
             "anaerobic_digestion_oxidation",
             "anaerobic_mbr_mec",
             "bio_active_filtration",
             "conventional_activated_sludge",
             "fixed_bed",
+            "anaerobic_digestion_reactive",
+            "CANDO_P",
+            "cofermentation",
+            "constructed_wetlands",
+            "dmbr", 
+            "hrcs", 
+            "suboxic_activated_sludge_process",
+            "supercritical_salt_precipitation", 
+            "vfa_recovery", 
+
         ],
         "mask": {"flow_mgd": (0.1, 20)},
         "hue_col": "unit",
@@ -199,6 +222,19 @@ categories = {
             "deep_well_injection": {"pipe_distance": 25},
         },
         # "ycols": ["fs.costing.LCOW", "fs.costing.total_capital_cost", "fs.costing.SEC"],
+    },
+    "solids_handling": {
+        "pretty_name": "Solids Handling",
+        "units": [
+            "filter_press",
+            "centrifuge",
+        ],
+        "mask": {"flow_mgd": (0.1, 20)},
+        "hue_col": "unit",
+        "unit_mask": {
+            "filter_press": {"hrs_per_day": 12},
+            "centrifuge": {"flow_mgd": (0.1, 2)},
+        },
     },
 }
 
@@ -609,7 +645,7 @@ def plot_page(
                 a.yaxis.set_major_formatter(plt.FuncFormatter(frmtr))
             if row == len(ycols) - 1:
                 # bottom row gets the x-axis label
-                a.set_xlabel("Plant Capacity (MGD)")
+                a.set_xlabel("Unit Capacity (MGD)")
             if col == 0:
                 a.set_ylabel(ylabel_dict.get(ycols[row], ycols[row]))
             if (row, col) == (0, 0):
@@ -658,8 +694,11 @@ def combine_results():
 
 
 if __name__ == "__main__":
-    # combine_results()
+    combine_results()
     all_res = pd.read_csv(f"{here}/all_costing_results.csv")
+    # pprint.pprint(sorted(all_res["unit"].unique()))
     # save_as = f"{here}/DRAFT_watertap_cost_curves_doc.pdf"
-    save_as = f"{here}/watertap_cost_curves_doc-2026Aug25.pdf"
+    # save_as = f"{here}/watertap_cost_curves_doc-2026Aug25-ALL.pdf"
+    save_as = f"{here}/watertap_cost_curves_doc-2026Aug25-test.pdf"
     create_watertap_cost_curve_doc(save_as)
+    # pprint.pprint(sorted(all_res["unit"].unique()))

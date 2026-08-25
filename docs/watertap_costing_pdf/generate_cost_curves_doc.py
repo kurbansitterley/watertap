@@ -65,8 +65,8 @@ categories = {
         "mask": {"flow_mgd": (0.1, 20)},
         "unit_mask": {
             "water_pumping_station": {"subtype": "raw"},
-            "screen": {"subtype": ["micro"]},
-            # "well_field": {"subtype": ["default"], "pipe_distance": 1},
+            "screen": {"subtype": ["default"]},
+            "well_field": {"subtype": ["default"], "pipe_distance": 1},
         },
     },
     "pretreatment": {
@@ -132,7 +132,7 @@ categories = {
             "ultra_filtration",
             "microfiltration",
             "reverse_osmosis",
-            # "electrodialysis_reversal",
+            "electrodialysis_reversal",
         ],
         "hue_col": "unit",
         "mask": {"flow_mgd": (0.1, 20), "subtype": ["default"]},
@@ -141,11 +141,10 @@ categories = {
         "pretty_name": "Media Filtration",
         "units": [
             "dual_media_filtration",
-            "media_filtration",
-            "bio_active_filtration",
+            # "media_filtration",
             "cartridge_filtration",
-            "tri_media_filtration",
-            "walnut_shell_filter",
+            # "tri_media_filtration",
+            # "walnut_shell_filter",
         ],
         "hue_col": "unit",
         "mask": {"flow_mgd": (0.1, 20)},
@@ -204,6 +203,12 @@ categories = {
 }
 
 
+def intake_footer(lines):
+    line = "Well field results assume 1 mile of pipe distance."
+    lines.append(line)
+    return lines
+
+
 def chem_add_footer(lines):
     line = "Chemical addition costs are run with a fixed dose of 100 mg/L for each chemical"
     lines.append(line)
@@ -213,7 +218,7 @@ def chem_add_footer(lines):
 def brine_management_footer(lines):
     line = "Brine concentrator and crystallizer CAPEX and SEC are a function inlet flow rate and salinity."
     lines.append(line)
-    line = "These results are for a feed salinity of 60,000 mg/L TDS for the concentrator and 145,000 mg/L TDS for the crystallizer."
+    line = "These results are for a feed salinity of 60,000 mg/L TDS for the brine concentrator and 145,000 mg/L TDS for the crystallizer."
     lines.append(line)
     line = "Evaporation pond costs are a function of inlet flow rate and solar radiation, with results shown for 25 MJ/m²/day."
     lines.append(line)
@@ -230,10 +235,31 @@ def uv_ozone_footer(lines):
     return lines
 
 
+def adsorption_footer(lines):
+    line = "Anion exchange assumes 50 mg/L influent SO₄ concentration."
+    lines.append(line)
+    line = "Cation exchange assumes 200 mg/L inlet hardness concentration."
+    lines.append(line)
+    line = "GAC assumes 10 minute EBCT."
+    lines.append(line)
+    return lines
+
+
+def pretreatment_footer(lines):
+    line = "Electrocoagulation assumes a TDS of 1000 mg/L, a metal dose of 10 mg/L, and uses aluminum as the electrode material."
+    lines.append(line)
+    line = "Coagulation and flocculation are assumed to use 10 mg/L of alum and 0.1 mg/L of polymer."
+    lines.append(line)
+    return lines
+
+
 footer_dict = {
     "chemical_addition": chem_add_footer,
     "brine_management": brine_management_footer,
     "uv_ozone_aop": uv_ozone_footer,
+    "adsorption": adsorption_footer,
+    "pretreatment": pretreatment_footer,
+    "intake": intake_footer,
 }
 
 
@@ -275,7 +301,8 @@ def create_title_page():
     fig.text(
         0.5,
         0.6,
-        "**DRAFT**\nWaterTAP Zero-Order Model\nLCOW & CAPEX Curves",
+        # "**DRAFT**\nWaterTAP Zero-Order Model\nLCOW & CAPEX Curves",
+        "WaterTAP Zero-Order Model\nLCOW & CAPEX Curves",
         ha="center",
         va="center",
         fontsize=28,
@@ -394,6 +421,8 @@ def create_watertap_cost_curve_doc(save_as, xcol="flow_mgd", colormap="tab20"):
                             or isinstance(filt, str)
                         ):
                             print(f"Filtering unit '{u}' with {col} == {filt}")
+                            # if u == "well_field":
+                            #     assert False
                             if filt not in df[col].values and not isinstance(filt, str):
                                 # print(df[col].unique())
                                 filt2 = df[col].max()
@@ -629,7 +658,8 @@ def combine_results():
 
 
 if __name__ == "__main__":
-    combine_results()
+    # combine_results()
     all_res = pd.read_csv(f"{here}/all_costing_results.csv")
-    save_as = f"{here}/DRAFT_watertap_cost_curves_doc.pdf"
+    # save_as = f"{here}/DRAFT_watertap_cost_curves_doc.pdf"
+    save_as = f"{here}/watertap_cost_curves_doc-2026Aug25.pdf"
     create_watertap_cost_curve_doc(save_as)

@@ -7,6 +7,12 @@ a two-page reference PDF.
 
 Requirements:
 - watertap-dev environment + reportlab (pip) + pyyaml (pip) + pypdf (pip)
+
+e.g.,
+conda create --name watertap-dev-pdf-docs python=3.12
+conda activate watertap-dev-pdf-docs
+pip install reportlab pyyaml pypdf
+pip install -r requirements-dev.txt
 """
 
 import pypdf
@@ -862,7 +868,7 @@ def generate_combined_pdf(cost_curves_path, costing_ref_path, save_as):
 
 if __name__ == "__main__":
 
-    save_as = f"{here}/DRAFT_watertap_costing_reference.pdf"
+    save_as = f"{here}/watertap_costing_reference-2026Aug25.pdf"
 
     create_watertap_costing_reference(save_as)
 

@@ -754,8 +754,8 @@ def create_zo_costing_story(story):
     print(f"\nCreating ZO Table with {len(zo_data)} units...\n")
     zo_sort = "name"
     for z in sorted(zo_data, key=lambda d: d[zo_sort]):
-        if z["reference"] == "Unknown":
-            continue
+        # if z["reference"] == "Unknown":
+        #     continue
         print(f"Adding {z['name']} to table")
         A_str = f"{z.get('A','—'):,.0f}" if "A" in z else "—"
         B_str = f"{z.get('B','—'):.3f}" if "B" in z else "—"
@@ -868,7 +868,7 @@ def generate_combined_pdf(cost_curves_path, costing_ref_path, save_as):
 
 if __name__ == "__main__":
 
-    save_as = f"{here}/watertap_costing_reference-2026Aug25.pdf"
+    save_as = f"{here}/watertap_costing_reference-2026Aug25-ALL.pdf"
 
     create_watertap_costing_reference(save_as)
 

@@ -438,13 +438,7 @@ def create_detailed_costing_story(story):
     P = Paragraph
 
     story.append(P("WaterTAP Costing Reference Guide", styles["DocTitle"]))
-    # story.append(
-    #     P(
-    #         "Default Parameters Across All Unit Models — "
-    #         "For Technology Screening &amp; Proposal Support",
-    #         styles["Normal"],
-    #     )
-    # )
+
     story.append(Spacer(1, 6))
 
     story.append(
@@ -462,11 +456,8 @@ def create_detailed_costing_story(story):
     )
     story.append(Spacer(1, 4))
 
-    # ── BUILD detailed_rows from scraped data ──────────────────────
-    # detailed_rows = [
-    #     ["Unit Model", "Capital Cost", "Key Default Parameters", "Reference"],
-    #     ["-", "—", "—", "—"],
-    # ]
+    # -- BUILD detailed_rows from scraped data --
+
     membrane_cost = "C<sub>mem</sub>"
     membrane_cost_hp = "C<sub>mem,HP</sub>"
     electrode_cost = "C<sub>electrode</sub>"
@@ -510,7 +501,7 @@ def create_detailed_costing_story(story):
             "Membrane Distillation",
             f" {membrane_cost} × {area_mem}",
             f"{membrane_cost} = $56/m<super>2</super><br/><br/>replacement = 20 %/yr",
-            "Shamlou, E., Vidic, R., & Khanna, V. (2022).",
+            "Shamlou, Vidic, & Khanna, 2022",
         ],
         [
             "Electrodialysis",
@@ -526,7 +517,7 @@ def create_detailed_costing_story(story):
         ],
         [
             "Ion Exchange (Cation / Anion)",
-            "C<sub>resin</sub> + C<sub>vessels</sub> + C<sub>tanks</sub>",
+            "C<sub>resin</sub> + C<sub>vessels</sub> + C<sub>tanks</sub><br/><br/>C<sub>i</sub> = A<super>b</super>",
             "C<sub>res,AX</sub> = $205/ft<super>3</super><br/><br/>C<sub>res,CX</sub> = $153/ft<super>3</super><br/><br/> vessel A=1596.5, b=0.46<br/><br/>resin replacement = 5 %/yr",
             "EPA-WBS 2021",
         ],
@@ -668,7 +659,14 @@ def create_detailed_costing_story(story):
             "C<sub>heat</sub> = $66/kW<br/><br/>eff = 0.99",
             "",
         ],
+        [
+            "Electrocoagulation",
+            "C<sub>electrodes</sub> + C<sub>powersupply</sub> + C<sub>reactor</sub>",
+            "C<sub>electrodes</sub> = $2.23/kg (aluminum), $3.41/kg (iron)<br/><br/>C<sub>powsup</sub> = linear f(watt)<br/><br/>C<sub>reactor</sub> = power f(vol)",
+            "McGivney & Kawamura, 2008; Smith, 2005; Anuf et al., 2022; magna-power.com",
+        ],
     ]
+    detailed_rows = sorted(detailed_rows, key=lambda r: r[0])  # sort by unit model name
 
     # for automatically scraping parameters; doesn't work very well
     # for module_name, params in sorted(detailed_data.items()):
@@ -729,7 +727,7 @@ def create_zo_costing_story(story):
     )
     story.append(
         P(
-            "Zero-order models use: C<sub>cap</sub> = A × "
+            "This table is for zero-order models that use: C<sub>cap</sub> = A × "
             "(Q<sub>in</sub>/Q<sub>basis</sub>)<super>B</super>. "
             "A is in USD for the reference year shown. Costs are CPI-adjusted to "
             "the study year.",
@@ -756,6 +754,8 @@ def create_zo_costing_story(story):
     print(f"\nCreating ZO Table with {len(zo_data)} units...\n")
     zo_sort = "name"
     for z in sorted(zo_data, key=lambda d: d[zo_sort]):
+        if z["reference"] == "Unknown":
+            continue
         print(f"Adding {z['name']} to table")
         A_str = f"{z.get('A','—'):,.0f}" if "A" in z else "—"
         B_str = f"{z.get('B','—'):.3f}" if "B" in z else "—"

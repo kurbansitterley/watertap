@@ -1,6 +1,5 @@
 unit_model_class,subtypes,validity_range,tech_type
 AerationBasinZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",aeration_basin
-AirFlotationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 200}",air_flotation
 AnaerobicDigestionOxidationZO,['default'],,anaerobic_digestion_oxidation
 AnaerobicDigestionReactiveZO,"['default', 'GLSD_anaerobic_digester']",,anaerobic_digestion_reactive
 AnaerobicMBRMECZO,['default'],,anaerobic_mbr_mec
@@ -12,7 +11,7 @@ BrineConcentratorZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0.06, 
 BufferTankZO,['default'],,buffer_tank
 CANDOPZO,['default'],,CANDO_P
 CartridgeFiltrationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",cartridge_filtration
-CentrifugeZO,,,centrifuge
+CentrifugeZO,['default'],,centrifuge
 ChemicalAdditionZO,"['default', 'alum', 'ammonia', 'anhydrous_ammonia', 'anti-scalant', 'caustic_soda', 'ferric_chloride', 'hydrochloric_acid', 'lime', 'sodium_bisulfite', 'sulfuric_acid', 'chlorine']","{'units': 'gal/day', 'lower_bound': 50, 'upper_bound': 750}",chemical_addition
 ChlorinationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 1, 'upper_bound': 25}",chlorination
 ClarifierZO,"['default', 'HRCS_clarifier']","{'units': 'ft^2', 'lower_bound': 0, 'upper_bound': 160000}",clarifier
@@ -29,7 +28,7 @@ DeepWellInjectionZO,['default'],,deep_well_injection
 DissolvedAirFlotationZO,['default'],,dissolved_air_flotation
 DMBRZO,['default'],,dmbr
 DualMediaFiltrationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",dual_media_filtration
-ElectroNPZO,,,electrochemical_nutrient_removal
+ElectroNPZO,['default'],,electrochemical_nutrient_removal
 ElectrocoagulationZO,['default'],"{'units': 'm^3', 'lower_bound': 1, 'upper_bound': 50}",electrocoagulation
 ElectrodialysisReversalZO,['default'],"{'units': 'mg/L', 'lower_bound': 0, 'upper_bound': 20000}",electrodialysis_reversal
 EnergyRecoveryZO,['default'],,energy_recovery
@@ -41,26 +40,26 @@ FixedBedZO,"['default', 'gravity_basin']","{'units': 'Mgallons/day', 'lower_boun
 GACZO,"['default', 'pressure_vessel', 'gravity']","{'units': 'Mgallons/day', 'lower_bound': 0.124, 'upper_bound': 75.072}",gac
 GasSpargedMembraneZO,['default'],,gas_sparged_membrane
 HRCSZO,['default'],,hrcs
-HTGZO,,,hydrothermal_gasification
+HTGZO,['default'],,hydrothermal_gasification
 InjectionWellDisposalZO,['default'],,injection_well_disposal
 IntrusionMitigationZO,['default'],,intrusion_mitigation
 IonExchangeZO,"['default', 'anion_exchange', 'cation_exchange', 'clinoptilolite']","{'units': 'Mgallons/day', 'lower_bound': 0.305, 'upper_bound': 75.072}",ion_exchange
 IronManganeseRemovalZO,['default'],"{'units': 'ft^2', 'lower_bound': 90, 'upper_bound': 1500}",iron_and_manganese_removal
 LandfillZO,"['default', 'landfill_zld']",,landfill
-MABRZO,,,mabr
-MagprexZO,,,magprex
+MABRZO,['default'],,mabr
+MagprexZO,['default'],,magprex
 MBRZO,"['default', 'mbr_denitrification']","{'units': 'Mgallons/day', 'lower_bound': 0.000317, 'upper_bound': 1.49785}",mbr
 MediaFiltrationZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 30}",media_filtration
 MembraneEvaporatorZO,['default'],,membrane_evaporator
-MetabZO,,,metab
-MicrobialBatteryZO,,,microbial_battery
+MetabZO,['default'],,metab
+MicrobialBatteryZO,['default'],,microbial_battery
 MicroFiltrationZO,['default'],,microfiltration
 MunicipalDrinkingZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 0, 'upper_bound': 300}",municipal_drinking
 MunicipalWWTPZO,['default'],,municipal_wwtp
 NanofiltrationZO,"['default', 'rHGO_dye_rejection']",,nanofiltration
 OzoneAOPZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 1, 'upper_bound': 25}",ozone_aop
 OzoneZO,['default'],"{'units': 'Mgallons/day', 'lower_bound': 1, 'upper_bound': 25}",ozone
-PeraceticAcidDisinfectionZO,,,peracetic_acid_disinfection
+PeraceticAcidDisinfectionZO,['default'],,peracetic_acid_disinfection
 PhotothermalMembraneZO,['default'],,photothermal_membrane
 PrimarySeparatorZO,['default'],"{'units': 'ft^2', 'lower_bound': 0, 'upper_bound': 160000}",primary_separator
 PumpElectricityZO,['default'],,pump_electricity
@@ -73,7 +72,7 @@ SludgeTankZO,['default'],,sludge_tank
 SMPZO,['default'],,smp
 StaticMixerZO,['default'],"{'units': 'liter/second', 'lower_bound': 1, 'upper_bound': 50}",static_mixer
 StorageTankZO,"['default', 'treated_storage']",,storage_tank
-StruviteClassifierZO,,,struvite_classifier
+StruviteClassifierZO,['default'],,struvite_classifier
 SuboxicASMZO,['default'],,suboxic_activated_sludge_process
 SaltPrecipitationZO,['default'],,supercritical_salt_precipitation
 SurfaceDischargeZO,"['default', 'emwd']",,surface_discharge

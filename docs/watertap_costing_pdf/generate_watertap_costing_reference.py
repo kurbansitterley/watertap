@@ -20,7 +20,7 @@ import os
 import pprint
 import re
 import yaml
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import letter, landscape
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
@@ -51,6 +51,20 @@ u_name_dict = {
     "waiv": "WAIV",
     "smp": "SMP",
     "secondary_treatment_wwtp": "Secondary Treatment WWTP",
+    "municipal_wwtp": "Municipal WWTP",
+    "anaerobic_mbr_mec": "Anaerobic MBR-MEC",
+    "hrcs": "High-Rate Solids Clarifier", 
+    "gac": "GAC", 
+    "iron_and_manganese_removal": "Fe/Mn Removal",
+    "mabr": "MABR", 
+    "magprex": "MagPrex",
+    "uv": "UV", 
+    "uv_aop": "UV+AOP",
+    "vfa_recovery": "VFA Recovery",
+    "ozone_aop": "Ozone+AOP",
+    "dmbr": "DMBR",
+    "CANDO_P": "CANDO-P",
+    "coag_and_floc": "Coagulation & Flocculation",
 }
 
 # formatting pyunits
@@ -59,6 +73,15 @@ pretty_dims = {
     "m^3/hr": "m³/hr",
     "m^3/day": "m³/d",
     "liter/second": "L/s",
+    "Mgallons": "× 10<sup>6</sup> gal",
+    "gallons": "gal",
+    "gallons/day": "gal/d",
+    "gallon/minute": "gpm",
+    "ft^2": "ft²",
+    "m^2": "m²",
+    "mg/liter": "mg/L",
+    "dimensionless": "", 
+    "lb/hour": "lb/hr"
 }
 
 
@@ -130,7 +153,7 @@ def scrape_zo_params(repo_path=None):
         "peracetic_acid_case_study",
     ]
     unit_skips = [
-        "anaerobic_mbr_mec",
+        # "anaerobic_mbr_mec",
         "autothermal_hydrothermal_liquefaction",
         # "bioreactor",
         "brine_concentrator",
@@ -179,6 +202,7 @@ def scrape_zo_params(repo_path=None):
         "vfa_recovery",
         "well_field",
     ]
+    unit_skips = []
 
     # NOTE: below are some general notes on ZO units
     # dissolved_air_flotation - same as clarifier, create new cost relationship
@@ -228,6 +252,11 @@ def scrape_zo_params(repo_path=None):
             continue
 
         module_name = fname.replace(".yaml", "")
+        if len(data.keys()) >1:
+
+            print(data.keys())
+            pprint.pprint(data)
+            assert False
         # default subtype
         section = data.get("default", data)
         if not isinstance(section, dict):
@@ -276,7 +305,30 @@ def scrape_zo_params(repo_path=None):
                 except (ValueError, TypeError):
                     pass
 
-        # Energy intensity
+        key = "validity_range"
+        if key in cc:
+            vr = cc[key]
+            # pprint.pprint(vr)
+            if isinstance(vr, dict) and all(k in vr for k in ["lower_bound", "upper_bound"]):
+                for k, v in vr.items():
+                    # if k in ["lower_bound", "upper_bound"]:
+                    print(k, v)
+                    valid_range = float(v["value"])
+                    valid_range_units = v.get("units", None)
+                    info[f"valid_range_{k}"] = valid_range
+                    info[f"valid_range_{k}_units"] = valid_range_units
+            elif isinstance(vr, dict):
+                info["valid_range_vars"] = list(vr.keys())
+                for k, v in vr.items():
+                    if k not in ["lower_bound", "upper_bound"]:
+                        # there are nested validity ranges
+                        for subk, subv in v.items():
+                            info[f"valid_range_{k}_{subk}"] = float(subv["value"])
+                            info[f"valid_range_{k}_{subk}_units"] = subv.get("units", None)
+            else:
+                raise ValueError(f"Unexpected validity range format for module {module_name}")
+
+        pprint.pprint(info)
         ei = section.get(
             "energy_electric_flow_vol_inlet",
             section.get("electricity_intensity_parameter", {}),
@@ -341,7 +393,7 @@ def build_styles():
             "SmallBody",
             parent=styles["Normal"],
             fontSize=7,
-            leading=8.5,
+            leading=10.5,
         )
     )
     styles.add(
@@ -349,7 +401,7 @@ def build_styles():
             "SmallBold",
             parent=styles["Normal"],
             fontSize=7,
-            leading=8.5,
+            leading=10.5,
             fontName="Helvetica-Bold",
         )
     )
@@ -365,6 +417,17 @@ def build_styles():
     )
     styles.add(
         ParagraphStyle(
+            "TableColumnHeader",
+            parent=styles["Normal"],
+            fontSize=8.5,
+            leading=12,
+            fontName="Helvetica-Bold",
+            alignment=1,  # Center alignment
+            textColor=colors.white,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
             "TinyBody",
             parent=styles["Normal"],
             fontSize=6.5,
@@ -376,7 +439,25 @@ def build_styles():
             "TinyBodyCentered",
             parent=styles["Normal"],
             fontSize=6.5,
+            leading=9.5,
+            alignment=1,  # Center alignment
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            "TableCell1",
+            parent=styles["Normal"],
+            fontSize=6.5,
             leading=7.5,
+            alignment=1,  # Center alignment
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            "TableCell2",
+            parent=styles["Normal"],
+            fontSize=6.5,
+            leading=12.5,
             alignment=1,  # Center alignment
         )
     )
@@ -408,7 +489,6 @@ def build_styles():
         )
     )
     return styles
-
 
 def _table_style():
     return TableStyle(
@@ -666,7 +746,6 @@ def create_detailed_costing_story(story):
             "McGivney & Kawamura, 2008; Smith, 2005; Anuf et al., 2022; magna-power.com",
         ],
     ]
-    detailed_rows = sorted(detailed_rows, key=lambda r: r[0])  # sort by unit model name
 
     # for automatically scraping parameters; doesn't work very well
     # for module_name, params in sorted(detailed_data.items()):
@@ -690,7 +769,7 @@ def create_detailed_costing_story(story):
         "Key Default Parameters",
         "Reference",
     ]
-    table_data = [[P(c, styles["SmallBoldCentered"]) for c in detailed_header]]
+    table_data = [[P(c, styles["TableColumnHeader"]) for c in detailed_header]]
     print(f"\nCreating Detailed Costing Table with {len(detailed_rows)} units...\n")
 
     detailed_rows = sorted(detailed_rows, key=lambda r: r[0])  # sort by unit model name
@@ -714,7 +793,7 @@ def create_zo_costing_story(story):
 
     P = Paragraph
 
-    # ── PAGE 2: zero-order models ─────────────────────────────────-
+    # -- PAGE 2: ZO models --
     story.append(PageBreak())
     story.append(P("WaterTAP Costing Reference Guide (continued)", styles["DocTitle"]))
     story.append(Spacer(1, 4))
@@ -727,7 +806,8 @@ def create_zo_costing_story(story):
     )
     story.append(
         P(
-            "This table is for zero-order models that use: C<sub>cap</sub> = A × "
+            "This table is for WaterTAP Zero Order Models" \
+            "Units with A and B values follow the equation: C<sub>cap</sub> = A × "
             "(Q<sub>in</sub>/Q<sub>basis</sub>)<super>B</super>. "
             "A is in USD for the reference year shown. Costs are CPI-adjusted to "
             "the study year.",
@@ -736,9 +816,11 @@ def create_zo_costing_story(story):
     )
     story.append(Spacer(1, 4))
 
-    # ── BUILD zo_rows from scraped data ───────────────────────────
+    # -- BUILD zo_rows from scraped data --
     print()
     zo_data = scrape_zo_params(repo_path)  # list of dicts
+    # pprint.pprint(zo_data)
+    # assert False
     zo_rows = [
         [
             "Unit Model",
@@ -748,6 +830,7 @@ def create_zo_costing_story(story):
             "Cost Year",
             "Energy (kWh/m³)",
             "Recovery",
+            "Validity Range",
             "Reference",
         ]
     ]
@@ -756,6 +839,7 @@ def create_zo_costing_story(story):
     for z in sorted(zo_data, key=lambda d: d[zo_sort]):
         # if z["reference"] == "Unknown":
         #     continue
+        # name = 
         print(f"Adding {z['name']} to table")
         A_str = f"{z.get('A','—'):,.0f}" if "A" in z else "—"
         B_str = f"{z.get('B','—'):.3f}" if "B" in z else "—"
@@ -763,7 +847,8 @@ def create_zo_costing_story(story):
             if float(B_str) == 1:
                 B_str = "1"
         rs = f"{z.get('reference_state','—')}" if "reference_state" in z else "—"
-        rs = f"{float(rs):,.0f}"
+        if rs != "—":
+            rs = f"{float(rs):,.0f}"
         rsu = (
             f" {z.get('reference_state_units','')}"
             if "reference_state_units" in z
@@ -775,15 +860,84 @@ def create_zo_costing_story(story):
         energy_str = f"{z.get('energy','—')}" if "energy" in z else "—"
         rec_str = f"{z.get('recovery','—')}" if "recovery" in z else "—"
         ref_str = f"{z.get('reference','—')}" if "reference" in z else "—"
+
+        if "valid_range_lower_bound" in z and "valid_range_upper_bound" in z:
+            print(f"Processing validity range for {z['name']}")
+            # assert False
+            vr_low = f"{float(z['valid_range_lower_bound']):,.0f}"
+            vr_high = f"{float(z['valid_range_upper_bound']):,.0f}"
+            vrul = z.get("valid_range_lower_bound_units", None)
+            vruh = z.get("valid_range_upper_bound_units", None)
+            assert vrul == vruh, f"Units mismatch for {z['name']} upper vs lower validity range"
+            if vrul is None:
+                raise ValueError(f"Should have units for {z['name']} validity range")
+            vrul = pretty_dims.get(vrul.strip(), vrul)
+            validity_range = f"{vr_low}-{vr_high} {vrul}"
+        elif "valid_range_vars" in z:
+            val_range_var_dict = {
+                # brine concentrator
+                "flow_vol": "Q<sub>in</sub>",
+                "recovery_vol": "RR", 
+                "tds": "TDS",
+                # crystallizer
+                "purge_fraction": "f<sub>purge</sub>",
+                # chlorination
+                "chlorine_dose": "[Cl<sub>2</sub>]",
+                # clarifier
+                "basin_surface_area": "A<sub>basin</sub>",
+                # coag_and_floc
+                "rapid_mix": "V<sub>mix</sub>",
+                "alum_addition": "m<sub>Alum</sub>",
+                "coagulant_addition": "m<sub>Coag</sub>",
+                "polymer_addition": "m<sub>Poly</sub>",
+                "flocculator": "V<sub>floc</sub>",
+                # ion exchange
+                "sulfate_influent": "[SO<sub>4</sub>]",
+                # primary separator
+                "basin_area": "A<sub>basin</sub>",
+            }
+            validity_range = []
+            for var in z["valid_range_vars"]:
+                if var not in val_range_var_dict:
+                    raise ValueError(f"Unknown validity range variable {var} for {z['name']}")
+                vr_pretty = val_range_var_dict[var]
+                if var in ["purge_fraction", "recovery_vol"]:
+                    vr_v_low = f"{float(z[f'valid_range_{var}_lower_bound']):.0%}"
+                    vr_v_high = f"{float(z[f'valid_range_{var}_upper_bound']):.0%}"
+                else:
+                    vr_v_low = f"{float(z[f'valid_range_{var}_lower_bound']):,.0f}"
+                    vr_v_high = f"{float(z[f'valid_range_{var}_upper_bound']):,.0f}"
+                vr_vul = z.get(f"valid_range_{var}_lower_bound_units", None)
+                vr_vuh = z.get(f"valid_range_{var}_upper_bound_units", None)
+                assert vr_vul == vr_vuh, f"Units mismatch for {z['name']} upper vs lower validity range for {var}"
+                if vr_vul is None:
+                    raise ValueError(f"Should have units for {z['name']} validity range for {var}")
+                vr_vul = pretty_dims.get(vr_vul.strip(), vr_vul)
+                validity_range.append(f"{vr_pretty}: {vr_v_low}-{vr_v_high} {vr_vul}")
+            validity_range = "<br/>".join(validity_range)
+        else:
+            validity_range = "—"
+
         zo_rows.append(
-            [z["name"], A_str, B_str, ref_state, year_str, energy_str, rec_str, ref_str]
+            [z["name"], A_str, B_str, ref_state, year_str, energy_str, rec_str, validity_range, ref_str]
         )
 
     table_data2 = []
     for i, row in enumerate(zo_rows):
-        style = styles["SmallBoldCentered"] if i == 0 else styles["TinyBodyCentered"]
-        table_data2.append([P(c, style) for c in row])
-
+        style_header = styles["TableColumnHeader"]
+        style1 = styles["TableCell1"]
+        style2 = styles["TableCell2"]
+        if i == 0: 
+            table_data2.append([P(c, style_header) for c in row])
+        else:
+            table_data2.append([P(c, style1 if j in [1, 2, 3, 4, 5, 6, 7, 9] else style2) for j, c in enumerate(row, 1)])
+    # for i, row in enumerate(detailed_rows):
+    #     print(f"Adding {row[0]} to table")
+    #     style1 = styles["TinyBody"]
+    #     style2 = styles["TinyBodyCentered"]
+    #     table_data.append(
+    #         [P(c, style1 if j in [1, 2] else style2) for j, c in enumerate(row)]
+    #     )
     t2 = Table(
         table_data2,
         colWidths=[
@@ -794,6 +948,7 @@ def create_zo_costing_story(story):
             0.7 * inch,
             0.7 * inch,
             0.7 * inch,
+            1.2 * inch,
             1.2 * inch,
         ],
     )
@@ -824,6 +979,18 @@ def create_zo_costing_story(story):
     story.append(Spacer(1, 6))
     story.append(
         P(
+            "MGD = million gallons per day; m³ = cubic meters; ft² = square feet; RR = water recovery ratio; f<sub>purge</sub> = purge fraction; m<sub>x</sub> = mass flow rate of x; TDS = total dissolved solids; Q = volumetric flow rate; A = surface area; V = volume",
+            styles["FootNote"],
+        )
+    )
+    story.append(
+        P(
+            "Units with '-' entries use an alternate costing method (e.g., detailed unit model or other).",
+            styles["FootNote"],
+        )
+    )
+    story.append(
+        P(
             "All parameters are defaults and fully tunable by the user. "
             "Source: watertap-org/watertap GitHub repository.",
             styles["FootNote"],
@@ -839,6 +1006,7 @@ def create_watertap_costing_reference(save_as):
     doc = SimpleDocTemplate(
         save_as,
         pagesize=letter,
+        # pagesize=landscape, 
         topMargin=0.5 * inch,
         bottomMargin=0.5 * inch,
         leftMargin=0.5 * inch,
@@ -868,7 +1036,7 @@ def generate_combined_pdf(cost_curves_path, costing_ref_path, save_as):
 
 if __name__ == "__main__":
 
-    save_as = f"{here}/watertap_costing_reference-2026Aug25-ALL.pdf"
+    save_as = f"{here}/watertap_costing_reference-2026Aug25-test.pdf"
 
     create_watertap_costing_reference(save_as)
 

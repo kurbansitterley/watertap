@@ -83,7 +83,7 @@ categories = {
             "electrocoagulation",
             "sedimentation",
             "filtration",
-            "iron_and_manganese_removal", 
+            # "iron_and_manganese_removal", 
         ],
         "hue_col": "unit",
         "unit_mask": {
@@ -179,32 +179,32 @@ categories = {
         },
         "hue_col": "unit",
     },
-    "wastewater_treatment": {
-        "pretty_name": "Wastewater Treatment",
-        "units": [
-            "anaerobic_digestion_oxidation",
-            "anaerobic_mbr_mec",
-            "bio_active_filtration",
-            "conventional_activated_sludge",
-            "fixed_bed",
-            "anaerobic_digestion_reactive",
-            "CANDO_P",
-            "cofermentation",
-            "constructed_wetlands",
-            "dmbr", 
-            "hrcs", 
-            "suboxic_activated_sludge_process",
-            "supercritical_salt_precipitation", 
-            "vfa_recovery", 
+    # "wastewater_treatment": {
+    #     "pretty_name": "Wastewater Treatment",
+    #     "units": [
+    #         "anaerobic_digestion_oxidation",
+    #         "anaerobic_mbr_mec",
+    #         "bio_active_filtration",
+    #         "conventional_activated_sludge",
+    #         "fixed_bed",
+    #         "anaerobic_digestion_reactive",
+    #         "CANDO_P",
+    #         "cofermentation",
+    #         "constructed_wetlands",
+    #         "dmbr", 
+    #         "hrcs", 
+    #         "suboxic_activated_sludge_process",
+    #         "supercritical_salt_precipitation", 
+    #         "vfa_recovery", 
 
-        ],
-        "mask": {"flow_mgd": (0.1, 20)},
-        "hue_col": "unit",
-        "unit_mask": {
-            "fixed_bed": {"subtype": ["default"]},
-            "conventional_activated_sludge": {"subtype": ["default"]},
-        },
-    },
+    #     ],
+    #     "mask": {"flow_mgd": (0.1, 20)},
+    #     "hue_col": "unit",
+    #     "unit_mask": {
+    #         "fixed_bed": {"subtype": ["default"]},
+    #         "conventional_activated_sludge": {"subtype": ["default"]},
+    #     },
+    # },
     "brine_management": {
         "pretty_name": "Brine Management",
         "units": [
@@ -694,11 +694,11 @@ def combine_results():
 
 
 if __name__ == "__main__":
-    combine_results()
+    # combine_results()
     all_res = pd.read_csv(f"{here}/all_costing_results.csv")
     # pprint.pprint(sorted(all_res["unit"].unique()))
     # save_as = f"{here}/DRAFT_watertap_cost_curves_doc.pdf"
     # save_as = f"{here}/watertap_cost_curves_doc-2026Aug25-ALL.pdf"
-    save_as = f"{here}/watertap_cost_curves_doc-2026Aug25-test.pdf"
+    save_as = f"{here}/watertap_cost_curves_doc-2026Aug26.pdf"
     create_watertap_cost_curve_doc(save_as)
     # pprint.pprint(sorted(all_res["unit"].unique()))

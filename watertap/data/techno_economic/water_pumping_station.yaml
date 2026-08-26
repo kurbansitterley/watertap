@@ -22,7 +22,7 @@ default: # default is raw
   electricity:
     value: 93.21
     units: kW
-    reference: HRSD case study, converted from 125 hp using 0.746 kW/hp
+    # reference: HRSD case study, converted from 125 hp using 0.746 kW/hp
   lift_height:
     value: 100
     units: feet
@@ -80,4 +80,4 @@ treated:
   electricity:
     value: 186.4
     units: kW
-    reference: HRSD case study, converted from 125 hp using 0.746 kW/hp
+    # reference: HRSD case study, converted from 125 hp using 0.746 kW/hp

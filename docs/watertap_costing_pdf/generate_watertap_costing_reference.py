@@ -53,12 +53,12 @@ u_name_dict = {
     "secondary_treatment_wwtp": "Secondary Treatment WWTP",
     "municipal_wwtp": "Municipal WWTP",
     "anaerobic_mbr_mec": "Anaerobic MBR-MEC",
-    "hrcs": "High-Rate Solids Clarifier", 
-    "gac": "GAC", 
+    "hrcs": "High-Rate Solids Clarifier",
+    "gac": "GAC",
     "iron_and_manganese_removal": "Fe/Mn Removal",
-    "mabr": "MABR", 
+    "mabr": "MABR",
     "magprex": "MagPrex",
-    "uv": "UV", 
+    "uv": "UV",
     "uv_aop": "UV+AOP",
     "vfa_recovery": "VFA Recovery",
     "ozone_aop": "Ozone+AOP",
@@ -80,8 +80,8 @@ pretty_dims = {
     "ft^2": "ft²",
     "m^2": "m²",
     "mg/liter": "mg/L",
-    "dimensionless": "", 
-    "lb/hour": "lb/hr"
+    "dimensionless": "",
+    "lb/hour": "lb/hr",
 }
 
 
@@ -130,16 +130,229 @@ pretty_dims = {
 #     return results
 
 
-def scrape_zo_params(repo_path=None):
+def get_subtype_info(data, subtype="default"):
+
+    section = data[subtype]
+
+    assert isinstance(
+        section, dict
+    ), f"Expected dict for module {module_name} subtype {subtype}, got {type(section)}"
+    # print(module_name, subtype)
+    if module_name in ["ozone", "ozone_aop"]:
+        # pprint.pprint(section)
+        # assert False
+        cc = section["capital_cost"]["ozone_capital_cost"]
+    else:
+        cc = section.get("capital_cost", None)
+    if cc is None:
+        return None
+
+    info = {"module_name": module_name, "subtype": subtype}
+    sname = fname.replace(".yaml", "")
+
+    # print(sname)
+
+    if sname in u_name_dict:
+        info["name"] = u_name_dict[sname]
+    else:
+        info["name"] = fname.replace(".yaml", "").replace("_", " ").title()
+
+    print(f"Processing {info['name']}...")
+
+    # Extract A and B
+    # if module_name != "ion_exchange":
+    key = "capital_a_parameter"
+    if "capital_a_parameter" in cc and "capital_c_parameter" not in cc:
+        v = cc[key]
+        if isinstance(v, dict) and "value" in v:
+            try:
+                info["A"] = float(v["value"])
+                units = v.get("units", "")
+                if "USD_" in units:
+                    info["year"] = units.split("USD_")[1][:4]
+                else: 
+                    USDs = list(extract_this_value(v, this_value="USD"))
+                    if USDs:
+                        info["year"] = USDs[0][:4]
+            except (ValueError, TypeError):
+                pass
+
+    key = "capital_b_parameter"
+    if key in cc and "capital_c_parameter" not in cc:
+        v = cc[key]
+        if isinstance(v, dict) and "value" in v:
+            try:
+                b = float(v["value"])
+                units = v.get("units", "")
+                if "dimensionless" in units.lower() or units == "":
+                    info["B"] = b
+            except (ValueError, TypeError):
+                pass
+
+    if "year" not in info:
+        USDs = list(set(list(extract_this_value(cc, this_value="USD"))))
+        if USDs:
+            years = list(USD.split("_")[1][:4] for USD in USDs if "_" in USD)
+            if years:
+                info["year"] = "; ".join(sorted(set(years)))
+        # if USDs:
+        #     USD = USDs[0]
+        #     USD = USD.split("/")[0]  # remove any trailing units, assume it is numerator
+        #     if USD:
+        #         info["year"] = USD.split("_")[1][:4]
+                # print(f"Year not found in capital_a_parameter, extracted from cc: {info['year']}")
+                # print(USDs)
+                # print(USD)
+                # assert False
+
+    key = "validity_range"
+    if key in cc:
+        vr = cc[key]
+        # pprint.pprint(vr)
+        if isinstance(vr, dict) and all(
+            k in vr for k in ["lower_bound", "upper_bound"]
+        ):
+            for k, v in vr.items():
+                valid_range = float(v["value"])
+                valid_range_units = v.get("units", None)
+                info[f"valid_range_{k}"] = valid_range
+                info[f"valid_range_{k}_units"] = valid_range_units
+        elif isinstance(vr, dict):
+            info["valid_range_vars"] = list(vr.keys())
+            for k, v in vr.items():
+                if k not in ["lower_bound", "upper_bound"]:
+                    # there are nested validity ranges
+                    for subk, subv in v.items():
+                        info[f"valid_range_{k}_{subk}"] = float(subv["value"])
+                        info[f"valid_range_{k}_{subk}_units"] = subv.get("units", None)
+        else:
+            raise ValueError(
+                f"Unexpected validity range format for module {module_name}"
+            )
+
+    ei = section.get(
+        "energy_electric_flow_vol_inlet",
+        section.get("electricity_intensity_parameter", {}),
+    )
+    ei_fq = [  # electricity is a function of flow rate (pumping electricity)
+        "backwash_solids_handling",
+        "anaerobic_mbr_mec",
+        "cofermentation",
+        "deep_well_injection",
+        "gas_sparged_membrane",
+        "ion_exchange",
+        "municipal_drinking",
+        "surface_discharge",
+        "sw_onshore_intake",
+        "well_field",
+        "mbr",
+        "water_pumping_station",
+        "vfa_recovery",
+    ]
+    ei_fx = [
+        "electrodialysis_reversal",
+        "chemical_addition",
+        "electrocoagulation",
+        "filter_press",
+        "ozone",
+        "ozone_aop",
+        "coag_and_floc",
+        "brine_concentrator",
+        "crystallizer",
+    ]  # electricity is a function of other variables
+    if "value" in ei:
+        if ei["value"] == 0:
+            # don't want to report zero
+            info["energy"] = "None"
+        else:
+            info["energy"] = f"{ei['value']:.3}"
+    elif module_name in ei_fq:
+        info["energy"] = "f(Q)"
+    elif module_name in ei_fx:
+        info["energy"] = "f(x)"
+    else:
+        info["energy"] = "None"
+
+    # Recovery
+    rec = section.get("recovery_frac_mass_H2O", {})
+    if "value" in rec:
+        if rec["value"] == 1:
+            info["recovery"] = "N/A"
+        else:
+            info["recovery"] = rec["value"]
+    else:
+        info["recovery"] = "N/A"
+
+    # Reference
+    all_refs = list(set(list(extract_this_key(section, this_key="reference"))))
+    all_refs = [ref for ref in all_refs if not any(x in ref for x in ["https://", "http://"])]
+    if len(all_refs) == 0:
+        info["reference"] = "Unknown"
+    else:
+        info["reference"] = "; <br/>".join(all_refs)
+    # ref = cc.get("reference", "Unknown")
+    # info["reference"] = ref
+
+    rs = cc.get("reference_state", {})
+    if "value" in rs:
+        info["reference_state"] = f"{rs['value']:.1f}"
+        info["reference_state_units"] = rs["units"]
+
+    # validity_ranges = list(set(list(extract_this_key(section, this_key="validity_range"))))
+    # pprint.pprint(validity_ranges)
+    # assert False
+
+    return info
+
+def extract_this_value(data, this_value="USD"):
+    """Recursively yields all string values that contain 'USD' anywhere in the data."""
+    if isinstance(data, dict):
+        for val in data.values():
+            # If the value itself is a string, check it
+            if isinstance(val, str) and this_value.upper() in val.upper():
+                yield val
+            else:
+                # Otherwise, keep digging deeper
+                yield from extract_this_value(val, this_value=this_value)
+                
+    elif isinstance(data, list):
+        for item in data:
+            if isinstance(item, str) and this_value.upper() in item.upper():
+                yield item
+            else:
+                yield from extract_this_value(item, this_value=this_value)
+    # If the data is neither a dict nor a list, do nothing (base case)
+
+def extract_this_key(data, this_key="reference"):
+    """Find all values associated with the this_key."""
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if key == this_key:
+                # Convert value to string in case it's an int, float, etc.
+                yield str(value)
+            else:
+                yield from extract_this_key(value, this_key=this_key)
+    elif isinstance(data, list):
+        for item in data:
+            yield from extract_this_key(item, this_key=this_key)
+
+def scrape_zo_params(
+    repo_path=None,
+    get_by_subtype=[
+        "ion_exchange",
+        "chemical_addition",
+        "screen",
+        "water_pumping_station",
+    ],
+):
     """
     Parse watertap/data/techno_economic/*.yaml for zero-order costing
-    parameters (A, B, energy, recovery).  Returns list[dict].
+    parameters (A, B, energy, recovery, validity_range).  Returns list[dict].
     """
-    # if repo_path is None:
-    #     repo_path = repo_path_default
+    global module_name, fname
+
     yaml_dir = os.path.join(repo_path, "watertap", "data", "techno_economic")
 
-    # these units don't follow C = A*x**b for capex
     other_skips = [
         "hrcs_case_1575",
         "case_1617",
@@ -151,6 +364,7 @@ def scrape_zo_params(repo_path=None):
         "default_case_study",
         "groundwater_treatment_case_study",
         "peracetic_acid_case_study",
+        "water_sources",
     ]
     unit_skips = [
         # "anaerobic_mbr_mec",
@@ -202,7 +416,7 @@ def scrape_zo_params(repo_path=None):
         "vfa_recovery",
         "well_field",
     ]
-    unit_skips = []
+    unit_skips = ["secondary_treatment_wwtp", "municipal_wwtp"] 
 
     # NOTE: below are some general notes on ZO units
     # dissolved_air_flotation - same as clarifier, create new cost relationship
@@ -252,137 +466,31 @@ def scrape_zo_params(repo_path=None):
             continue
 
         module_name = fname.replace(".yaml", "")
-        if len(data.keys()) >1:
+        subtypes = list(data.keys())
 
-            print(data.keys())
-            pprint.pprint(data)
-            assert False
-        # default subtype
-        section = data.get("default", data)
-        if not isinstance(section, dict):
+        if "default" not in subtypes:
+            continue  # its not a unit model
+        if len(subtypes) > 1:
+            units_with_subtypes.append((module_name, subtypes))
+
+        if module_name in get_by_subtype:
+            for subtype in subtypes:
+                if subtype == "default":
+                    continue
+                info = get_subtype_info(data, subtype=subtype)
+                if info is not None:
+                    info["name"] = (
+                        info["name"] + " (" + subtype.replace("_", " ").title() + ")"
+                    )
+                    results.append(info)
+        else:
+            subtype = "default"
+            info = get_subtype_info(data, subtype=subtype)
+            if info is not None:
+                results.append(info)
+        if info is None:
+            print(f"Skipping {module_name} due to missing capital_cost")
             continue
-
-        cc = section.get("capital_cost", None)
-        if cc is None:
-            continue
-
-        info = {"module_name": module_name}
-        sname = fname.replace(".yaml", "")
-
-        # print(sname)
-
-        if sname in u_name_dict:
-            info["name"] = u_name_dict[sname]
-        else:
-            info["name"] = fname.replace(".yaml", "").replace("_", " ").title()
-
-        print(f"Processing {info['name']}...")
-
-        # Extract A and B
-        # for key in ("capital_a", "capital_a_parameter"):
-        key = "capital_a_parameter"
-        if "capital_a_parameter" in cc:
-            v = cc[key]
-            if isinstance(v, dict) and "value" in v:
-                try:
-                    info["A"] = float(v["value"])
-                    units = v.get("units", "")
-                    if "USD_" in units:
-                        info["year"] = units.split("USD_")[1][:4]
-                except (ValueError, TypeError):
-                    pass
-
-        # for key in ("capital_b", "capital_b_parameter"):
-        key = "capital_b_parameter"
-        if key in cc:
-            v = cc[key]
-            if isinstance(v, dict) and "value" in v:
-                try:
-                    b = float(v["value"])
-                    units = v.get("units", "")
-                    if "dimensionless" in units.lower() or units == "":
-                        info["B"] = b
-                except (ValueError, TypeError):
-                    pass
-
-        key = "validity_range"
-        if key in cc:
-            vr = cc[key]
-            # pprint.pprint(vr)
-            if isinstance(vr, dict) and all(k in vr for k in ["lower_bound", "upper_bound"]):
-                for k, v in vr.items():
-                    # if k in ["lower_bound", "upper_bound"]:
-                    print(k, v)
-                    valid_range = float(v["value"])
-                    valid_range_units = v.get("units", None)
-                    info[f"valid_range_{k}"] = valid_range
-                    info[f"valid_range_{k}_units"] = valid_range_units
-            elif isinstance(vr, dict):
-                info["valid_range_vars"] = list(vr.keys())
-                for k, v in vr.items():
-                    if k not in ["lower_bound", "upper_bound"]:
-                        # there are nested validity ranges
-                        for subk, subv in v.items():
-                            info[f"valid_range_{k}_{subk}"] = float(subv["value"])
-                            info[f"valid_range_{k}_{subk}_units"] = subv.get("units", None)
-            else:
-                raise ValueError(f"Unexpected validity range format for module {module_name}")
-
-        pprint.pprint(info)
-        ei = section.get(
-            "energy_electric_flow_vol_inlet",
-            section.get("electricity_intensity_parameter", {}),
-        )
-        ei_fq = [  # electricity is a function of flow rate (pumping electricity)
-            "backwash_solids_handling",
-            "anaerobic_mbr_mec",
-            "cofermentation",
-            "deep_well_injection",
-            "gas_sparged_membrane",
-            "ion_exchange",
-            "municipal_drinking",
-            "surface_discharge",
-            "sw_onshore_intake",
-            "well_field",
-            "mbr",
-        ]
-        ei_fx = [  # electricity is a function of other variables
-            "electrodialysis_reversal"
-        ]
-        if "value" in ei:
-            if ei["value"] == 0:
-                # don't want to report zero
-                info["energy"] = "None"
-            else:
-                info["energy"] = f"{ei['value']:.3}"
-        elif module_name in ei_fq:
-            info["energy"] = "f(Q)"
-        elif module_name in ei_fx:
-            info["energy"] = "f(x)"
-        else:
-            info["energy"] = "None"
-
-        # Recovery
-        rec = section.get("recovery_frac_mass_H2O", {})
-        if "value" in rec:
-            if rec["value"] == 1:
-                info["recovery"] = "N/A"
-            else:
-                info["recovery"] = rec["value"]
-        else:
-            info["recovery"] = "N/A"
-
-        # Reference
-        ref = cc.get("reference", "Unknown")
-        info["reference"] = ref
-
-        rs = cc.get("reference_state", {})
-        if "value" in rs:
-            info["reference_state"] = f"{rs['value']:.1f}"
-            info["reference_state_units"] = rs["units"]
-
-        results.append(info)
-
     return results
 
 
@@ -420,7 +528,7 @@ def build_styles():
             "TableColumnHeader",
             parent=styles["Normal"],
             fontSize=8.5,
-            leading=12,
+            leading=14,
             fontName="Helvetica-Bold",
             alignment=1,  # Center alignment
             textColor=colors.white,
@@ -489,6 +597,7 @@ def build_styles():
         )
     )
     return styles
+
 
 def _table_style():
     return TableStyle(
@@ -789,11 +898,13 @@ def create_detailed_costing_story(story):
 
 
 def create_zo_costing_story(story):
+    global units_with_subtypes
+    units_with_subtypes = list()
     styles = build_styles()
 
     P = Paragraph
 
-    # -- PAGE 2: ZO models --
+    # -- TABLE 2: ZO models --
     story.append(PageBreak())
     story.append(P("WaterTAP Costing Reference Guide (continued)", styles["DocTitle"]))
     story.append(Spacer(1, 4))
@@ -806,11 +917,12 @@ def create_zo_costing_story(story):
     )
     story.append(
         P(
-            "This table is for WaterTAP Zero Order Models" \
+            # "This table is for WaterTAP Zero Order Models "
             "Units with A and B values follow the equation: C<sub>cap</sub> = A × "
             "(Q<sub>in</sub>/Q<sub>basis</sub>)<super>B</super>. "
-            "A is in USD for the reference year shown. Costs are CPI-adjusted to "
-            "the study year.",
+            "A is in USD for the reference year shown. ", 
+            # "Costs are CPI-adjusted to "
+            # "the study year.",
             styles["SmallBody"],
         )
     )
@@ -819,8 +931,7 @@ def create_zo_costing_story(story):
     # -- BUILD zo_rows from scraped data --
     print()
     zo_data = scrape_zo_params(repo_path)  # list of dicts
-    # pprint.pprint(zo_data)
-    # assert False
+
     zo_rows = [
         [
             "Unit Model",
@@ -828,7 +939,8 @@ def create_zo_costing_story(story):
             "B",
             "Q<sub>basis</sub>",
             "Cost Year",
-            "Energy (kWh/m³)",
+            # "Energy (kWh/m³)",
+            "Energy",
             "Recovery",
             "Validity Range",
             "Reference",
@@ -836,14 +948,27 @@ def create_zo_costing_story(story):
     ]
     print(f"\nCreating ZO Table with {len(zo_data)} units...\n")
     zo_sort = "name"
-    for z in sorted(zo_data, key=lambda d: d[zo_sort]):
-        # if z["reference"] == "Unknown":
-        #     continue
-        # name = 
+    missing_AB_symbol = "†"
+    year_symbol = "‡"
+    added_year_symbol = False
+    energy_symbol = "§"
+    added_energy_symbol1 = False
+    added_energy_symbol2 = False
+    
+    for i, z in enumerate(sorted(zo_data, key=lambda d: d[zo_sort]), 1):
+        if z["reference"] in ["Unknown", None, "None"]:
+            continue
+        # name =
         print(f"Adding {z['name']} to table")
-        A_str = f"{z.get('A','—'):,.0f}" if "A" in z else "—"
-        B_str = f"{z.get('B','—'):.3f}" if "B" in z else "—"
-        if B_str != "—":
+        # if z["module_name"] == "ozone":
+        #     pprint.pprint(z)
+        #     assert False
+        # if i == 1:
+        #     A_str = f"{z.get('A','—'):,.0f}" if "A" in z else "—<sup>†</sup>"
+        # else:
+        A_str = f"{z.get('A','—'):,.1f}" if "A" in z else f"<sup>{missing_AB_symbol}</sup>"
+        B_str = f"{z.get('B','—'):.3f}" if "B" in z else f"<sup>{missing_AB_symbol}</sup>"
+        if B_str != f"<sup>{missing_AB_symbol}</sup>":
             if float(B_str) == 1:
                 B_str = "1"
         rs = f"{z.get('reference_state','—')}" if "reference_state" in z else "—"
@@ -857,18 +982,31 @@ def create_zo_costing_story(story):
         rsu = pretty_dims.get(rsu.strip(), rsu)
         ref_state = rs + " " + rsu
         year_str = f"{z.get('year','—')}" if "year" in z else "—"
+
+        if len(year_str) > 4 and not added_year_symbol:
+            year_str += f"<sup>{year_symbol}</sup>"
+            added_year_symbol = True
+
         energy_str = f"{z.get('energy','—')}" if "energy" in z else "—"
+        if energy_str  == "f(Q)" and not added_energy_symbol1:
+            energy_str += f"<sup>{energy_symbol}</sup>"
+            added_energy_symbol1 = True
+        if energy_str  == "f(x)" and not added_energy_symbol2:
+            energy_str += f"<sup>{energy_symbol}</sup>"
+            added_energy_symbol2 = True
+            
         rec_str = f"{z.get('recovery','—')}" if "recovery" in z else "—"
         ref_str = f"{z.get('reference','—')}" if "reference" in z else "—"
 
         if "valid_range_lower_bound" in z and "valid_range_upper_bound" in z:
             print(f"Processing validity range for {z['name']}")
-            # assert False
             vr_low = f"{float(z['valid_range_lower_bound']):,.0f}"
             vr_high = f"{float(z['valid_range_upper_bound']):,.0f}"
             vrul = z.get("valid_range_lower_bound_units", None)
             vruh = z.get("valid_range_upper_bound_units", None)
-            assert vrul == vruh, f"Units mismatch for {z['name']} upper vs lower validity range"
+            assert (
+                vrul == vruh
+            ), f"Units mismatch for {z['name']} upper vs lower validity range"
             if vrul is None:
                 raise ValueError(f"Should have units for {z['name']} validity range")
             vrul = pretty_dims.get(vrul.strip(), vrul)
@@ -877,7 +1015,7 @@ def create_zo_costing_story(story):
             val_range_var_dict = {
                 # brine concentrator
                 "flow_vol": "Q<sub>in</sub>",
-                "recovery_vol": "RR", 
+                "recovery_vol": "RR",
                 "tds": "TDS",
                 # crystallizer
                 "purge_fraction": "f<sub>purge</sub>",
@@ -893,13 +1031,18 @@ def create_zo_costing_story(story):
                 "flocculator": "V<sub>floc</sub>",
                 # ion exchange
                 "sulfate_influent": "[SO<sub>4</sub>]",
+                "tds_influent": "TDS",
                 # primary separator
                 "basin_area": "A<sub>basin</sub>",
+                # ozone / ozone_aop
+                "ozone_dose": "[O<sub>3</sub>]",
             }
             validity_range = []
             for var in z["valid_range_vars"]:
                 if var not in val_range_var_dict:
-                    raise ValueError(f"Unknown validity range variable {var} for {z['name']}")
+                    raise ValueError(
+                        f"Unknown validity range variable {var} for {z['name']}"
+                    )
                 vr_pretty = val_range_var_dict[var]
                 if var in ["purge_fraction", "recovery_vol"]:
                     vr_v_low = f"{float(z[f'valid_range_{var}_lower_bound']):.0%}"
@@ -909,9 +1052,13 @@ def create_zo_costing_story(story):
                     vr_v_high = f"{float(z[f'valid_range_{var}_upper_bound']):,.0f}"
                 vr_vul = z.get(f"valid_range_{var}_lower_bound_units", None)
                 vr_vuh = z.get(f"valid_range_{var}_upper_bound_units", None)
-                assert vr_vul == vr_vuh, f"Units mismatch for {z['name']} upper vs lower validity range for {var}"
+                assert (
+                    vr_vul == vr_vuh
+                ), f"Units mismatch for {z['name']} upper vs lower validity range for {var}"
                 if vr_vul is None:
-                    raise ValueError(f"Should have units for {z['name']} validity range for {var}")
+                    raise ValueError(
+                        f"Should have units for {z['name']} validity range for {var}"
+                    )
                 vr_vul = pretty_dims.get(vr_vul.strip(), vr_vul)
                 validity_range.append(f"{vr_pretty}: {vr_v_low}-{vr_v_high} {vr_vul}")
             validity_range = "<br/>".join(validity_range)
@@ -919,7 +1066,17 @@ def create_zo_costing_story(story):
             validity_range = "—"
 
         zo_rows.append(
-            [z["name"], A_str, B_str, ref_state, year_str, energy_str, rec_str, validity_range, ref_str]
+            [
+                z["name"],
+                A_str,
+                B_str,
+                ref_state,
+                year_str,
+                energy_str,
+                rec_str,
+                validity_range,
+                ref_str,
+            ]
         )
 
     table_data2 = []
@@ -927,10 +1084,15 @@ def create_zo_costing_story(story):
         style_header = styles["TableColumnHeader"]
         style1 = styles["TableCell1"]
         style2 = styles["TableCell2"]
-        if i == 0: 
+        if i == 0:
             table_data2.append([P(c, style_header) for c in row])
         else:
-            table_data2.append([P(c, style1 if j in [1, 2, 3, 4, 5, 6, 7, 9] else style2) for j, c in enumerate(row, 1)])
+            table_data2.append(
+                [
+                    P(c, style1 if j in [1, 2, 3, 4, 5, 6, 7, 9] else style2)
+                    for j, c in enumerate(row, 1)
+                ]
+            )
     # for i, row in enumerate(detailed_rows):
     #     print(f"Adding {row[0]} to table")
     #     style1 = styles["TinyBody"]
@@ -949,7 +1111,7 @@ def create_zo_costing_story(story):
             0.7 * inch,
             0.7 * inch,
             1.2 * inch,
-            1.2 * inch,
+            1.4 * inch,
         ],
     )
     t2.setStyle(
@@ -979,23 +1141,46 @@ def create_zo_costing_story(story):
     story.append(Spacer(1, 6))
     story.append(
         P(
-            "MGD = million gallons per day; m³ = cubic meters; ft² = square feet; RR = water recovery ratio; f<sub>purge</sub> = purge fraction; m<sub>x</sub> = mass flow rate of x; TDS = total dissolved solids; Q = volumetric flow rate; A = surface area; V = volume",
+            "MGD = million gallons per day; m³ = cubic meters; ft² = square feet; RR = water recovery ratio; f<sub>purge</sub> = purge fraction; m<sub>x</sub> = mass flow rate of x; TDS = total dissolved solids; Q = volumetric flow rate",
             styles["FootNote"],
         )
     )
+    story.append(Spacer(1, 2))
     story.append(
         P(
-            "Units with '-' entries use an alternate costing method (e.g., detailed unit model or other).",
+            f"{missing_AB_symbol}: units use an alternate costing method",
             styles["FootNote"],
         )
     )
+
+    story.append(Spacer(1, 2))
     story.append(
         P(
-            "All parameters are defaults and fully tunable by the user. "
-            "Source: watertap-org/watertap GitHub repository.",
+            f"{energy_symbol}: f(x) indicates energy calculated from other variables, f(Q) indicates energy calculated with alternative relationship as function of influent flow rate.",
             styles["FootNote"],
         )
     )
+    story.append(Spacer(1, 2))
+    story.append(
+        P(
+            f"{year_symbol}: If multiple Cost Year values, costing method includes parameters from several years.",
+            styles["FootNote"],
+        )
+    )
+    story.append(Spacer(1, 2))
+    story.append(
+        P(
+            "Chemical addition units costed with the volumetric or mass-based flow of the chemical.",
+            styles["FootNote"],
+        )
+    )
+    # story.append(
+    #     P(
+    #         "All parameters are defaults and fully tunable by the user. "
+    #         "Source: watertap-org/watertap GitHub repository.",
+    #         styles["FootNote"],
+    #     )
+    # )
 
     return story
 
@@ -1006,7 +1191,7 @@ def create_watertap_costing_reference(save_as):
     doc = SimpleDocTemplate(
         save_as,
         pagesize=letter,
-        # pagesize=landscape, 
+        # pagesize=landscape,
         topMargin=0.5 * inch,
         bottomMargin=0.5 * inch,
         leftMargin=0.5 * inch,
@@ -1036,7 +1221,7 @@ def generate_combined_pdf(cost_curves_path, costing_ref_path, save_as):
 
 if __name__ == "__main__":
 
-    save_as = f"{here}/watertap_costing_reference-2026Aug25-test.pdf"
+    save_as = f"{here}/watertap_costing_reference-2026Aug26.pdf"
 
     create_watertap_costing_reference(save_as)
 
@@ -1045,3 +1230,7 @@ if __name__ == "__main__":
     # save_as = f"{here}/DRAFT_watertap_cost_curves_and_reference.pdf"
 
     # generate_combined_pdf(cost_curves_path, costing_ref_path, save_as)
+    # for u in units_with_subtypes:
+    #     print(u[0])
+    #     for _u in u[1]:
+    #         print(f"  {_u}")

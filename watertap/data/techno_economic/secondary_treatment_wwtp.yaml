@@ -61,7 +61,7 @@ default:  # conventional activated sludge with nitrification; #TODO: add subtype
     tds:
       value: 0.18605
       units: dimensionless
-      reference: Based on average effluent and influent data from Table 4-5 in "Wastewater Engineering:Treatement and Reuse" by Metcalf & Eddy; relative to TDS influent of 270-860 mg/L
+      # reference: Based on average effluent and influent data from Table 4-5 in "Wastewater Engineering:Treatement and Reuse" by Metcalf & Eddy; relative to TDS influent of 270-860 mg/L
     trace_constituents:
       value: 0.25
       units: dimensionless

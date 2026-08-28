@@ -26,7 +26,7 @@ The code below shows an outline of how the ZeroOrderCostingData class is intende
 
   from watertap.costing.zero_order_costing import ZeroOrderCosting
   from watertap.core.wt_database import Database
-  from watertap.property_models.zero_order_prop_pack import ZOParameterBlock
+  from watertap.property_models import ZOParameterBlock
   from watertap.unit_models.zero_order import MyZOUnit
 
 

@@ -707,6 +707,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         relative=False,
         colormap="tab20",
         save_as=None,
+        close_fig=True,
         tol=1e-5,
     ):
         """
@@ -789,6 +790,9 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         for k, v in self.find_component(f"{lcow_name}_{by}_fixed_opex").items():
             opex[k.replace(f"{fs_name}.", "")] += pyo.value(v)
 
+        # Sort by value with lowest values first (for plotting)
+        opex = dict(sorted(opex.items(), key=lambda item: item[1], reverse=False))
+
         # Unique units contributing to LCOW
         units = set(
             list(k.replace(f"{fs_name}.", "") for k in capex.keys())
@@ -823,10 +827,25 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         ]
         color_dict = dict(zip(unique_components, colors))
 
+        # We want this list to start with units that have negative OPEX values
+        sorted_units = list(opex.keys()) + [
+            u for u in capex.keys() if u not in opex.keys()
+        ]
+
         # Start plotting
         fig, ax = plt.subplots()
         x = -1  # location of bar
-        bottom = 0
+
+        bottom = (
+            0
+            if all(v / d >= 0 for v in opex.values())
+            else sum(v / d for v in opex.values() if v < 0) * 2
+        )
+        bottoms = [bottom]
+
+        adj_ylims = False
+        if bottom < 0:
+            adj_ylims = True
 
         # Create legend
         handles = list()
@@ -848,26 +867,27 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 edgecolor="black",
             )
             bottom += v
+            bottoms.append(bottom)
             lcow_check += v
 
             handles.append(Patch(facecolor=color_dict[f], edgecolor="k"))
             labels.append(f)
 
-        for u in units:
+        for u in sorted_units:
+
             o = opex.get(u, 0) / d
             c = capex.get(u, 0) / d
 
             ax.bar(
                 [x],
-                [o],
+                [abs(o)],
                 bottom=bottom,
                 hatch=hatch_dict["OPEX"],
                 color=color_dict[u],
                 edgecolor="black",
                 width=0.5,
             )
-            bottom += o
-
+            bottom += abs(o)
             ax.bar(
                 [x],
                 [c],
@@ -877,12 +897,13 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 edgecolor="black",
                 width=0.5,
             )
-            bottom += c
+            bottom += abs(c)
+            bottoms.append(bottom)
             lcow_check += c + o
 
             handles.append(Patch(facecolor=color_dict[u], edgecolor="k"))
             labels.append(u)
-        
+
         # Reverse order to align with plot order (bottom to top)
         handles = handles[::-1]
         labels = labels[::-1]
@@ -898,6 +919,10 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         ax.grid(visible=True)
         ax.legend(handles=handles, labels=labels)
         ax.set_xlim(-1.5, 0.5)
+
+        if bottoms[0] < 0:
+            ax.set_ylim(bottoms[0] * 1.1, bottoms[-1] * 1.1)
+
         ax.set_xticks([])
         ax.set_ylabel(
             f"{lcow_name} (\\$/m$^3$)" if not relative else f"Relative {lcow_name} (%)"
@@ -914,6 +939,9 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 f"Calculated LCOW and actual LCOW differ by more than tolerance ({tol})"
             )
 
+        if close_fig:
+            plt.close(fig)
+
         return fig, ax
 
     def plot_SEC_breakdown(
@@ -923,6 +951,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         relative=False,
         colormap="tab20",
         save_as=None,
+        close_fig=True,
         tol=1e-5,
     ):
         """
@@ -980,9 +1009,9 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         bottom = (
             sum(ec for ec in sec_comp_sort.values() if ec < 0) / d * 2
         )  # start at lowest point
+        bottoms = [bottom]
         for u, v in sec_comp_sort.items():
             ec = v / d
-
             ax.bar(
                 [x],
                 [abs(ec)],
@@ -992,6 +1021,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 width=0.5,
             )
             bottom += abs(ec)
+            bottoms.append(bottom)
             sec_check += ec
 
             handles.append(Patch(facecolor=color_dict[u], edgecolor="k"))
@@ -1000,15 +1030,16 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         # Reverse order to align with plot order (bottom to top)
         handles = handles[::-1]
         labels = labels[::-1]
-        
+
         ax.set_axisbelow(True)
         ax.grid(visible=True)
         ax.legend(handles=handles, labels=labels)
         ax.set_xlim(-1.5, 0.5)
+        if bottoms[0] < 0:
+            ax.set_ylim(bottoms[0] * 1.1, bottoms[-1] * 1.1)
         ax.set_xticks([])
         ax.set_ylabel(f"SEC (kWh/m$^3$)" if not relative else f"Relative SEC (%)")
-        if any(ec < 0 for ec in sec_comp.values()):
-            ax.axhline(0, color="black", linewidth=1.5)
+
         fig.tight_layout()
 
         if save_as is not None:
@@ -1022,6 +1053,8 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             raise ValueError(
                 f"Calculated SEC and actual SEC differ by more than tolerance ({tol})"
             )
+        if close_fig:
+            plt.close(fig)
 
         return fig, ax
 

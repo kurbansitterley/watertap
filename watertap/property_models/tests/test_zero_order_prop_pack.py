@@ -46,17 +46,13 @@ class TestZODeprecation:
     """
 
     def test_zo_param_block_deprecation(self):
-        from watertap.property_models.zero_order_prop_pack import (
-            ZOParameterBlock,
-        )
+        from watertap.property_models import ZOParameterBlock
         from watertap.core import WaterParameterBlock as DeprecatedZOParameterBlock
 
         assert ZOParameterBlock is DeprecatedZOParameterBlock
 
     def test_zo_state_block_deprecation(self):
-        from watertap.property_models.zero_order_prop_pack import (
-            ZOStateBlock,
-        )
+        from watertap.property_models import ZOStateBlock
         from watertap.core import WaterStateBlock as DeprecatedZOStateBlock
 
         assert ZOStateBlock is DeprecatedZOStateBlock

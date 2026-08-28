@@ -32,7 +32,7 @@ from idaes.core.util.testing import initialization_tester
 
 from watertap.unit_models.zero_order import SurfaceDischargeZO
 from watertap.core.wt_database import Database
-from watertap.core.zero_order_properties import WaterParameterBlock
+from watertap.property_models import ZOParameterBlock
 from watertap.costing.zero_order_costing import ZeroOrderCosting
 from watertap.core.solvers import get_solver
 
@@ -47,7 +47,7 @@ class TestSurfaceDischargeZO:
         m.db = Database()
 
         m.fs = FlowsheetBlock(dynamic=False)
-        m.fs.params = WaterParameterBlock(
+        m.fs.params = ZOParameterBlock(
             solute_list=["toc", "nitrate", "sulfate", "bar"]
         )
 
@@ -142,7 +142,7 @@ class TestSurfaceDischargeZOsubtype:
         m.db = Database()
 
         m.fs = FlowsheetBlock(dynamic=False)
-        m.fs.params = WaterParameterBlock(
+        m.fs.params = ZOParameterBlock(
             solute_list=["toc", "nitrate", "sulfate", "bar"]
         )
 
@@ -243,7 +243,7 @@ def test_costing(subtype):
     m.db = Database()
 
     m.fs = FlowsheetBlock(dynamic=False)
-    m.fs.params = WaterParameterBlock(solute_list=["bar"])
+    m.fs.params = ZOParameterBlock(solute_list=["bar"])
     m.fs.costing = ZeroOrderCosting()
     m.fs.costing.base_currency = pyunits.USD_2020
     m.fs.unit = SurfaceDischargeZO(

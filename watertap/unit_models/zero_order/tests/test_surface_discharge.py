@@ -47,9 +47,7 @@ class TestSurfaceDischargeZO:
         m.db = Database()
 
         m.fs = FlowsheetBlock(dynamic=False)
-        m.fs.params = ZOParameterBlock(
-            solute_list=["toc", "nitrate", "sulfate", "bar"]
-        )
+        m.fs.params = ZOParameterBlock(solute_list=["toc", "nitrate", "sulfate", "bar"])
 
         m.fs.unit = SurfaceDischargeZO(property_package=m.fs.params, database=m.db)
 
@@ -142,9 +140,7 @@ class TestSurfaceDischargeZOsubtype:
         m.db = Database()
 
         m.fs = FlowsheetBlock(dynamic=False)
-        m.fs.params = ZOParameterBlock(
-            solute_list=["toc", "nitrate", "sulfate", "bar"]
-        )
+        m.fs.params = ZOParameterBlock(solute_list=["toc", "nitrate", "sulfate", "bar"])
 
         m.fs.unit = SurfaceDischargeZO(
             property_package=m.fs.params, database=m.db, process_subtype="emwd"

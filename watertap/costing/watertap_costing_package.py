@@ -709,6 +709,9 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         save_as=None,
         close_fig=False,
         tol=1e-5,
+        dx=0,
+        unit_labels={},
+        **kwargs,
     ):
         """
         This method creates a bar chart showing the breakdown of the LCOW calculation
@@ -740,7 +743,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         }
 
         if self.find_component(lcow_name) is None:
-            msg = f"WaterTAPCosting does not have a component named {lcow_name}."
+            msg = f"{self.name} does not have a component named {lcow_name}."
             msg += " Use the add_LCOW method to add an LCOW Expression to the costing"
             msg += " block before calling plot_LCOW_breakdown."
             raise RuntimeError(msg)
@@ -796,8 +799,8 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         # This is necessary visualize negative contributions (e.g., ERDs)
         opex = dict(sorted(opex.items(), key=lambda item: item[1], reverse=False))
 
-        # Unique units contributing to LCOW
-        units = set(
+        # Unique units contributing to LCOW as they appear on flowsheet
+        fs_units = set(
             list(k.replace(f"{fs_name}.", "") for k in capex.keys())
             + list(k.replace(f"{fs_name}.", "") for k in opex.keys())
         )
@@ -806,6 +809,18 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         sorted_units = list(opex.keys()) + [
             u for u in capex.keys() if u not in opex.keys()
         ]
+
+        if unit_labels != {}:
+            su = []
+            for u in sorted_units:
+                if u in unit_labels.keys():
+                    su.append(unit_labels[u])
+                    opex[unit_labels[u]] = opex[u]
+                    capex[unit_labels[u]] = capex[u]
+                else:
+                    su.append(u)
+
+            sorted_units = su
 
         if separate_flows:
             # Aggregate flows are plotted separately from variable OPEX
@@ -823,11 +838,11 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             # Aggregate flows are included as part of variable OPEX
             flows = {}
             for k, v in self.find_component(f"{lcow_name}_{by}_variable_opex").items():
-                if k.replace(f"{fs_name}.", "") in units:
+                if k.replace(f"{fs_name}.", "") in fs_units:
                     opex[k.replace(f"{fs_name}.", "")] += pyo.value(v)
 
         # Unique components contributing to LCOW
-        unique_components = list(units) + list(flows.keys())
+        unique_components = list(sorted_units) + list(flows.keys())
 
         cmap = plt.get_cmap(colormap)
         colors = [
@@ -868,6 +883,10 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             )
             bottom += v
             bottoms.append(bottom)
+
+            ax.hlines(bottom, x - dx, x + dx, color="k", lw=2)
+            x += dx
+
             lcow_check += v
 
             handles.append(Patch(facecolor=color_dict[f], edgecolor="k"))
@@ -888,6 +907,10 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 width=0.5,
             )
             bottom += abs(o)
+
+            ax.hlines(bottom, x - dx, x + dx, color="k", lw=2)
+            x += dx
+
             ax.bar(
                 [x],
                 [c],
@@ -899,6 +922,10 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             )
             bottom += abs(c)
             bottoms.append(bottom)
+
+            ax.hlines(bottom, x - dx, x + dx, color="k", lw=2)
+            x += dx
+
             lcow_check += c + o
 
             handles.append(Patch(facecolor=color_dict[u], edgecolor="k"))
@@ -918,10 +945,15 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         ax.set_axisbelow(True)
         ax.grid(visible=True)
         ax.legend(handles=handles, labels=labels)
-        ax.set_xlim(-1.5, 0.5)
-        ax.set_xticks([])
+        if dx == 0:
+            ax.set_xlim(-1.5, 0.5)
+            ax.set_xticks([])
+        else:
+            pass
+            # ax.set_xticks(c for c in list(flows.keys()) + sorted_units)
 
         if bottoms[0] < 0:
+            ax.hlines(0, -1.5, 0.5, color="k", lw=2, zorder=-100)
             ax.set_ylim(bottoms[0] * 1.1, bottoms[-1] * 1.1)
 
         ax.set_ylabel(
@@ -942,7 +974,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         if close_fig:
             plt.close(fig)
 
-        return fig, ax
+        return fig, ax, capex, opex
 
     def plot_SEC_breakdown(
         self,
@@ -953,6 +985,8 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         save_as=None,
         close_fig=True,
         tol=1e-5,
+        unit_labels={},
+        **kwargs,
     ):
         """
         This method creates a bar chart showing the breakdown of the specific energy consumption calculation
@@ -962,18 +996,19 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
 
         Args:
             sec_name: name of the specific energy consumption Expression to plot (default: "specific_energy_consumption")
-            fs_name: name of the flowsheet (default: "fs"
-            colormap: colormap to use for the plot (default: "tab20")
-            tol: tolerance for SEC calculation check (default: 1e-5)
+            fs_name: name of the flowsheet (default: "fs")
             relative: whether to plot as fraction of total SEC (default: False)
+            colormap: colormap to use for the plot (default: "tab20")
             save_as: filename to save the plot (default: None)
+            close_fig: whether to close the figure after creation (default: False)
+            tol: tolerance for LCOW calculation check (default: 1e-5)
         """
 
         import matplotlib.pyplot as plt
         from matplotlib.patches import Patch
 
         if self.find_component(sec_name) is None:
-            msg = f"WaterTAPCosting does not have a component named {sec_name}."
+            msg = f"{self.name} does not have a component named {sec_name}."
             msg += " Use the add_specific_energy_consumption method to add a specific energy consumption Expression to the costing"
             msg += " block before calling plot_SEC_breakdown."
             raise RuntimeError(msg)
@@ -1006,12 +1041,27 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         sec_comp_sort = dict(
             sorted(sec_comp.items(), key=lambda i: i[1], reverse=False)
         )
-        bottom = (
-            sum(ec for ec in sec_comp_sort.values() if ec < 0) / d * 2
-        )  # start at lowest point
+
+        sorted_units = sec_comp_sort.keys()
+
+        if unit_labels != {}:
+            su = []
+            for u in sorted_units:
+                if u in unit_labels.keys():
+                    su.append(unit_labels[u])
+                    sec_comp_sort[unit_labels[u]] = sec_comp_sort[u]
+                else:
+                    su.append(u)
+
+            sorted_units = su
+
+        # Need to start at lowest point
+        bottom = sum(ec for ec in sec_comp_sort.values() if ec < 0) / d * 2
         bottoms = [bottom]
-        for u, v in sec_comp_sort.items():
-            ec = v / d
+
+        # for u, v in sec_comp_sort.items():
+        for u in sorted_units:
+            ec = sec_comp_sort.get(u, 0) / d
             ax.bar(
                 [x],
                 [abs(ec)],
@@ -1031,12 +1081,14 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         handles = handles[::-1]
         labels = labels[::-1]
 
+        if bottoms[0] < 0:
+            ax.hlines(0, -1.5, 0.5, color="k", lw=2, zorder=-1)
+            ax.set_ylim(bottoms[0] * 1.1, bottoms[-1] * 1.1)
+
         ax.set_axisbelow(True)
         ax.grid(visible=True)
         ax.legend(handles=handles, labels=labels)
         ax.set_xlim(-1.5, 0.5)
-        if bottoms[0] < 0:
-            ax.set_ylim(bottoms[0] * 1.1, bottoms[-1] * 1.1)
         ax.set_xticks([])
         ax.set_ylabel(f"SEC (kWh/m$^3$)" if not relative else f"Relative SEC (%)")
 
@@ -1053,6 +1105,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             raise ValueError(
                 f"Calculated SEC and actual SEC differ by more than tolerance ({tol})"
             )
+
         if close_fig:
             plt.close(fig)
 

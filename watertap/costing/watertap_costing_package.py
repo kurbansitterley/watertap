@@ -707,7 +707,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         relative=False,
         colormap="tab20",
         save_as=None,
-        close_fig=True,
+        close_fig=False,
         tol=1e-5,
     ):
         """
@@ -718,13 +718,14 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
 
         Args:
             lcow_name: name of the LCOW Expression to plot (default: "LCOW")
-            by: breakdown by individual "component" unit or "aggregate" unit class (default: "component")
             fs_name: name of the flowsheet (default: "fs")
-            separate_flows: whether to show flows separately (default: False)
-            colormap: colormap to use for the plot (default: "tab20")
-            tol: tolerance for LCOW calculation check (default: 1e-5)
+            by: breakdown by individual "component" unit or "aggregate" unit class (default: "component")
+            separate_flows: whether to separate material/energy flows from OPEX portion (default: False)
             relative: whether to plot as fraction of total LCOW (default: False)
+            colormap: colormap to use for the plot (default: "tab20")
             save_as: filename to save the plot (default: None)
+            close_fig: whether to close the figure after creation (default: False)
+            tol: tolerance for LCOW calculation check (default: 1e-5)
 
         Returns:
             fig, ax: matplotlib figure and axis objects for the plot
@@ -786,11 +787,13 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 [0] * len(self.find_component(f"{lcow_name}_{by}_fixed_opex")),
             )
         )
-        # OPEX will always include fixed OPEX, but may or may not include variable OPEX depending on `separate_flows`
+        # OPEX will always include fixed OPEX,
+        # but may or may not include variable OPEX depending on `separate_flows`
         for k, v in self.find_component(f"{lcow_name}_{by}_fixed_opex").items():
             opex[k.replace(f"{fs_name}.", "")] += pyo.value(v)
 
-        # Sort by value with lowest values first (for plotting)
+        # Sort OPEX by value with lowest values first.
+        # This is necessary visualize negative contributions (e.g., ERDs)
         opex = dict(sorted(opex.items(), key=lambda item: item[1], reverse=False))
 
         # Unique units contributing to LCOW
@@ -798,6 +801,11 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             list(k.replace(f"{fs_name}.", "") for k in capex.keys())
             + list(k.replace(f"{fs_name}.", "") for k in opex.keys())
         )
+
+        # We want this list to start with units that have negative OPEX values
+        sorted_units = list(opex.keys()) + [
+            u for u in capex.keys() if u not in opex.keys()
+        ]
 
         if separate_flows:
             # Aggregate flows are plotted separately from variable OPEX
@@ -827,11 +835,6 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         ]
         color_dict = dict(zip(unique_components, colors))
 
-        # We want this list to start with units that have negative OPEX values
-        sorted_units = list(opex.keys()) + [
-            u for u in capex.keys() if u not in opex.keys()
-        ]
-
         # Start plotting
         fig, ax = plt.subplots()
         x = -1  # location of bar
@@ -841,11 +844,8 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             if all(v / d >= 0 for v in opex.values())
             else sum(v / d for v in opex.values() if v < 0) * 2
         )
+        # Tracking minimum and maximum y-values
         bottoms = [bottom]
-
-        adj_ylims = False
-        if bottom < 0:
-            adj_ylims = True
 
         # Create legend
         handles = list()
@@ -919,11 +919,11 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         ax.grid(visible=True)
         ax.legend(handles=handles, labels=labels)
         ax.set_xlim(-1.5, 0.5)
+        ax.set_xticks([])
 
         if bottoms[0] < 0:
             ax.set_ylim(bottoms[0] * 1.1, bottoms[-1] * 1.1)
 
-        ax.set_xticks([])
         ax.set_ylabel(
             f"{lcow_name} (\\$/m$^3$)" if not relative else f"Relative {lcow_name} (%)"
         )

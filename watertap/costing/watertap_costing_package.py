@@ -708,9 +708,9 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         colormap="tab20",
         save_as=None,
         close_fig=False,
+        component_labels={},
         tol=1e-5,
         dx=0,
-        unit_labels={},
         **kwargs,
     ):
         """
@@ -728,6 +728,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             colormap: colormap to use for the plot (default: "tab20")
             save_as: filename to save the plot (default: None)
             close_fig: whether to close the figure after creation (default: False)
+            component_labels: dictionary mapping flowsheet unit names to custom unit names (default: {})
             tol: tolerance for LCOW calculation check (default: 1e-5)
 
         Returns:
@@ -809,19 +810,6 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         sorted_units = list(opex.keys()) + [
             u for u in capex.keys() if u not in opex.keys()
         ]
-
-        if unit_labels != {}:
-            su = []
-            for u in sorted_units:
-                if u in unit_labels.keys():
-                    su.append(unit_labels[u])
-                    opex[unit_labels[u]] = opex[u]
-                    capex[unit_labels[u]] = capex[u]
-                else:
-                    su.append(u)
-
-            sorted_units = su
-
         if separate_flows:
             # Aggregate flows are plotted separately from variable OPEX
             flows = dict(zip(self.used_flows, [0] * len(self.used_flows)))
@@ -842,7 +830,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                     opex[k.replace(f"{fs_name}.", "")] += pyo.value(v)
 
         # Unique components contributing to LCOW
-        unique_components = list(sorted_units) + list(flows.keys())
+        unique_components = list(flows.keys()) + list(sorted_units)
 
         cmap = plt.get_cmap(colormap)
         colors = [
@@ -872,6 +860,10 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         # Starting from the bottom: add flows, then opex, then capex
         for f in flows.keys():
             v = flows[f] / d
+            if f in component_labels.keys():
+                label = component_labels[f]
+            else:
+                label = f
             ax.bar(
                 [x],
                 [v],
@@ -890,12 +882,17 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             lcow_check += v
 
             handles.append(Patch(facecolor=color_dict[f], edgecolor="k"))
-            labels.append(f)
+            labels.append(label)
 
         for u in sorted_units:
 
             o = opex.get(u, 0) / d
             c = capex.get(u, 0) / d
+
+            if u in component_labels.keys():
+                label = component_labels[u]
+            else:
+                label = u
 
             ax.bar(
                 [x],
@@ -929,7 +926,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             lcow_check += c + o
 
             handles.append(Patch(facecolor=color_dict[u], edgecolor="k"))
-            labels.append(u)
+            labels.append(label)
 
         # Reverse order to align with plot order (bottom to top)
         handles = handles[::-1]
@@ -945,16 +942,15 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         ax.set_axisbelow(True)
         ax.grid(visible=True)
         ax.legend(handles=handles, labels=labels)
+
         if dx == 0:
             ax.set_xlim(-1.5, 0.5)
-            ax.set_xticks([])
-        else:
-            pass
-            # ax.set_xticks(c for c in list(flows.keys()) + sorted_units)
+
+        ax.set_xticks([])
 
         if bottoms[0] < 0:
             ax.hlines(0, -1.5, 0.5, color="k", lw=2, zorder=-100)
-            ax.set_ylim(bottoms[0] * 1.1, bottoms[-1] * 1.1)
+            ax.set_ylim(bottoms[0] * 1.1, ax.get_ylim()[1])
 
         ax.set_ylabel(
             f"{lcow_name} (\\$/m$^3$)" if not relative else f"Relative {lcow_name} (%)"
@@ -983,16 +979,15 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         relative=False,
         colormap="tab20",
         save_as=None,
-        close_fig=True,
+        close_fig=False,
         tol=1e-5,
-        unit_labels={},
+        component_labels={},
         **kwargs,
     ):
         """
         This method creates a bar chart showing the breakdown of the specific energy consumption calculation
         into its contributing components. The breakdown can be done by individual unit
-        models or by unit model type, and flows can be shown separately or included as
-        part of the total specific energy consumption.
+        models or by unit model type.
 
         Args:
             sec_name: name of the specific energy consumption Expression to plot (default: "specific_energy_consumption")
@@ -1001,6 +996,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             colormap: colormap to use for the plot (default: "tab20")
             save_as: filename to save the plot (default: None)
             close_fig: whether to close the figure after creation (default: False)
+            component_labels: dictionary mapping flowsheet unit names to custom unit names (default: {})
             tol: tolerance for LCOW calculation check (default: 1e-5)
         """
 
@@ -1022,10 +1018,14 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         sec_comp = {
             k.replace(f"{fs_name}.", ""): pyo.value(v) for k, v in sec_expr.items()
         }
+        # Sort so plotting starts with negative contributions
+        sec_comp = dict(sorted(sec_comp.items(), key=lambda i: i[1], reverse=False))
+
+        sorted_units = list(sec_comp.keys())
 
         cmap = plt.get_cmap(colormap)
-        colors = [cmap(i / len(sec_comp.keys())) for i in range(len(sec_comp.keys()))]
-        color_dict = dict(zip(sec_comp.keys(), colors))
+        colors = [cmap(i / len(sorted_units)) for i in range(len(sorted_units))]
+        color_dict = dict(zip(sorted_units, colors))
 
         # Start plotting
         fig, ax = plt.subplots()
@@ -1037,31 +1037,18 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
 
         sec_check = 0
 
-        # Sort so plotting starts with negative contributions
-        sec_comp_sort = dict(
-            sorted(sec_comp.items(), key=lambda i: i[1], reverse=False)
-        )
-
-        sorted_units = sec_comp_sort.keys()
-
-        if unit_labels != {}:
-            su = []
-            for u in sorted_units:
-                if u in unit_labels.keys():
-                    su.append(unit_labels[u])
-                    sec_comp_sort[unit_labels[u]] = sec_comp_sort[u]
-                else:
-                    su.append(u)
-
-            sorted_units = su
-
         # Need to start at lowest point
-        bottom = sum(ec for ec in sec_comp_sort.values() if ec < 0) / d * 2
+        bottom = sum(ec for ec in sec_comp.values() if ec < 0) / d * 2
         bottoms = [bottom]
 
-        # for u, v in sec_comp_sort.items():
         for u in sorted_units:
-            ec = sec_comp_sort.get(u, 0) / d
+            ec = sec_comp.get(u, 0) / d
+
+            if u in component_labels.keys():
+                label = component_labels[u]
+            else:
+                label = u
+
             ax.bar(
                 [x],
                 [abs(ec)],
@@ -1075,7 +1062,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             sec_check += ec
 
             handles.append(Patch(facecolor=color_dict[u], edgecolor="k"))
-            labels.append(u)
+            labels.append(label)
 
         # Reverse order to align with plot order (bottom to top)
         handles = handles[::-1]
@@ -1083,7 +1070,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
 
         if bottoms[0] < 0:
             ax.hlines(0, -1.5, 0.5, color="k", lw=2, zorder=-1)
-            ax.set_ylim(bottoms[0] * 1.1, bottoms[-1] * 1.1)
+            ax.set_ylim(bottoms[0] * 1.1, ax.get_ylim()[1])
 
         ax.set_axisbelow(True)
         ax.grid(visible=True)

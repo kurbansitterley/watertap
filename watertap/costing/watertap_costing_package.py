@@ -50,11 +50,21 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         # Register currency and conversion rates based on CE Index
         register_idaes_currency_units()
 
-    def set_base_currency_base_period(self):
+    def set_base_currency_base_period(
+        self, base_currency_year=2018, base_period="year"
+    ):
         # Set the base year for all costs
-        self.base_currency = pyo.units.USD_2018
+        self.base_currency = getattr(pyo.units, f"USD_{base_currency_year}")
         # Set a base period for all operating costs
-        self.base_period = pyo.units.year
+        self.base_period = getattr(pyo.units, base_period)
+
+        # These are declared after setting the base currency and base period
+        # in build_global_params
+        if self.find_component("electricity_cost") is not None:
+            self.electricity_cost._units = self.base_currency / pyo.units.kWh
+
+        if self.find_component("plant_lifetime") is not None:
+            self.plant_lifetime._units = self.base_period
 
     def add_LCOW(self, flow_rate, name="LCOW"):
         """

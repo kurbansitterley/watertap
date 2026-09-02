@@ -139,6 +139,38 @@ def test_watertap_costing_package():
 
 
 @pytest.mark.component
+def test_set_base_currency_base_period():
+    m = pyo.ConcreteModel()
+    m.fs = idc.FlowsheetBlock(dynamic=False)
+
+    m.fs.costing = WaterTAPCosting()
+
+    assert pyo.units.get_units(
+        m.fs.costing.electricity_cost._units
+    ) == pyo.units.get_units(pyo.units.USD_2018 / pyo.units.kWh)
+    assert pyo.units.get_units(
+        m.fs.costing.defined_flows["electricity"]._units
+    ) == pyo.units.get_units(pyo.units.USD_2018 / pyo.units.kWh)
+    assert pyo.units.get_units(
+        m.fs.costing.plant_lifetime._units
+    ) == pyo.units.get_units(pyo.units.year)
+
+    m.fs.costing.set_base_currency_base_period(
+        base_currency_year=2023, base_period="month"
+    )
+
+    assert pyo.units.get_units(
+        m.fs.costing.electricity_cost._units
+    ) == pyo.units.get_units(pyo.units.USD_2023 / pyo.units.kWh)
+    assert pyo.units.get_units(
+        m.fs.costing.defined_flows["electricity"]._units
+    ) == pyo.units.get_units(pyo.units.USD_2023 / pyo.units.kWh)
+    assert pyo.units.get_units(
+        m.fs.costing.plant_lifetime._units
+    ) == pyo.units.get_units(pyo.units.month)
+
+
+@pytest.mark.component
 def test_breakdowns():
     m = lsrro.build()
 

@@ -58,13 +58,19 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         # Set a base period for all operating costs
         self.base_period = getattr(pyo.units, base_period)
 
-        # These are declared after setting the base currency and base period
-        # in build_global_params
+        # These are declared in build_global_params
         if self.find_component("electricity_cost") is not None:
             self.electricity_cost._units = self.base_currency / pyo.units.kWh
 
         if self.find_component("plant_lifetime") is not None:
             self.plant_lifetime._units = self.base_period
+
+        # These are declared in build_process_costs
+        if self.find_component("total_capital_cost") is not None:
+            self.total_capital_cost._units = self.base_currency
+
+        if self.find_component("total_operating_cost") is not None:
+            self.total_operating_cost._units = self.base_currency / self.base_period
 
     def add_LCOW(self, flow_rate, name="LCOW"):
         """

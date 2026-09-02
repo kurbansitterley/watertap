@@ -144,6 +144,7 @@ def test_set_base_currency_base_period():
     m.fs = idc.FlowsheetBlock(dynamic=False)
 
     m.fs.costing = WaterTAPCosting()
+    m.fs.costing.cost_process()
 
     assert pyo.units.get_units(
         m.fs.costing.electricity_cost._units
@@ -154,6 +155,12 @@ def test_set_base_currency_base_period():
     assert pyo.units.get_units(
         m.fs.costing.plant_lifetime._units
     ) == pyo.units.get_units(pyo.units.year)
+    assert pyo.units.get_units(
+        m.fs.costing.total_capital_cost._units
+    ) == pyo.units.get_units(pyo.units.USD_2018)
+    assert pyo.units.get_units(
+        m.fs.costing.total_operating_cost._units
+    ) == pyo.units.get_units(pyo.units.USD_2018 / pyo.units.year)
 
     m.fs.costing.set_base_currency_base_period(
         base_currency_year=2023, base_period="month"
@@ -168,6 +175,12 @@ def test_set_base_currency_base_period():
     assert pyo.units.get_units(
         m.fs.costing.plant_lifetime._units
     ) == pyo.units.get_units(pyo.units.month)
+    assert pyo.units.get_units(
+        m.fs.costing.total_capital_cost._units
+    ) == pyo.units.get_units(pyo.units.USD_2023)
+    assert pyo.units.get_units(
+        m.fs.costing.total_operating_cost._units
+    ) == pyo.units.get_units(pyo.units.USD_2023 / pyo.units.month)
 
 
 @pytest.mark.component

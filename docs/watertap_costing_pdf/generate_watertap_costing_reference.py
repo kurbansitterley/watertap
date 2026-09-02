@@ -20,6 +20,7 @@ import os
 import pprint
 import re
 import yaml
+from datetime import datetime
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.platypus import (
     SimpleDocTemplate,
@@ -170,7 +171,7 @@ def get_subtype_info(data, subtype="default"):
                 units = v.get("units", "")
                 if "USD_" in units:
                     info["year"] = units.split("USD_")[1][:4]
-                else: 
+                else:
                     USDs = list(extract_this_value(v, this_value="USD"))
                     if USDs:
                         info["year"] = USDs[0][:4]
@@ -200,10 +201,10 @@ def get_subtype_info(data, subtype="default"):
         #     USD = USD.split("/")[0]  # remove any trailing units, assume it is numerator
         #     if USD:
         #         info["year"] = USD.split("_")[1][:4]
-                # print(f"Year not found in capital_a_parameter, extracted from cc: {info['year']}")
-                # print(USDs)
-                # print(USD)
-                # assert False
+        # print(f"Year not found in capital_a_parameter, extracted from cc: {info['year']}")
+        # print(USDs)
+        # print(USD)
+        # assert False
 
     key = "validity_range"
     if key in cc:
@@ -285,7 +286,9 @@ def get_subtype_info(data, subtype="default"):
 
     # Reference
     all_refs = list(set(list(extract_this_key(section, this_key="reference"))))
-    all_refs = [ref for ref in all_refs if not any(x in ref for x in ["https://", "http://"])]
+    all_refs = [
+        ref for ref in all_refs if not any(x in ref for x in ["https://", "http://"])
+    ]
     if len(all_refs) == 0:
         info["reference"] = "Unknown"
     else:
@@ -304,6 +307,7 @@ def get_subtype_info(data, subtype="default"):
 
     return info
 
+
 def extract_this_value(data, this_value="USD"):
     """Recursively yields all string values that contain 'USD' anywhere in the data."""
     if isinstance(data, dict):
@@ -314,7 +318,7 @@ def extract_this_value(data, this_value="USD"):
             else:
                 # Otherwise, keep digging deeper
                 yield from extract_this_value(val, this_value=this_value)
-                
+
     elif isinstance(data, list):
         for item in data:
             if isinstance(item, str) and this_value.upper() in item.upper():
@@ -322,6 +326,7 @@ def extract_this_value(data, this_value="USD"):
             else:
                 yield from extract_this_value(item, this_value=this_value)
     # If the data is neither a dict nor a list, do nothing (base case)
+
 
 def extract_this_key(data, this_key="reference"):
     """Find all values associated with the this_key."""
@@ -335,6 +340,7 @@ def extract_this_key(data, this_key="reference"):
     elif isinstance(data, list):
         for item in data:
             yield from extract_this_key(item, this_key=this_key)
+
 
 def scrape_zo_params(
     repo_path=None,
@@ -416,7 +422,7 @@ def scrape_zo_params(
         "vfa_recovery",
         "well_field",
     ]
-    unit_skips = ["secondary_treatment_wwtp", "municipal_wwtp"] 
+    unit_skips = ["secondary_treatment_wwtp", "municipal_wwtp"]
 
     # NOTE: below are some general notes on ZO units
     # dissolved_air_flotation - same as clarifier, create new cost relationship
@@ -920,7 +926,7 @@ def create_zo_costing_story(story):
             # "This table is for WaterTAP Zero Order Models "
             "Units with A and B values follow the equation: C<sub>cap</sub> = A × "
             "(Q<sub>in</sub>/Q<sub>basis</sub>)<super>B</super>. "
-            "A is in USD for the reference year shown. ", 
+            "A is in USD for the reference year shown. ",
             # "Costs are CPI-adjusted to "
             # "the study year.",
             styles["SmallBody"],
@@ -954,7 +960,7 @@ def create_zo_costing_story(story):
     energy_symbol = "§"
     added_energy_symbol1 = False
     added_energy_symbol2 = False
-    
+
     for i, z in enumerate(sorted(zo_data, key=lambda d: d[zo_sort]), 1):
         if z["reference"] in ["Unknown", None, "None"]:
             continue
@@ -966,8 +972,12 @@ def create_zo_costing_story(story):
         # if i == 1:
         #     A_str = f"{z.get('A','—'):,.0f}" if "A" in z else "—<sup>†</sup>"
         # else:
-        A_str = f"{z.get('A','—'):,.1f}" if "A" in z else f"<sup>{missing_AB_symbol}</sup>"
-        B_str = f"{z.get('B','—'):.3f}" if "B" in z else f"<sup>{missing_AB_symbol}</sup>"
+        A_str = (
+            f"{z.get('A','—'):,.1f}" if "A" in z else f"<sup>{missing_AB_symbol}</sup>"
+        )
+        B_str = (
+            f"{z.get('B','—'):.3f}" if "B" in z else f"<sup>{missing_AB_symbol}</sup>"
+        )
         if B_str != f"<sup>{missing_AB_symbol}</sup>":
             if float(B_str) == 1:
                 B_str = "1"
@@ -988,13 +998,13 @@ def create_zo_costing_story(story):
             added_year_symbol = True
 
         energy_str = f"{z.get('energy','—')}" if "energy" in z else "—"
-        if energy_str  == "f(Q)" and not added_energy_symbol1:
+        if energy_str == "f(Q)" and not added_energy_symbol1:
             energy_str += f"<sup>{energy_symbol}</sup>"
             added_energy_symbol1 = True
-        if energy_str  == "f(x)" and not added_energy_symbol2:
+        if energy_str == "f(x)" and not added_energy_symbol2:
             energy_str += f"<sup>{energy_symbol}</sup>"
             added_energy_symbol2 = True
-            
+
         rec_str = f"{z.get('recovery','—')}" if "recovery" in z else "—"
         ref_str = f"{z.get('reference','—')}" if "reference" in z else "—"
 
@@ -1221,16 +1231,14 @@ def generate_combined_pdf(cost_curves_path, costing_ref_path, save_as):
 
 if __name__ == "__main__":
 
-    save_as = f"{here}/watertap_costing_reference-2026Aug26.pdf"
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    save_as = f"{here}/watertap_costing_reference-{date_str}.pdf"
 
     create_watertap_costing_reference(save_as)
 
-    # cost_curves_path = f"{here}/DRAFT_watertap_cost_curves_doc.pdf"
-    # costing_ref_path = f"{here}/DRAFT_watertap_costing_reference.pdf"
-    # save_as = f"{here}/DRAFT_watertap_cost_curves_and_reference.pdf"
+    # To combine in single doc:
+    cost_curves_path = f"{here}/watertap_cost_curves_doc-{date_str}.pdf"
+    costing_ref_path = f"{here}/watertap_costing_reference-{date_str}.pdf"
+    save_as = f"{here}/watertap_cost_curves_and_reference-{date_str}.pdf"
 
-    # generate_combined_pdf(cost_curves_path, costing_ref_path, save_as)
-    # for u in units_with_subtypes:
-    #     print(u[0])
-    #     for _u in u[1]:
-    #         print(f"  {_u}")
+    generate_combined_pdf(cost_curves_path, costing_ref_path, save_as)

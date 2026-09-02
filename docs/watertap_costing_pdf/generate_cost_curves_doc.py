@@ -9,9 +9,9 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.lines import Line2D
+from datetime import datetime
 
 matplotlib.use("Agg")
-from datetime import datetime
 
 # from pyomo.environ import units as pyunits, value
 # from idaes.core.base.costing_base import register_idaes_currency_units
@@ -54,7 +54,7 @@ pretty_subtypes = {
     "anaerobic_mbr_mec": "Anaerobic MBR-MEC",
     "dmbr": "DMBR",
     "hrcs": "HRCS",
-    "vfa_recovery": "VFA Recovery"
+    "vfa_recovery": "VFA Recovery",
 }
 
 categories = {
@@ -65,7 +65,7 @@ categories = {
             "sw_onshore_intake",
             "screen",
             "well_field",
-            "storage_tank", 
+            "storage_tank",
         ],
         "hue_col": "unit",
         "mask": {"flow_mgd": (0.1, 20)},
@@ -83,7 +83,7 @@ categories = {
             "electrocoagulation",
             "sedimentation",
             "filtration",
-            # "iron_and_manganese_removal", 
+            # "iron_and_manganese_removal",
         ],
         "hue_col": "unit",
         "unit_mask": {
@@ -191,12 +191,11 @@ categories = {
     #         "CANDO_P",
     #         "cofermentation",
     #         "constructed_wetlands",
-    #         "dmbr", 
-    #         "hrcs", 
+    #         "dmbr",
+    #         "hrcs",
     #         "suboxic_activated_sludge_process",
-    #         "supercritical_salt_precipitation", 
-    #         "vfa_recovery", 
-
+    #         "supercritical_salt_precipitation",
+    #         "vfa_recovery",
     #     ],
     #     "mask": {"flow_mgd": (0.1, 20)},
     #     "hue_col": "unit",
@@ -694,11 +693,10 @@ def combine_results():
 
 
 if __name__ == "__main__":
+    # If results are re-run, combine_results() first.
     # combine_results()
     all_res = pd.read_csv(f"{here}/all_costing_results.csv")
-    # pprint.pprint(sorted(all_res["unit"].unique()))
-    # save_as = f"{here}/DRAFT_watertap_cost_curves_doc.pdf"
-    # save_as = f"{here}/watertap_cost_curves_doc-2026Aug25-ALL.pdf"
-    save_as = f"{here}/watertap_cost_curves_doc-2026Aug26.pdf"
+
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    save_as = f"{here}/watertap_cost_curves_doc-{date_str}.pdf"
     create_watertap_cost_curve_doc(save_as)
-    # pprint.pprint(sorted(all_res["unit"].unique()))

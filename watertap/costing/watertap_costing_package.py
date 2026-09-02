@@ -56,7 +56,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             doc="Base period for operating costs. If not provided, default is year.",
         ),
     )
-    
+
     # Define default mapping of costing methods to unit models
     unit_mapping = {
         Mixer: cost_mixer,

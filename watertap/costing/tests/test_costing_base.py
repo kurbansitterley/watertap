@@ -15,9 +15,60 @@ import pytest
 from pyomo.util.check_units import assert_units_consistent
 import pyomo.environ as pyo
 import idaes.core as idc
+from idaes.core.util.exceptions import ConfigurationError
 
 from watertap.costing.watertap_costing_package import WaterTAPCosting
 import watertap.flowsheets.lsrro.lsrro as lsrro
+
+
+@pytest.mark.component
+def test_watertap_costing_config():
+    m = pyo.ConcreteModel()
+    m.fs = idc.FlowsheetBlock(dynamic=False)
+    m.fs.costing = WaterTAPCosting()
+    m.fs.costing.cost_process()
+
+    assert m.fs.costing.config.base_currency == 2018
+    assert m.fs.costing.base_currency == pyo.units.USD_2018
+    assert m.fs.costing.config.base_period == "year"
+    assert m.fs.costing.base_period == pyo.units.year
+
+    with pytest.raises(
+        ConfigurationError,
+        match="Base currency year must be between 1990 and 2023, but got 1901",
+    ):
+        m = pyo.ConcreteModel()
+        m.fs = idc.FlowsheetBlock(dynamic=False)
+        m.fs.costing = WaterTAPCosting(base_currency=1901)
+        m.fs.costing.cost_process()
+        _ = m.fs.costing.base_currency
+
+    with pytest.raises(
+        ConfigurationError,
+        match="Base period must be one of 'year', 'month', or 'day', but got parsec",
+    ):
+        m = pyo.ConcreteModel()
+        m.fs = idc.FlowsheetBlock(dynamic=False)
+        m.fs.costing = WaterTAPCosting(base_period="parsec")
+        m.fs.costing.cost_process()
+        _ = m.fs.costing.base_currency
+
+    m = pyo.ConcreteModel()
+    m.fs = idc.FlowsheetBlock(dynamic=False)
+    m.fs.costing = WaterTAPCosting(base_currency=2009, base_period="month")
+    m.fs.costing.cost_process()
+
+    assert m.fs.costing.config.base_currency == 2009
+    assert m.fs.costing.base_currency == pyo.units.USD_2009
+    assert m.fs.costing.config.base_period == "month"
+    assert m.fs.costing.base_period == pyo.units.month
+
+    assert pyo.units.get_units(m.fs.costing.total_capital_cost) == pyo.units.get_units(
+        pyo.units.USD_2009
+    )
+    assert pyo.units.get_units(
+        m.fs.costing.total_operating_cost
+    ) == pyo.units.get_units(pyo.units.USD_2009 / pyo.units.month)
 
 
 @pytest.mark.component

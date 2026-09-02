@@ -11,6 +11,7 @@
 #################################################################################
 
 import pyomo.environ as pyo
+from pyomo.common.config import ConfigValue
 
 from pyomo.util.calc_var_value import calculate_variable_from_constraint
 from pyomo.core.expr.visitor import identify_variables
@@ -21,6 +22,7 @@ from idaes.core.base.costing_base import FlowsheetCostingBlockData
 from idaes.models.unit_models import Mixer, HeatExchanger, Heater, CSTR
 
 import idaes.logger as idaeslog
+from idaes.core.util.exceptions import ConfigurationError
 
 from watertap.core.util.misc import is_constant_up_to_units
 from watertap.costing.unit_models.mixer import cost_mixer
@@ -38,6 +40,23 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
     and for anonymous expressions in flow costs.
     """
 
+    CONFIG = FlowsheetCostingBlockData.CONFIG()
+    CONFIG.declare(
+        "base_currency",
+        ConfigValue(
+            default=2018,
+            domain=int,
+            doc="Base year for currency units. If not provided, default is 2018.",
+        ),
+    )
+    CONFIG.declare(
+        "base_period",
+        ConfigValue(
+            default="year",
+            doc="Base period for operating costs. If not provided, default is year.",
+        ),
+    )
+    
     # Define default mapping of costing methods to unit models
     unit_mapping = {
         Mixer: cost_mixer,
@@ -49,12 +68,6 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
     def register_currency_definitions(self):
         # Register currency and conversion rates based on CE Index
         register_idaes_currency_units()
-
-    def set_base_currency_base_period(self):
-        # Set the base year for all costs
-        self.base_currency = pyo.units.USD_2018
-        # Set a base period for all operating costs
-        self.base_period = pyo.units.year
 
     def add_LCOW(self, flow_rate, name="LCOW"):
         """
@@ -500,7 +513,19 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         """
 
         self.register_currency_definitions()
-        self.set_base_currency_base_period()
+
+        if not 1990 <= self.config.base_currency <= 2023:
+            raise ConfigurationError(
+                f"Base currency year must be between 1990 and 2023, but got {self.config.base_currency}"
+            )
+
+        self.base_currency = getattr(pyo.units, f"USD_{self.config.base_currency}")
+
+        if self.config.base_period not in ["year", "month", "day"]:
+            raise ConfigurationError(
+                f"Base period must be one of 'year', 'month', or 'day', but got {self.config.base_period}"
+            )
+        self.base_period = getattr(pyo.units, self.config.base_period)
 
         self.utilization_factor = pyo.Var(
             initialize=0.9,

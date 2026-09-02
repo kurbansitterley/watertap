@@ -68,9 +68,15 @@ class ZeroOrderCostingData(WaterTAPCostingDetailedData):
 
     def set_base_currency_base_period(self):
         # Set the base year for all costs
-        self.base_currency = getattr(pyo.units, self._cs_def["base_currency"])
+        if "base_currency" in self._cs_def:
+            self.base_currency = getattr(pyo.units, self._cs_def["base_currency"])
+        else:
+            self.base_currency = getattr(pyo.units, f"USD_{self.config.base_currency}")
         # Set a base period for all operating costs
-        self.base_period = getattr(pyo.units, self._cs_def["base_period"])
+        if "base_period" in self._cs_def:
+            self.base_period = getattr(pyo.units, self._cs_def["base_period"])
+        else:
+            self.base_period = getattr(pyo.units, {self.config.base_period})
 
     def build_global_params(self):
         """

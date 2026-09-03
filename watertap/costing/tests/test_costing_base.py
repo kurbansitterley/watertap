@@ -11,6 +11,7 @@
 #################################################################################
 
 import pytest
+import re
 
 from pyomo.util.check_units import assert_units_consistent
 import pyomo.environ as pyo
@@ -43,11 +44,21 @@ def test_watertap_costing_config():
 
     with pytest.raises(
         ConfigurationError,
-        match="Base period must be one of 'year', 'month', or 'day', but got parsec",
+        match="pierogis is not a valid unit.",
     ):
         m = pyo.ConcreteModel()
         m.fs = idc.FlowsheetBlock(dynamic=False)
-        m.fs.costing = WaterTAPCosting(base_period="parsec")
+        m.fs.costing = WaterTAPCosting(base_period="pierogis")
+
+    with pytest.raises(
+        ConfigurationError,
+        match=re.escape(
+            "base_period configuration must be a unit of time but got kilogram [mass]."
+        ),
+    ):
+        m = pyo.ConcreteModel()
+        m.fs = idc.FlowsheetBlock(dynamic=False)
+        m.fs.costing = WaterTAPCosting(base_period="kilogram")
 
     m = pyo.ConcreteModel()
     m.fs = idc.FlowsheetBlock(dynamic=False)

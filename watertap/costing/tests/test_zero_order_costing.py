@@ -16,7 +16,6 @@ Tests for general zero-order costing methods
 import os
 import re
 import yaml
-import tempfile
 import pytest
 
 from pyomo.environ import (

@@ -92,7 +92,9 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                     f"Base currency year must be between 1990 and 2023, but got {self.config.base_currency_year}"
                 )
 
-            self.base_currency = getattr(pyo.units, f"USD_{self.config.base_currency_year}")
+            self.base_currency = getattr(
+                pyo.units, f"USD_{self.config.base_currency_year}"
+            )
 
         if self.base_period is None:
             try:

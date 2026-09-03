@@ -511,7 +511,7 @@ def test_watertap_costing_config_zo():
     m = ConcreteModel()
     m.fs = FlowsheetBlock(dynamic=False)
     m.fs.costing = ZeroOrderCosting(base_currency_year=2001)
-    # check that passing base_currency_year when it is also defined in 
+    # check that passing base_currency_year when it is also defined in
     # yaml will use the base_currency_year from yaml
     assert m.fs.costing.config.base_currency_year == 2001
     assert m.fs.costing.base_currency == pyunits.MUSD_2018

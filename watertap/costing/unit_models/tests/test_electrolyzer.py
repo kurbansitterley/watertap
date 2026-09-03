@@ -35,8 +35,7 @@ class TestElectrolyzerCosting:
         solver.solve(m)
 
         # build costing model block
-        m.fs.costing = WaterTAPCosting()
-        m.fs.costing.base_currency = pyo.units.USD_2020
+        m.fs.costing = WaterTAPCosting(base_currency_year=2020)
 
         m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
         m.fs.costing.cost_process()

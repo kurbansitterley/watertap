@@ -135,7 +135,7 @@ Additional details on the WaterTAP costing package, including equations and defa
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.properties = SeawaterParameterBlock()
-        m.fs.costing = WaterTAPCosting(base_currency=2023)
+        m.fs.costing = WaterTAPCosting(base_currency_year=2023)
 
         m.fs.feed = Feed(property_package=m.fs.properties)
         m.fs.pump1 = Pump(property_package=m.fs.properties)
@@ -371,7 +371,7 @@ Adding costing to a WaterTAP model
 This section applies the steps outlined in the :ref:`how to add WaterTAP costing to a flowsheet guide<how_to_add_watertap_costing_to_flowsheet>` for all unit models on this flowsheet.
 
 Adding the WaterTAP costing package to a flowsheet can be done at any point in the flowsheet build prior to adding unit model costing blocks. 
-Below is a build function to create the flowsheet. The costing package is added after added the property package. We pass 2023 for the ``base_currency`` argument
+Below is a build function to create the flowsheet. The costing package is added after added the property package. We pass 2023 for the ``base_currency_year`` argument
 to set the base currency for all system costing calculations. Any value between 1991 and 2023 can be used.
 
 
@@ -386,7 +386,7 @@ to set the base currency for all system costing calculations. Any value between 
 
         # Add the WaterTAP costing package to the flowsheet
         # and specify 2023 as the base currency
-        m.fs.costing = WaterTAPCosting(base_currency=2023)
+        m.fs.costing = WaterTAPCosting(base_currency_year=2023)
 
         # Add unit models to flowsheet
         m.fs.feed = Feed(property_package=m.fs.properties)

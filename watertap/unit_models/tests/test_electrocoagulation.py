@@ -564,8 +564,7 @@ class TestECCosting(UnitTestHarness):
     @pytest.mark.component
     def test_costing(self):
         m = build_ec_costing()
-        m.fs.costing = WaterTAPCosting()
-        m.fs.costing.base_currency = pyunits.USD_2023
+        m.fs.costing = WaterTAPCosting(base_currency_year=2023)
         m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
         m.fs.costing.electrocoagulation.sludge_handling_cost.fix(0.025)
         m.fs.costing.cost_process()

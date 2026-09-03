@@ -336,6 +336,8 @@ class TestWorkflow:
         m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
 
         m.fs.costing = ZeroOrderCosting()
+        # NOTE: setting base_currency in this way is discouraged
+        # It is recommended to set the base_currency through the case study definition file
         m.fs.costing.base_currency = pyunits.USD_2020
 
         return m
@@ -508,7 +510,11 @@ def test_watertap_costing_config_zo():
 
     m = ConcreteModel()
     m.fs = FlowsheetBlock(dynamic=False)
-    m.fs.costing = ZeroOrderCosting()
+    m.fs.costing = ZeroOrderCosting(base_currency_year=2001)
+    # check that passing base_currency_year when it is also defined in 
+    # yaml will use the base_currency_year from yaml
+    assert m.fs.costing.config.base_currency_year == 2001
+    assert m.fs.costing.base_currency == pyunits.MUSD_2018
 
     data = _load_case_study_definition(m.fs.costing)
     data.pop("base_currency", None)
@@ -523,11 +529,11 @@ def test_watertap_costing_config_zo():
     m = ConcreteModel()
     m.fs = FlowsheetBlock(dynamic=False)
     m.fs.costing = ZeroOrderCosting(
-        case_study_definition=temp_path, base_currency=2000, base_period="day"
+        case_study_definition=temp_path, base_currency_year=2000, base_period="day"
     )
     m.fs.costing.cost_process()
 
-    assert m.fs.costing.config.base_currency == 2000
+    assert m.fs.costing.config.base_currency_year == 2000
     assert m.fs.costing.base_currency == pyunits.USD_2000
     assert m.fs.costing.config.base_period == "day"
     assert m.fs.costing.base_period == pyunits.day
@@ -538,7 +544,7 @@ def test_watertap_costing_config_zo():
         pyunits.USD_2000 / pyunits.day
     )
 
-    # Check invalid base_currency and base_period configurations
+    # Check invalid base_currency_year and base_period configurations
     with pytest.raises(
         ConfigurationError,
         match="Base currency year must be between 1990 and 2023, but got 1492",
@@ -546,7 +552,7 @@ def test_watertap_costing_config_zo():
         m = ConcreteModel()
         m.fs = FlowsheetBlock(dynamic=False)
         m.fs.costing = ZeroOrderCosting(
-            case_study_definition=temp_path, base_currency=1492
+            case_study_definition=temp_path, base_currency_year=1492
         )
     # base_period must be a valid pyunit
     with pytest.raises(

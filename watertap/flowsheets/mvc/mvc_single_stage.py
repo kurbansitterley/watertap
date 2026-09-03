@@ -327,7 +327,7 @@ def add_Q_ext(m, time_point=None):
 
 
 def add_costing(m):
-    m.fs.costing = WaterTAPCosting()
+    m.fs.costing = WaterTAPCosting(base_currency_year=2020)
     m.fs.pump_feed.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
     m.fs.pump_distillate.costing = UnitModelCostingBlock(
         flowsheet_costing_block=m.fs.costing
@@ -353,7 +353,6 @@ def add_costing(m):
     m.fs.costing.add_annual_water_production(m.fs.distillate.properties[0].flow_vol)
     m.fs.costing.add_LCOW(m.fs.distillate.properties[0].flow_vol)
     m.fs.costing.add_specific_energy_consumption(m.fs.distillate.properties[0].flow_vol)
-    m.fs.costing.base_currency = pyo.units.USD_2020
 
 
 def set_operating_conditions(m):

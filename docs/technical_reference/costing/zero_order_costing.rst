@@ -76,9 +76,15 @@ Costs from year A to year B are adjusted according to:
 
 WaterTAP uses the `Chemical Engineering Plant Cost Index <https://www.toweringskills.com/financial-analysis/cost-indices/>`_ (CEPCI) 
 to account for the time-value of investments. Aggregated capital and operating costs are 
-adjusted to the desired year for the model, accessible on the costing block as ``base_currency``. 
-The default costing year is 2018, but the user can directly set the ``base_currency`` at 
-the flowsheet level (e.g., ``m.fs.costing.base_currency = pyo.units.USD_2023``) or via a provided case study ``.yaml``.
+adjusted to the desired year for the model, accessible on the costing block as ``base_currency`` and defined by the ``base_currency`` entry in the case study yaml *or* the ``base_currency`` configuration argument for the zero order costing package. 
+The default costing year is 2018, but users can specify a different year via the ``base_currency`` configuration argument for the zero order costing package (e.g., ``m.fs.costing = ZeroOrderCosting(base_currency=2022)``)
+*if* the provided case study yaml file does not contain a ``base_currency`` entry.
+
+.. important:: 
+    Though users **could** directly set the ``base_currency`` on the flowsheet costing block, this is discouraged. 
+    It is recommended to specify the base currency in the case study yaml or use the ``base_currency`` configuration argument when instantiating the zero order costing package to ensure consistency 
+    across all costing calculations and parameters. 
+
 
 Other technoeconomic factors used to calculate various system metrics, capital, and operating costs are presented in the table below:
 

@@ -258,9 +258,13 @@ A to year B are adjusted according to:
 
 WaterTAP uses the `Chemical Engineering Plant Cost Index <https://www.toweringskills.com/financial-analysis/cost-indices/>`_ (CEPCI) 
 to account for the time-value of investments. Aggregated capital and operating costs are 
-adjusted to the desired year for the model, accessible on the costing block as ``base_currency``. 
-The default costing year is 2018, but the user can directly set the ``base_currency`` at 
-the flowsheet level (e.g., ``m.fs.costing.base_currency = pyo.units.USD_2020``).
+adjusted to the desired year for the model, accessible on the costing block as ``base_currency`` and defined by the ``base_currency`` configuration argument for the WaterTAP costing package. 
+The default costing year is 2018, but users can specify a different year via the ``base_currency`` configuration argument for the WaterTAP costing package (e.g., ``m.fs.costing = WaterTAPCosting(base_currency=2022)``).
+
+.. important:: 
+    Though users **could** directly set the ``base_currency`` on the flowsheet costing block, this is discouraged. 
+    It is recommended to use the ``base_currency`` configuration argument when instantiating the WaterTAP costing package to ensure consistency 
+    across all costing calculations and parameters. 
 
 .. _common_global_costing_parameters:
 

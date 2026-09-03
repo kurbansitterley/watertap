@@ -13,6 +13,9 @@
 Tests for general zero-order costing methods
 """
 
+import os
+import yaml
+import tempfile
 import pytest
 
 from pyomo.environ import (
@@ -495,3 +498,41 @@ class TestWorkflow:
         assert pytest.approx(0.231345, rel=1e-5) == value(
             model.fs.costing.electricity_intensity
         )
+
+
+@pytest.mark.component
+def test_watertap_costing_config_zo():
+    # Create a temporary case study file without base_currency and base_period
+    here = os.path.dirname(os.path.abspath(__file__))
+    default_cs_path = f"{os.path.dirname(os.path.dirname(here))}/data/techno_economic/default_case_study.yaml"
+
+    with open(default_cs_path, "r", encoding="utf-8") as default_cs:
+        data = default_cs.read()
+        data = yaml.load(data, Loader=yaml.Loader)
+
+    data.pop("base_currency", None)
+    data.pop("base_period", None)
+
+    with tempfile.NamedTemporaryFile(
+        suffix=".yaml", delete=False, mode="w", encoding="utf-8"
+    ) as tf:
+        yaml.safe_dump(data, tf, sort_keys=False)
+        temp_path = tf.name
+
+    m = ConcreteModel()
+    m.fs = FlowsheetBlock(dynamic=False)
+    m.fs.costing = ZeroOrderCosting(
+        case_study_definition=temp_path, base_currency=2000, base_period="day"
+    )
+    # m.fs.costing.cost_process()
+
+    # assert m.fs.costing.config.base_currency == 2000
+    # assert m.fs.costing.base_currency == pyunits.USD_2000
+    # assert m.fs.costing.config.base_period == "day"
+    # assert m.fs.costing.base_period == pyunits.day
+    # assert pyunits.get_units(m.fs.costing.total_capital_cost) == pyunits.get_units(
+    #     pyunits.USD_2000
+    # )
+    # assert pyunits.get_units(
+    #     m.fs.costing.total_operating_cost
+    # ) == pyunits.get_units(pyunits.USD_2000 / pyunits.day)

@@ -40,8 +40,6 @@ def test_watertap_costing_config():
         m = pyo.ConcreteModel()
         m.fs = idc.FlowsheetBlock(dynamic=False)
         m.fs.costing = WaterTAPCosting(base_currency=1901)
-        m.fs.costing.cost_process()
-        _ = m.fs.costing.base_currency
 
     with pytest.raises(
         ConfigurationError,
@@ -50,8 +48,6 @@ def test_watertap_costing_config():
         m = pyo.ConcreteModel()
         m.fs = idc.FlowsheetBlock(dynamic=False)
         m.fs.costing = WaterTAPCosting(base_period="parsec")
-        m.fs.costing.cost_process()
-        _ = m.fs.costing.base_currency
 
     m = pyo.ConcreteModel()
     m.fs = idc.FlowsheetBlock(dynamic=False)

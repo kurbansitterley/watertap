@@ -75,7 +75,10 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         and set the base_currency and base_period attributes.
         """
 
-        if "_cs_def" in self.config and self._cs_def is not None:
+        self.base_currency = None
+        self.base_period = None
+
+        if "case_study_definition" in self.config:
             # it is a ZeroOrderCosting block, so we preferentially
             # use the values from the _cs_def if available
             if "base_currency" in self._cs_def:
@@ -83,7 +86,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             if "base_period" in self._cs_def:
                 self.base_period = getattr(pyo.units, self._cs_def["base_period"])
 
-        else:
+        if self.base_currency is None:
             if not 1990 <= self.config.base_currency <= 2023:
                 raise ConfigurationError(
                     f"Base currency year must be between 1990 and 2023, but got {self.config.base_currency}"
@@ -91,6 +94,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
 
             self.base_currency = getattr(pyo.units, f"USD_{self.config.base_currency}")
 
+        if self.base_period is None:
             try:
                 self.base_period = getattr(pyo.units, self.config.base_period)
             except AttributeError:

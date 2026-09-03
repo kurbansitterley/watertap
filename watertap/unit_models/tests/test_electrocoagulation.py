@@ -583,10 +583,10 @@ class TestECCosting(UnitTestHarness):
             "aggregate_variable_operating_cost": 0.0,
             "aggregate_flow_electricity": 146.33,
             "aggregate_flow_aluminum": 64565.49,
-            "aggregate_flow_costs": {"electricity": 118796.73, "aluminum": 162263.39},
+            "aggregate_flow_costs": {"electricity": 89793.59, "aluminum": 162263.39},
             "total_capital_cost": 1168409.07,
-            "total_operating_cost": 599638.93,
-            "LCOW": 1.1831,
+            "total_operating_cost": 573536.11,
+            "LCOW": 1.1400,
             "SEC": 1.9064,
         }
 

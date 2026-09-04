@@ -243,6 +243,7 @@ without changing the base costing package implementation.
         flowsheet_costing_block=m.fs.costing,
     )
 
+.. _costing_base_costing_index_and_tea_factors:
 
 Costing Index and Technoeconomic Factors
 ----------------------------------------
@@ -258,13 +259,10 @@ A to year B are adjusted according to:
 
 WaterTAP uses the `Chemical Engineering Plant Cost Index <https://www.toweringskills.com/financial-analysis/cost-indices/>`_ (CEPCI) 
 to account for the time-value of investments. Aggregated capital and operating costs are 
-adjusted to the desired year for the model, accessible on the costing block as ``base_currency`` and defined by the ``base_currency_year`` configuration argument for the WaterTAP costing package. 
-The default costing year is 2018, but users can specify a different year via the ``base_currency_year`` configuration argument for the WaterTAP costing package (e.g., ``m.fs.costing = WaterTAPCosting(base_currency_year=2022)``).
+adjusted to the desired year for the model, accessible on the costing block as ``base_currency``.
+See :ref:`zero order costing documentation <zero_order_costing_tea_factors>` or :ref:`WaterTAP costing documentation <watertap_costing_tea_factors>` for how to set the base currency for each costing package. 
 
-.. important:: 
-    Though users **could** directly set the ``base_currency`` on the flowsheet costing block, this is discouraged. 
-    It is recommended to use the ``base_currency_year`` configuration argument when instantiating the WaterTAP costing package to ensure consistency 
-    across all costing calculations and parameters. 
+The default costing year is 2018, but any year between 1990 and 2023 can be used.
 
 .. _common_global_costing_parameters:
 

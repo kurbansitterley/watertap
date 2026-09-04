@@ -372,7 +372,7 @@ This section applies the steps outlined in the :ref:`how to add WaterTAP costing
 
 Adding the WaterTAP costing package to a flowsheet can be done at any point in the flowsheet build prior to adding unit model costing blocks. 
 Below is a build function to create the flowsheet. The costing package is added after added the property package. We pass 2023 for the ``base_currency_year`` argument
-to set the base currency for all system costing calculations. Any value between 1991 and 2023 can be used.
+to set the base currency for all system costing calculations. Any value between 1990 and 2023 can be used.
 
 
 .. code-block:: python
@@ -595,10 +595,10 @@ If you are unsure, the units for costing variables (or any variable) can be acce
 .. testoutput::
 
     Base currency: USD_2023
-    RO capital cost units: USD_2018
-    Chemical addition capital cost units: USD_2018
-    Pump capital cost units: USD_2018
-    ERD capital cost units: USD_2018
+    RO capital cost units: USD_2023
+    Chemical addition capital cost units: USD_2023
+    Pump capital cost units: USD_2023
+    ERD capital cost units: USD_2023
 
 
 System costing results

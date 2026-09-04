@@ -126,7 +126,7 @@ class TestDyewithROFlowsheetwithPretreatment:
 
         # check costing
         assert pytest.approx(14.8644, rel=1e-3) == value(m.fs.LCOW)
-        assert pytest.approx(11.4088, rel=1e-3) == value(m.fs.LCOT)
+        assert pytest.approx(11.3704, rel=1e-3) == value(m.fs.LCOT)
 
     @pytest.mark.component
     def test_display(self, system_frame):

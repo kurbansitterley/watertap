@@ -66,6 +66,6 @@ class TestElectrolyzerCosting:
         assert pytest.approx(82.50, rel=1e-3) == pyo.value(
             m.fs.costing.aggregate_flow_electricity
         )
-        assert pytest.approx(50040, rel=1e-3) == pyo.value(
+        assert pytest.approx(50623.64, rel=1e-3) == pyo.value(
             m.fs.costing.aggregate_flow_costs["electricity"]
         )

@@ -44,9 +44,9 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
     CONFIG.declare(
         "base_currency_year",
         ConfigValue(
-            default=2018,
+            default=2023,
             domain=int,
-            doc="Base year for currency units. If not provided, default is 2018.",
+            doc="Base year for currency units. If not provided, default is 2023.",
         ),
     )
     CONFIG.declare(

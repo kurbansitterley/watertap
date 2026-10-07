@@ -135,9 +135,9 @@ def build(
     m.fs = FlowsheetBlock(dynamic=False)
 
     m.fs.properties = MCASParameterBlock(
-        solute_list=["tds", "tss"],
-        diffusivity_data={("Liq", "tds"): 1.47e-9, ("Liq", "tss"): 1e-9},
-        mw_data={"tds": 31.4e-3, "tss": 100e-3},
+        solute_list=["TDS", "tss"],
+        diffusivity_data={("Liq", "TDS"): 1.47e-9, ("Liq", "tss"): 1e-9},
+        mw_data={"TDS": 31.4e-3, "tss": 100e-3},
         material_flow_basis=MaterialFlowBasis.mass,
         ignore_neutral_charge=True,
         density_calculation=DensityCalculation.seawater,
@@ -333,7 +333,7 @@ def scale_model(m):
     m.fs.properties.set_default_scaling(
         "flow_mass_phase_comp",
         1 / value(m.flow_mass_tds),
-        index=("Liq", "tds"),
+        index=("Liq", "TDS"),
     )
     m.fs.properties.set_default_scaling(
         "flow_mass_phase_comp",
@@ -364,7 +364,7 @@ def set_operating_conditions(m):
 
     m.fs.feed.properties.calculate_state(
         var_args={
-            ("conc_mass_phase_comp", ("Liq", "tds")): m.conc_mass_tds,
+            ("conc_mass_phase_comp", ("Liq", "TDS")): m.conc_mass_tds,
             ("conc_mass_phase_comp", ("Liq", "tss")): m.conc_mass_tss,
             ("flow_vol_phase", "Liq"): m.flow_vol,
             ("temperature", None): m.temperature,
@@ -427,18 +427,19 @@ def set_operating_conditions(m):
     desal.RO.permeate.pressure[0].fix(101325)  # atmospheric pressure [Pa]
 
     width_guess = value(m.flow_vol) * 1000 * 5
-    desal.RO.width.fix(width_guess)  # stage width [m]
-
     if width_guess > desal.RO.width.ub:
         desal.RO.width.setub(value(width_guess) * 2)
+    desal.RO.width.fix(width_guess)  # stage width [m]
 
     area_guess = value(m.flow_vol) * 1000 * 30  # rough estimate for stage area [m2]
     if area_guess > desal.RO.area.ub:
         desal.RO.area.setub(value(area_guess) * 2)
     # stage area [m2] TODO: replace with actual area
     desal.RO.area.fix(area_guess)
-    m.fs.desalination.RO.recovery_mass_phase_comp.setlb(0)
-    m.fs.desalination.RO.flux_mass_phase_comp.setlb(0)
+
+    desal.RO.recovery_mass_phase_comp.setlb(0)
+    desal.RO.flux_mass_phase_comp.setlb(0)
+
     if m.erd_type == "pressure_exchanger":
         # splitter (no degrees of freedom)
 

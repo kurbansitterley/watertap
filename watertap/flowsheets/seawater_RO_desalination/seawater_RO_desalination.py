@@ -142,6 +142,9 @@ def build(
 
     m.fs = FlowsheetBlock(dynamic=False)
 
+    m.fs.rho = Var(initialize=rho, units=pyunits.kg / pyunits.m**3)
+    m.fs.rho.fix()
+
     m.fs.flow_vol = Var(initialize=flow_vol, units=pyunits.m**3 / pyunits.s)
     m.fs.flow_vol.fix()
 
@@ -394,10 +397,14 @@ def set_operating_conditions(m):
 
     m.fs.feed.properties[0].pressure.fix()
     m.fs.feed.properties[0].temperature.fix()
+    rho = value(m.fs.feed.properties[0].dens_mass_phase["Liq"])
+    m.fs.rho.fix(rho)
 
     m.fs.feed.flow_mass_water_constr = Constraint(
         expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "H2O"]
-        == m.fs.flow_mass_water
+        == pyunits.convert(
+            m.fs.flow_vol * m.fs.rho, to_units=pyunits.kg / pyunits.s
+        )
     )
     m.fs.feed.flow_mass_tds_constr = Constraint(
         expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "TDS"]

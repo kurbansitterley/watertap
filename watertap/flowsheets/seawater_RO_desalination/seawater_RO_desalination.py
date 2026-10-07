@@ -119,7 +119,7 @@ def build(
 
     # Define flow conditions and attach to model
 
-    rho = 1025 * pyunits.kg / pyunits.m**3
+    rho = 1023.027 * pyunits.kg / pyunits.m**3
     m = ConcreteModel()
     m.flow_vol = flow_vol * pyunits.m**3 / pyunits.s
 
@@ -397,14 +397,13 @@ def set_operating_conditions(m):
 
     m.fs.feed.properties[0].pressure.fix()
     m.fs.feed.properties[0].temperature.fix()
+    # re-fix density after calculating state
     rho = value(m.fs.feed.properties[0].dens_mass_phase["Liq"])
     m.fs.rho.fix(rho)
 
     m.fs.feed.flow_mass_water_constr = Constraint(
         expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "H2O"]
-        == pyunits.convert(
-            m.fs.flow_vol * m.fs.rho, to_units=pyunits.kg / pyunits.s
-        )
+        == pyunits.convert(m.fs.flow_vol * m.fs.rho, to_units=pyunits.kg / pyunits.s)
     )
     m.fs.feed.flow_mass_tds_constr = Constraint(
         expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "TDS"]
@@ -561,6 +560,20 @@ def initialize_pretreatment(m):
     prtrt.cartridge_filtration.initialize()
 
 
+def initialize_posttreatment(m):
+    psttrt = m.fs.posttreatment
+
+    psttrt.storage_tank_2.initialize()
+    propagate_state(psttrt.s01)
+    psttrt.uv_aop.initialize()
+    propagate_state(psttrt.s02)
+    psttrt.co2_addition.initialize()
+    propagate_state(psttrt.s03)
+    psttrt.lime_addition.initialize()
+    propagate_state(psttrt.s04)
+    psttrt.storage_tank_3.initialize()
+
+
 def initialize_system(m):
 
     prtrt = m.fs.pretreatment
@@ -632,12 +645,10 @@ def initialize_system(m):
         desal.ERD.initialize()
         propagate_state(m.fs.s_disposal)
 
-    # Initialize posttreatment
     propagate_state(desal.s_permeate_to_storage)
 
-    flags = fix_state_vars(psttrt.storage_tank_2.properties)
-    solve(psttrt, checkpoint="solve flowsheet after initializing post-treatment")
-    revert_state_vars(psttrt.storage_tank_2.properties, flags)
+    # Initialize posttreatment
+    initialize_posttreatment(m)
 
     propagate_state(m.fs.s_municipal)
     m.fs.municipal.initialize()
@@ -852,9 +863,4 @@ def display_costing(m):
 
 
 if __name__ == "__main__":
-    m = main(erd_type="pressure_exchanger", RO_1D=False)
-    m.fs.desalination.RO.recovery_vol_phase.display()
-    m.fs.desalination.RO.area.display()
-    m.fs.desalination.RO.width.display()
-    m.fs.flow_vol.display()
-    m.fs.conc_mass_tds.display()
+    m = main(erd_type="pressure_exchanger", RO_1D=True, flow_vol=0.01)

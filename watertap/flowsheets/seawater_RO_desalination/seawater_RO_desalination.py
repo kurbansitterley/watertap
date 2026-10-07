@@ -98,7 +98,7 @@ def main(erd_type="pressure_exchanger", RO_1D=False, **kwargs):
 
     solve(
         m,
-        checkpoint=f" solve flowsheet after initializing {erd_type} system",
+        checkpoint=f" initializing {erd_type} system",
         tee=False,
     )
     # display_results(m)
@@ -581,7 +581,7 @@ def initialize_system(m):
     psttrt = m.fs.posttreatment
 
     # Initialize feed
-    solve(m.fs.feed, checkpoint="solve flowsheet after initializing feed")
+    solve(m.fs.feed, checkpoint=" initializing feed")
 
     # Initialize pretreatment
     propagate_state(m.fs.s_feed)
@@ -634,7 +634,7 @@ def initialize_system(m):
         flags = fix_state_vars(desal.S1.mixed_state)
         solve(
             desal,
-            checkpoint=f"solve flowsheet after initializing desalination with {m.erd_type}",
+            checkpoint=f" initializing desalination with {m.erd_type}",
         )
         revert_state_vars(desal.S1.mixed_state, flags)
     else:

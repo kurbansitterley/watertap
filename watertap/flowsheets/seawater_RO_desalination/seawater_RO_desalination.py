@@ -135,9 +135,9 @@ def build(
     m.fs = FlowsheetBlock(dynamic=False)
 
     m.fs.properties = MCASParameterBlock(
-        solute_list=["TDS", "tss"],
-        diffusivity_data={("Liq", "TDS"): 1.47e-9, ("Liq", "tss"): 1e-9},
-        mw_data={"TDS": 31.4e-3, "tss": 100e-3},
+        solute_list=["TDS", "TSS"],
+        diffusivity_data={("Liq", "TDS"): 1.47e-9, ("Liq", "TSS"): 1e-9},
+        mw_data={"TDS": 31.4e-3, "TSS": 100e-3},
         material_flow_basis=MaterialFlowBasis.mass,
         ignore_neutral_charge=True,
         density_calculation=DensityCalculation.seawater,
@@ -338,7 +338,7 @@ def scale_model(m):
     m.fs.properties.set_default_scaling(
         "flow_mass_phase_comp",
         1 / value(m.flow_mass_tss),
-        index=("Liq", "tss"),
+        index=("Liq", "TSS"),
     )
     iscale.set_scaling_factor(desal.P1.control_volume.work, 1e-5)
     iscale.set_scaling_factor(desal.RO.area, 1e-4)
@@ -365,7 +365,7 @@ def set_operating_conditions(m):
     m.fs.feed.properties.calculate_state(
         var_args={
             ("conc_mass_phase_comp", ("Liq", "TDS")): m.conc_mass_tds,
-            ("conc_mass_phase_comp", ("Liq", "tss")): m.conc_mass_tss,
+            ("conc_mass_phase_comp", ("Liq", "TSS")): m.conc_mass_tss,
             ("flow_vol_phase", "Liq"): m.flow_vol,
             ("temperature", None): m.temperature,
             ("pressure", None): m.pressure,
@@ -420,7 +420,7 @@ def set_operating_conditions(m):
     # RO unit
     desal.RO.A_comp.fix(4.2e-12)  # membrane water permeability coefficient [m/s-Pa]
     desal.RO.B_comp.fix(3.5e-8)  # membrane salt permeability coefficient [m/s]
-    desal.RO.B_comp[0, "tss"].fix(1e-10)  # membrane salt permeability coefficient [m/s]
+    desal.RO.B_comp[0, "TSS"].fix(1e-10)  # membrane salt permeability coefficient [m/s]
 
     desal.RO.feed_side.channel_height.fix(1e-3)  # channel height in membrane stage [m]
     desal.RO.feed_side.spacer_porosity.fix(0.9)  # spacer porosity in membrane stage [-]

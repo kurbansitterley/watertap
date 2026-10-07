@@ -68,7 +68,7 @@ from watertap.unit_models.zero_order import (
     LandfillZO,
 )
 from watertap.costing.zero_order_costing import ZeroOrderCosting
-from watertap.kurby import *
+
 # Set up logger
 _log = idaeslog.getLogger(__name__)
 
@@ -78,6 +78,7 @@ def main(erd_type="pressure_exchanger", RO_1D=False, **kwargs):
     flow_vol = kwargs.get("flow_vol", 0.3092)
     conc_mass_tds = kwargs.get("conc_mass_tds", 35)
     conc_mass_tss = kwargs.get("conc_mass_tss", 0.03)
+
     m = build(
         erd_type=erd_type,
         RO_1D=RO_1D,
@@ -85,7 +86,6 @@ def main(erd_type="pressure_exchanger", RO_1D=False, **kwargs):
         conc_mass_tds=conc_mass_tds,
         conc_mass_tss=conc_mass_tss,
     )
-    # m = build(erd_type=erd_type, RO_1D=RO_1D)
 
     scale_model(m)
 
@@ -316,24 +316,8 @@ def build(
     )
     TransformationFactory("network.expand_arcs").apply_to(m)
 
-    # scaling
-    # # set unit model values
-    # iscale.set_scaling_factor(desal.P1.control_volume.work, 1e-5)
-    # iscale.set_scaling_factor(desal.RO.area, 1e-4)
-    # if erd_type == "pressure_exchanger":
-    #     iscale.set_scaling_factor(desal.P2.control_volume.work, 1e-5)
-    #     iscale.set_scaling_factor(desal.PXR.feed_side.work, 1e-5)
-    #     iscale.set_scaling_factor(desal.PXR.brine_side.work, 1e-5)
-    # elif erd_type == "pump_as_turbine":
-    #     iscale.set_scaling_factor(desal.ERD.control_volume.work, 1e-5)
-
-    # if erd_type == "pressure_exchanger":
-    #     desal.S1.mixed_state[0].flow_vol_phase
-    #     desal.RO.feed_side.properties[0, 1].flow_vol_phase
-    # # calculate and propagate scaling factors
-    # iscale.calculate_scaling_factors(m)
-
     return m
+
 
 def scale_model(m):
 
@@ -368,89 +352,15 @@ def scale_model(m):
     if m.erd_type == "pressure_exchanger":
         desal.S1.mixed_state[0].flow_vol_phase
         desal.RO.feed_side.properties[0, 1].flow_vol_phase
+
     # calculate and propagate scaling factors
-
     iscale.calculate_scaling_factors(m)
-    # from pyomo.environ import Var
-    # for v in prtrt.component_objects(Var, descend_into=True):
-    #     if v.is_indexed():
-    #         for i, vi in v.items():
-    #             if iscale.get_scaling_factor(vi) is None:
-    #                 try:
-    #                     vi_val = value(vi)
-    #                 except:
-    #                     continue
-    #                 if vi_val != 0:
-    #                     iscale.set_scaling_factor(vi, 1 / vi_val)
-    #     else:
-    #         try:
-    #             v_val = value(v)
-    #         except:
-    #             continue
-    #         if v_val != 0 and iscale.get_scaling_factor(v) is None:
-    #             iscale.set_scaling_factor(v, 1 / v_val)
-
 
 
 def set_operating_conditions(m):
     prtrt = m.fs.pretreatment
     desal = m.fs.desalination
     psttrt = m.fs.posttreatment
-
-    # ---specifications---
-    # feed
-    # flow_vol = 0.3092 * pyunits.m**3 / pyunits.s
-    # conc_mass_tds = 35 * pyunits.kg / pyunits.m**3
-    # conc_mass_tss = 0.03 * pyunits.kg / pyunits.m**3
-    # temperature = 298 * pyunits.K
-    # pressure = 1e5 * pyunits.Pa
-
-    # m.fs.feed.temperature[0].fix(temperature)
-    # m.fs.feed.pressure[0].fix(pressure)
-    # iscale.set_scaling_factor(
-    #     m.fs.feed.properties[0].flow_vol_phase["Liq"], value(10 / flow_vol)
-    # )
-    # iscale.set_scaling_factor(
-    #     m.fs.feed.properties[0].conc_mass_phase_comp["Liq", "tds"],
-    #     value(10 / conc_mass_tds),
-    # )
-    # iscale.set_scaling_factor(
-    #     m.fs.feed.properties[0].conc_mass_phase_comp["Liq", "tss"],
-    #     value(10 / conc_mass_tss),
-    # )
-    # m.fs.properties.set_default_scaling(
-    #     "flow_mass_phase_comp",
-    #     1 / value(m.flow_mass),
-    #     index=("Liq", "H2O"),
-    # )
-    # m.fs.properties.set_default_scaling(
-    #     "flow_mass_phase_comp",
-    #     1 / value(m.flow_mass_tds),
-    #     index=("Liq", "tds"),
-    # )
-    # m.fs.properties.set_default_scaling(
-    #     "flow_mass_phase_comp",
-    #     1 / value(m.flow_mass_tss),
-    #     index=("Liq", "tss"),
-    # )
-
-    # m.fs.feed.properties[0].flow_vol_phase
-    # m.fs.feed.properties[0].conc_mass_phase_comp
-
-    # iscale.set_scaling_factor(desal.P1.control_volume.work, 1e-5)
-    # iscale.set_scaling_factor(desal.RO.area, 1e-4)
-    # if m.erd_type == "pressure_exchanger":
-    #     iscale.set_scaling_factor(desal.P2.control_volume.work, 1e-5)
-    #     iscale.set_scaling_factor(desal.PXR.feed_side.work, 1e-5)
-    #     iscale.set_scaling_factor(desal.PXR.brine_side.work, 1e-5)
-    # elif m.erd_type == "pump_as_turbine":
-    #     iscale.set_scaling_factor(desal.ERD.control_volume.work, 1e-5)
-
-    # if m.erd_type == "pressure_exchanger":
-    #     desal.S1.mixed_state[0].flow_vol_phase
-    #     desal.RO.feed_side.properties[0, 1].flow_vol_phase
-    # # calculate and propagate scaling factors
-    # iscale.calculate_scaling_factors(m)
 
     m.fs.feed.properties.calculate_state(
         var_args={
@@ -462,10 +372,6 @@ def set_operating_conditions(m):
         },
         hold_state=True,
     )
-
-    # m.fs.feed.properties.display()
-
-    # assert False
 
     # ---pretreatment---
     # intake
@@ -500,9 +406,6 @@ def set_operating_conditions(m):
     # anti-scalant
     prtrt.anti_scalant_addition.load_parameters_from_database()
     prtrt.anti_scalant_addition.chemical_dosage.fix(5)
-    # for u in (prtrt.ferric_chloride_addition, prtrt.anti_scalant_addition):
-    #     iscale.set_scaling_factor(u.chemical_flow_vol, 1e6)
-    #     iscale.constraint_scaling_transform(u.chemical_flow_vol_constraint, 1e6)
 
     # cartridge filtration
     m.db.get_unit_operation_parameters("cartridge_filtration")
@@ -522,14 +425,15 @@ def set_operating_conditions(m):
     desal.RO.feed_side.channel_height.fix(1e-3)  # channel height in membrane stage [m]
     desal.RO.feed_side.spacer_porosity.fix(0.9)  # spacer porosity in membrane stage [-]
     desal.RO.permeate.pressure[0].fix(101325)  # atmospheric pressure [Pa]
-    desal.RO.width.setub(5000)
-    desal.RO.area.setub(20000)
-    width_guess = value(m.flow_vol) * 1000  * 5
+
+    width_guess = value(m.flow_vol) * 1000 * 5
     desal.RO.width.fix(width_guess)  # stage width [m]
+
     if width_guess > desal.RO.width.ub:
         desal.RO.width.setub(value(width_guess) * 2)
+
     area_guess = value(m.flow_vol) * 1000 * 30  # rough estimate for stage area [m2]
-    if value(area_guess) > desal.RO.area.ub:
+    if area_guess > desal.RO.area.ub:
         desal.RO.area.setub(value(area_guess) * 2)
     # stage area [m2] TODO: replace with actual area
     desal.RO.area.fix(area_guess)
@@ -560,12 +464,8 @@ def set_operating_conditions(m):
     # uv aop
     m.db.get_unit_operation_parameters("uv_aop")
     psttrt.uv_aop.load_parameters_from_database(use_default_removal=True)
-    psttrt.uv_aop.uv_reduced_equivalent_dose.fix(
-        350
-    )  # TODO: check this was the right thing to fix
-    psttrt.uv_aop.uv_transmittance_in.fix(
-        0.95
-    )  # TODO: check this was the right thing to fix
+    psttrt.uv_aop.uv_reduced_equivalent_dose.fix(350)
+    psttrt.uv_aop.uv_transmittance_in.fix(0.95)
 
     # co2 addition
     m.db.get_unit_operation_parameters("co2_addition")
@@ -587,20 +487,8 @@ def set_operating_conditions(m):
     m.fs.landfill.load_parameters_from_database()
 
 
-
-def initialize_system(m):
-
-    from watertap.core.util.model_diagnostics.infeasible import print_infeasible_constraints
-    
+def initialize_pretreatment(m):
     prtrt = m.fs.pretreatment
-    desal = m.fs.desalination
-    psttrt = m.fs.posttreatment
-
-    # initialize feed
-    solve(m.fs.feed, checkpoint="solve flowsheet after initializing feed")
-
-    # initialize pretreatment
-    propagate_state(m.fs.s_feed)
 
     prtrt.intake.initialize()
     propagate_state(prtrt.s01)
@@ -620,18 +508,20 @@ def initialize_system(m):
     propagate_state(prtrt.s08)
     prtrt.cartridge_filtration.initialize()
 
-    # assert False
-    # flags = fix_state_vars(prtrt.intake.properties)
-    # try:
-    #     solve(prtrt, checkpoint="solve flowsheet after initializing pre-treatment")
-        
-    # except:
-    #     print_infeasible_constraints(prtrt)
-    #     check_scaling(prtrt)
-    #     assert False
-    #     pass
-    # solve(prtrt, checkpoint="solve flowsheet after initializing pre-treatment")
-    # revert_state_vars(prtrt.intake.properties, flags)
+
+def initialize_system(m):
+
+    prtrt = m.fs.pretreatment
+    desal = m.fs.desalination
+    psttrt = m.fs.posttreatment
+
+    # initialize feed
+    solve(m.fs.feed, checkpoint="solve flowsheet after initializing feed")
+
+    # initialize pretreatment
+    propagate_state(m.fs.s_feed)
+
+    initialize_pretreatment(m)
 
     # initialize desalination
     propagate_state(prtrt.s_09)
@@ -706,7 +596,7 @@ def initialize_system(m):
     propagate_state(desal.s_permeate_to_storage)
 
 
-def solve(blk, solver=None, checkpoint=None, tee=True, fail_flag=True):
+def solve(blk, solver=None, checkpoint=None, tee=False, fail_flag=True):
     if solver is None:
         solver = get_solver()
     results = solver.solve(blk, tee=tee)
@@ -868,4 +758,7 @@ def display_costing(m):
 
 
 if __name__ == "__main__":
-    m = main(erd_type="pressure_exchanger", RO_1D=True, flow_vol=11)
+    m = main(erd_type="pressure_exchanger", RO_1D=True, flow_vol=0.01)
+    m = main(erd_type="pressure_exchanger", RO_1D=True, flow_vol=0.1)
+    m = main(erd_type="pressure_exchanger", RO_1D=True, flow_vol=1)
+    m = main(erd_type="pressure_exchanger", RO_1D=True, flow_vol=10)

@@ -16,6 +16,8 @@ from pyomo.environ import (
     TransformationFactory,
     units as pyunits,
     Block,
+    Var,
+    Constraint,
 )
 from pyomo.network import Arc
 from pyomo.util.check_units import assert_units_consistent
@@ -99,14 +101,14 @@ def main(erd_type="pressure_exchanger", RO_1D=False, **kwargs):
         checkpoint=f" solve flowsheet after initializing {erd_type} system",
         tee=False,
     )
-    display_results(m)
+    # display_results(m)
 
     add_costing(m)
     m.fs.costing.initialize()
     assert_degrees_of_freedom(m, 0)
 
     solve(m, tee=True, checkpoint=f" solve {erd_type} flowsheet with costing")
-    display_costing(m)
+    # display_costing(m)
 
     return m
 
@@ -117,10 +119,13 @@ def build(
 
     # Define flow conditions and attach to model
 
-    rho = 1000 * pyunits.kg / pyunits.m**3
+    rho = 1025 * pyunits.kg / pyunits.m**3
     m = ConcreteModel()
     m.flow_vol = flow_vol * pyunits.m**3 / pyunits.s
-    m.flow_mass = pyunits.convert(m.flow_vol * rho, to_units=pyunits.kg / pyunits.s)
+
+    m.flow_mass_water = pyunits.convert(
+        m.flow_vol * rho, to_units=pyunits.kg / pyunits.s
+    )
     m.conc_mass_tds = conc_mass_tds * pyunits.g / pyunits.liter
     m.flow_mass_tds = pyunits.convert(
         m.flow_vol * m.conc_mass_tds, to_units=pyunits.kg / pyunits.s
@@ -136,6 +141,15 @@ def build(
     m.erd_type = erd_type
 
     m.fs = FlowsheetBlock(dynamic=False)
+
+    m.fs.flow_vol = Var(initialize=flow_vol, units=pyunits.m**3 / pyunits.s)
+    m.fs.flow_vol.fix()
+
+    m.fs.conc_mass_tds = Var(initialize=conc_mass_tds, units=pyunits.g / pyunits.L)
+    m.fs.conc_mass_tds.fix()
+
+    m.fs.conc_mass_tss = Var(initialize=conc_mass_tss, units=pyunits.g / pyunits.L)
+    m.fs.conc_mass_tss.fix()
 
     m.fs.properties = MCASParameterBlock(
         solute_list=["TDS", "TSS"],
@@ -329,7 +343,7 @@ def scale_model(m):
 
     m.fs.properties.set_default_scaling(
         "flow_mass_phase_comp",
-        1 / value(m.flow_mass),
+        1 / value(m.flow_mass_water),
         index=("Liq", "H2O"),
     )
     m.fs.properties.set_default_scaling(
@@ -375,7 +389,27 @@ def set_operating_conditions(m):
             ("temperature", None): m.temperature,
             ("pressure", None): m.pressure,
         },
-        hold_state=True,
+        hold_state=False,
+    )
+
+    m.fs.feed.properties[0].pressure.fix()
+    m.fs.feed.properties[0].temperature.fix()
+
+    m.fs.feed.flow_mass_water_constr = Constraint(
+        expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "H2O"]
+        == m.fs.flow_mass_water
+    )
+    m.fs.feed.flow_mass_tds_constr = Constraint(
+        expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "TDS"]
+        == pyunits.convert(
+            m.fs.flow_vol * m.fs.conc_mass_tds, to_units=pyunits.kg / pyunits.s
+        )
+    )
+    m.fs.feed.flow_mass_tss_constr = Constraint(
+        expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "TSS"]
+        == pyunits.convert(
+            m.fs.flow_vol * m.fs.conc_mass_tss, to_units=pyunits.kg / pyunits.s
+        )
     )
 
     # ---Pretreatment---
@@ -431,12 +465,18 @@ def set_operating_conditions(m):
     desal.RO.feed_side.spacer_porosity.fix(0.9)  # spacer porosity in membrane stage [-]
     desal.RO.permeate.pressure[0].fix(101325)  # atmospheric pressure [Pa]
 
-    width_guess = value(m.flow_vol) * 1000 * 5
+    # NOTE: 3234.153 parameter comes from original SW desal flowsheet
+    # which had a flow rate of 0.3092 and resulted in stage width of 1000 m
+    # 1000 / 0.3092 = 3234.153
+    width_guess = value(m.flow_vol) * 3234.153
     if width_guess > desal.RO.width.ub:
         desal.RO.width.setub(value(width_guess) * 2)
     desal.RO.width.fix(width_guess)  # stage width [m]
 
-    area_guess = value(m.flow_vol) * 1000 * 30  # rough estimate for stage area [m2]
+    # NOTE: 45000 parameter comes from original SW desal flowsheet
+    # which had a flow rate of 0.3092 and resulted in total area of 13914 m2
+    # 13914 / 0.3092 = 45000
+    area_guess = value(m.flow_vol) * 45000  # rough estimate for stage area [m2]
     if area_guess > desal.RO.area.ub:
         desal.RO.area.setub(value(area_guess) * 2)
     # stage area [m2] TODO: replace with actual area
@@ -805,7 +845,9 @@ def display_costing(m):
 
 
 if __name__ == "__main__":
-    m = main(erd_type="pressure_exchanger", RO_1D=True, flow_vol=1)
-    # m = main(erd_type="pressure_exchanger", RO_1D=True, flow_vol=0.1)
-    # m = main(erd_type="pressure_exchanger", RO_1D=True, flow_vol=1)
-    # m = main(erd_type="pressure_exchanger", RO_1D=True, flow_vol=10)
+    m = main(erd_type="pressure_exchanger", RO_1D=False)
+    m.fs.desalination.RO.recovery_vol_phase.display()
+    m.fs.desalination.RO.area.display()
+    m.fs.desalination.RO.width.display()
+    m.fs.flow_vol.display()
+    m.fs.conc_mass_tds.display()

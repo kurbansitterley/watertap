@@ -148,13 +148,11 @@ def test_costing(subtype):
 
     m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
 
-    m.fs.costing = ZeroOrderCosting()
+    m.fs.costing = ZeroOrderCosting(base_currency_year=2010)
 
     m.fs.unit = StorageTankZO(
         property_package=m.fs.params, database=m.db, process_subtype=subtype
     )
-    m.fs.costing.base_currency = pyunits.USD_2010
-
     m.fs.unit.inlet.flow_mass_comp[0, "H2O"].fix(100)
     m.fs.unit.inlet.flow_mass_comp[0, "sulfur"].fix(1)
     m.fs.unit.inlet.flow_mass_comp[0, "toc"].fix(2)

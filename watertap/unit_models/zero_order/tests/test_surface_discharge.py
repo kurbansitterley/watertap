@@ -244,8 +244,7 @@ def test_costing(subtype):
 
     m.fs = FlowsheetBlock(dynamic=False)
     m.fs.params = WaterParameterBlock(solute_list=["bar"])
-    m.fs.costing = ZeroOrderCosting()
-    m.fs.costing.base_currency = pyunits.USD_2020
+    m.fs.costing = ZeroOrderCosting(base_currency_year=2020)
     m.fs.unit = SurfaceDischargeZO(
         property_package=m.fs.params, database=m.db, process_subtype=subtype
     )

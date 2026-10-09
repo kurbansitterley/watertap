@@ -88,6 +88,8 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 base_currency_year = int(
                     str(self._cs_def["base_currency"]).split("_")[-1]
                 )
+                # Assign the base currency to the internal variable
+                self._base_currency_year = base_currency_year
                 self._check_base_currency_year(base_currency_year)
                 if isinstance(self._cs_def["base_currency"], int):
                     # Allow users to pass only the year for the base currency via yaml
@@ -98,8 +100,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                     self.base_currency = getattr(
                         pyo.units, self._cs_def["base_currency"]
                     )
-                # Assign the base currency to the internal variable
-                self._base_currency_year = base_currency_year
+
                 self._base_currency = self.base_currency
                 _log.info(
                     f"Setting base_currency from case study yaml: {self.base_currency}"
@@ -119,7 +120,10 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             # Mark that the base currency and period have been defined
             self._base_currency_period_defined = True
 
-        if self.base_currency is None:
+        # For ZO unit models where a config argument was provided, override the base currency if necessary
+        if self.base_currency is not getattr(
+            pyo.units, f"USD_{self.config.base_currency_year}"
+        ):
             self._check_base_currency_year(self.config.base_currency_year)
             self.base_currency = getattr(
                 pyo.units, f"USD_{self.config.base_currency_year}"
@@ -129,7 +133,8 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             self._base_currency = self.base_currency
             _log.info(f"Setting base_currency from config: {self.base_currency}")
 
-        if self.base_period is None:
+        # For ZO unit models where a config argument was provided, override the base period if necessary
+        if self.base_period is not self.config.base_period:
             self._check_base_period(self.config.base_period)
             self.base_period = getattr(pyo.units, self.config.base_period)
             # Assign the base period to the internal variable

@@ -187,8 +187,7 @@ class TestECZO_AL:
     def test_costing(self, model):
         m = model
         ec = m.fs.unit
-        m.fs.costing = ZeroOrderCosting()
-        m.fs.costing.base_currency = pyunits.USD_2018
+        m.fs.costing = ZeroOrderCosting(base_currency_year=2018)
         ec.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
         m.fs.costing.cost_process()
         m.fs.costing.add_LCOW(ec.properties_treated[0].flow_vol)
@@ -380,8 +379,7 @@ class TestECZO_FE:
 
         m = model
         ec = m.fs.unit
-        m.fs.costing = ZeroOrderCosting()
-        m.fs.costing.base_currency = pyunits.USD_2018
+        m.fs.costing = ZeroOrderCosting(base_currency_year=2018)
         ec.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
         m.fs.costing.cost_process()
         m.fs.costing.add_LCOW(ec.properties_treated[0].flow_vol)
@@ -573,8 +571,7 @@ class TestECZO_OverpotentialCalculation:
 
         m = model
         ec = m.fs.unit
-        m.fs.costing = ZeroOrderCosting()
-        m.fs.costing.base_currency = pyunits.USD_2018
+        m.fs.costing = ZeroOrderCosting(base_currency_year=2018)
         ec.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
         m.fs.costing.cost_process()
         m.fs.costing.add_LCOW(ec.properties_treated[0].flow_vol)

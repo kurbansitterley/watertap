@@ -69,23 +69,17 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         # Register currency and conversion rates based on CE Index
         register_idaes_currency_units()
 
-    def validate_watertap_costing_config(self):
-        """
-        Validate the configuration of a WaterTAP costing block
-        and set the base_currency and base_period attributes.
-        """
-
-        if (
-            getattr(self, "base_currency", None) is not None
-            and getattr(self, "base_period", None) is not None
-        ):
-            # Users cannot manually re-set base_currency and base_period
-            msg = "base_currency and base_period are already set:"
-            msg += f" base_currency = {self.base_currency}, base_period = {self.base_period}"
-            raise ConfigurationError(msg)
-
+    def set_base_currency_and_period(self):
         self.base_currency = None
         self.base_period = None
+
+        # Hidden variables for internal tracking of base currency and period
+        self._base_currency = None
+        self._base_period = None
+        self._base_currency_year = None
+
+        # Boolean to track if the base currency and period have been defined
+        self._base_currency_period_defined = False
 
         if "case_study_definition" in self.config:
             # it is a ZeroOrderCosting block, so we preferentially
@@ -104,9 +98,13 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                     self.base_currency = getattr(
                         pyo.units, self._cs_def["base_currency"]
                     )
+                # Assign the base currency to the internal variable
+                self._base_currency_year = base_currency_year
+                self._base_currency = self.base_currency
                 _log.info(
                     f"Setting base_currency from case study yaml: {self.base_currency}"
                 )
+
             if "base_period" in self._cs_def:
                 self._check_base_period(self._cs_def["base_period"])
                 self.base_period = getattr(pyo.units, self._cs_def["base_period"])
@@ -114,19 +112,53 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 bs_str = (
                     "year" if self.base_period == pyo.units.year else self.base_period
                 )
+                # Assign the base period to the internal variable
+                self._base_period = self.base_period
                 _log.info(f"Setting base_period from case study yaml: {bs_str}")
+
+            # Mark that the base currency and period have been defined
+            self._base_currency_period_defined = True
 
         if self.base_currency is None:
             self._check_base_currency_year(self.config.base_currency_year)
             self.base_currency = getattr(
                 pyo.units, f"USD_{self.config.base_currency_year}"
             )
+            # Assign the base currency year to the internal variable
+            self._base_currency_year = self.config.base_currency_year
+            self._base_currency = self.base_currency
             _log.info(f"Setting base_currency from config: {self.base_currency}")
 
         if self.base_period is None:
             self._check_base_period(self.config.base_period)
             self.base_period = getattr(pyo.units, self.config.base_period)
+            # Assign the base period to the internal variable
+            self._base_period = self.base_period
             _log.info(f"Setting base_period from config: {self.config.base_period}")
+
+        self._base_currency_period_defined = True
+
+    def _validate_watertap_costing_config(self):
+        """
+        Validate the configuration of a WaterTAP costing block
+        and set the base_currency and base_period attributes.
+        """
+
+        if getattr(self, "_base_currency_period_defined", None) is True:
+            # Users cannot manually re-set base_currency and base_period
+            msg = "base_currency and base_period are already set:"
+            msg += f" base_currency = {self._base_currency}, base_period = {self._base_period}"
+            _log.warning(msg)
+
+            # Reassign the base_currency and base_period from the existing attributes
+            self.base_currency = getattr(self, "_base_currency")
+            self.base_period = getattr(self, "_base_period")
+
+        if (
+            getattr(self, "_base_currency", None) is None
+            or getattr(self, "_base_period", None) is None
+        ):
+            self.set_base_currency_and_period()
 
     @staticmethod
     def _check_base_currency_year(base_currency_year):
@@ -155,6 +187,8 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                         calculating LCOW
             name (optional) - name for the LCOW variable (default: LCOW)
         """
+
+        self._validate_watertap_costing_config()
 
         denominator = (
             pyo.units.convert(flow_rate, to_units=pyo.units.m**3 / self.base_period)
@@ -408,6 +442,9 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
             name (optional) - name for the annual water production
                               Expression (default: annual_water_production)
         """
+
+        self._validate_watertap_costing_config()
+
         self.add_component(
             name,
             pyo.Expression(
@@ -522,6 +559,20 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
                 to_units=expr_units,
             )
 
+    def cost_process(self):
+        """
+        This method constructs the process-level costing components based on
+        the registered unit operations and flows.
+
+        This first aggregates the costs from all the registered units and
+        flows, and then calls the build_process_costs method from the
+        associated costing package.
+        """
+        self._validate_watertap_costing_config()
+
+        self.aggregate_costs()
+        self.build_process_costs()
+
     def build_process_costs(self):
         """
         Build the common process costs to WaterTAP Costing Packages.
@@ -591,7 +642,7 @@ class WaterTAPCostingBlockData(FlowsheetCostingBlockData):
         """
 
         self.register_currency_definitions()
-        self.validate_watertap_costing_config()
+        self._validate_watertap_costing_config()
 
         self.utilization_factor = pyo.Var(
             initialize=0.9,
@@ -918,3 +969,17 @@ class WaterTAPCostingDetailedData(WaterTAPCostingBlockData):
             expr=self.insurance_and_taxes_percent_FCI * self.aggregate_capital_cost,
             doc="Insurance and taxes costs - based on aggregate capital costs",
         )
+
+    def cost_process(self):
+        """
+        This method constructs the process-level costing components based on
+        the registered unit operations and flows.
+
+        This first aggregates the costs from all the registered units and
+        flows, and then calls the build_process_costs method from the
+        associated costing package.
+        """
+        self._validate_watertap_costing_config()
+
+        self.aggregate_costs()
+        self.build_process_costs()

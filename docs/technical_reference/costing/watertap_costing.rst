@@ -32,11 +32,6 @@ For the WaterTAP costing package, the base currency year and base period should 
 The default costing year is 2018, but any year between 1990 and 2023 can be used. Any unit of time can be used for the base period.
 
 
-.. important:: 
-    Though users **could** directly set the ``base_currency`` on the flowsheet costing block (e.g., ``m.fs.costing.base_currency = pyunits.USD_2023``), this is discouraged. 
-    It is recommended to use the ``base_currency_year`` configuration argument when instantiating the WaterTAP costing package to ensure consistency 
-    across all costing calculations and parameters. 
-
 Costing Calculations
 --------------------
 

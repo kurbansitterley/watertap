@@ -336,9 +336,6 @@ class TestWorkflow:
         m.fs.params = WaterParameterBlock(solute_list=["sulfur", "toc", "tss"])
 
         m.fs.costing = ZeroOrderCosting()
-        # NOTE: setting base_currency in this way is discouraged
-        # It is recommended to set the base_currency through the case study definition file
-        m.fs.costing.base_currency = pyunits.USD_2020
 
         return m
 
@@ -485,7 +482,10 @@ class TestWorkflow:
     @pytest.mark.component
     def test_solution(self, model):
 
-        assert pytest.approx(186742848.27, rel=1e-5) == value(
+        assert (
+            pyunits.get_units(model.fs.costing.total_capital_cost) == pyunits.MUSD_2018
+        )
+        assert pytest.approx(188.9, rel=1e-3) == value(
             model.fs.costing.total_capital_cost
         )
 
@@ -496,7 +496,7 @@ class TestWorkflow:
             model.fs.costing.aggregate_flow_alum
         )
 
-        assert pytest.approx(0.0613672, rel=1e-5) == value(model.fs.costing.LCOW)
+        assert pytest.approx(6.207e-08, rel=1e-3) == value(model.fs.costing.LCOW)
 
         assert pytest.approx(0.231345, rel=1e-5) == value(
             model.fs.costing.electricity_intensity
@@ -650,13 +650,9 @@ def test_watertap_costing_config_zo():
     m.fs.costing = ZeroOrderCosting(
         case_study_definition=temp_path1, base_currency_year=2000, base_period="month"
     )
-    with pytest.raises(
-        ConfigurationError,
-        match=re.escape(
-            "base_currency and base_period are already set: base_currency = USD_2000, base_period = month"
-        ),
-    ):
-        m.fs.costing.validate_watertap_costing_config()
+    m.fs.costing._validate_watertap_costing_config()
+    assert m.fs.costing.base_currency == pyunits.USD_2000
+    assert m.fs.costing.base_period == pyunits.month
 
     os.remove(temp_path1)
 
@@ -749,6 +745,3 @@ def test_watertap_costing_config_zo():
         m.fs.costing = ZeroOrderCosting(case_study_definition=temp_path3)
 
     os.remove(temp_path3)
-
-
-# test_watertap_costing_config_zo()

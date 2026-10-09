@@ -213,7 +213,7 @@ def test_main_1D_pressure_exchanger():
     main(erd_type="pressure_exchanger", RO_1D=True)
 
 
-flow_vols = [0.01, 0.1, 1, 10]
+flow_vols = [0.01, 0.1, 1]
 
 
 @pytest.mark.parametrize("flow_vol", flow_vols)

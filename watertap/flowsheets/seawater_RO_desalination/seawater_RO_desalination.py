@@ -392,31 +392,31 @@ def set_operating_conditions(m):
             ("temperature", None): m.temperature,
             ("pressure", None): m.pressure,
         },
-        hold_state=True,
+        hold_state=False,
     )
 
-    # m.fs.feed.properties[0].pressure.fix()
-    # m.fs.feed.properties[0].temperature.fix()
-    # # re-fix density after calculating state
-    # rho = value(m.fs.feed.properties[0].dens_mass_phase["Liq"])
-    # m.fs.rho.fix(rho)
+    m.fs.feed.properties[0].pressure.fix()
+    m.fs.feed.properties[0].temperature.fix()
+    # re-fix density after calculating state
+    rho = value(m.fs.feed.properties[0].dens_mass_phase["Liq"])
+    m.fs.rho.fix(rho)
 
-    # m.fs.feed.flow_mass_water_constr = Constraint(
-    #     expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "H2O"]
-    #     == pyunits.convert(m.fs.flow_vol * m.fs.rho, to_units=pyunits.kg / pyunits.s)
-    # )
-    # m.fs.feed.flow_mass_tds_constr = Constraint(
-    #     expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "TDS"]
-    #     == pyunits.convert(
-    #         m.fs.flow_vol * m.fs.conc_mass_tds, to_units=pyunits.kg / pyunits.s
-    #     )
-    # )
-    # m.fs.feed.flow_mass_tss_constr = Constraint(
-    #     expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "TSS"]
-    #     == pyunits.convert(
-    #         m.fs.flow_vol * m.fs.conc_mass_tss, to_units=pyunits.kg / pyunits.s
-    #     )
-    # )
+    m.fs.feed.flow_mass_water_constr = Constraint(
+        expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "H2O"]
+        == pyunits.convert(m.fs.flow_vol * m.fs.rho, to_units=pyunits.kg / pyunits.s)
+    )
+    m.fs.feed.flow_mass_tds_constr = Constraint(
+        expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "TDS"]
+        == pyunits.convert(
+            m.fs.flow_vol * m.fs.conc_mass_tds, to_units=pyunits.kg / pyunits.s
+        )
+    )
+    m.fs.feed.flow_mass_tss_constr = Constraint(
+        expr=m.fs.feed.properties[0].flow_mass_phase_comp["Liq", "TSS"]
+        == pyunits.convert(
+            m.fs.flow_vol * m.fs.conc_mass_tss, to_units=pyunits.kg / pyunits.s
+        )
+    )
 
     # ---Pretreatment---
     # Intake
@@ -832,11 +832,7 @@ def display_costing(m):
 
     # Capital cost by unit process
     print(divider)
-    print(
-        header.format(
-            "Unit Process", f"CAPEX", "Units"
-        )
-    )
+    print(header.format("Unit Process", f"CAPEX", "Units"))
     print(divider)
     for u in m.fs.costing._registered_unit_costing:
         cost_val = value(u.capital_cost)
@@ -862,4 +858,4 @@ def display_costing(m):
 
 
 if __name__ == "__main__":
-    m = main(erd_type="pressure_exchanger", RO_1D=True, flow_vol=0.01)
+    m = main(erd_type="pressure_exchanger", RO_1D=True)

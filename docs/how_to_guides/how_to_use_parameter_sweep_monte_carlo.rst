@@ -1,5 +1,5 @@
-How to do Monte Carlo testing with the parameter sweep
-=======================================================
+How to do Monte Carlo testing with Parameter Sweep
+======================================================
 
 Overview
 --------
@@ -17,11 +17,15 @@ How To
 As before, we begin by importing or explicitly programming any functions relating to flowsheet building/specification, simulation, and optimization setup steps.  We will use the same RO with energy recovery flowsheet for this example.
 
 .. testsetup::
+    
+    # quiet pyomo logs
+    import logging
+    logging.getLogger('pyomo.core').setLevel(logging.CRITICAL)
 
     # quiet idaes logs
     import idaes.logger as idaeslogger
-    idaeslogger.getLogger('ideas.core').setLevel('CRITICAL')
-    idaeslogger.getLogger('ideas.core.util.scaling').setLevel('CRITICAL')
+    idaeslogger.getLogger('idaes.core').setLevel('CRITICAL')
+    idaeslogger.getLogger('idaes.core.util.scaling').setLevel('CRITICAL')
     idaeslogger.getLogger('idaes.init').setLevel('CRITICAL')
 
 .. testcode::
@@ -124,7 +128,6 @@ With the generating functions defined and suitably initialized, we can call the 
         seed=seed,
         build_sweep_params_kwargs=dict(num_samples=num_samples),
     )
-
 
 Note that ``num_samples`` must be provided for any of the random sample classes.  For the very small problem size and simple model used here, parallel hardware is almost certainly not necessary.  However, for larger total numbers of samples or more computationally demanding models, a significant speedup may be attained on a multi-core workstation or high performance computing (HPC) cluster.  To distribute the workload between more than one worker, simply call the scipt using the ``mpirun`` command from the command line
 

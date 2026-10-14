@@ -173,6 +173,34 @@ from pyomo.network import Arc
 #     return m
 
 
+# def add_costing(m):
+#     # Add the flowsheet level costing package
+#     m.fs.costing = WaterTAPCosting()
+#     # Add costing blocks to the flowsheet
+#     # Here, the ion exchange model has its own unit-level costing Block
+#     m.fs.ion_exchange.costing = UnitModelCostingBlock(
+#         flowsheet_costing_block=m.fs.costing  # Indicating which flowsheet costing block to use to aggregate unit-level costs to the system-level costs
+#     )
+#     # Call cost_process() method to create system-wide global parameters and add aggregating constraints to costing model
+#     m.fs.costing.cost_process()
+#     # Designate the volumetric flow on the Product block to be the stream used as the annual water production
+#     m.fs.costing.add_annual_water_production(
+#         m.fs.product.properties[0].flow_vol_phase["Liq"]
+#     )
+#     # Add LCOW variable to costing block
+#     m.fs.costing.add_LCOW(m.fs.product.properties[0].flow_vol_phase["Liq"])
+#     # Add specific energy consumption variable to costing block
+#     m.fs.costing.add_specific_energy_consumption(
+#         m.fs.product.properties[0].flow_vol_phase["Liq"]
+#     )
+#     # Add breakdown of NaCl usage per unit product flow to costing package with name "regenerant_usage"
+#     m.fs.costing.add_flow_component_breakdown(
+#         "NaCl",
+#         m.fs.product.properties[0].flow_vol_phase["Liq"],
+#         name="regenerant_usage",
+#     )
+
+
 # def set_operating_conditions(m, flow_in=0.05, conc_mass_in=0.1, solver=None):
 #     if solver is None:
 #         solver = get_solver()

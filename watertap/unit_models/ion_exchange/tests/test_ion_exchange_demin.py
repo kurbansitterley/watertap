@@ -385,7 +385,7 @@ class TestIXDeminCation(UnitTestHarness):
         m.fs.costing = WaterTAPCosting()
         m.fs.unit.costing = UnitModelCostingBlock(flowsheet_costing_block=m.fs.costing)
         m.fs.unit.regen_dose.set_value(240)
-        m.fs.costing.nacl.cost.set_value(0.230294)
+        m.fs.costing.nacl.unit_cost.set_value(0.230294)
         m.fs.costing.cost_process()
         m.fs.costing.add_LCOW(
             m.fs.unit.process_flow.properties_out[0].flow_vol_phase["Liq"]

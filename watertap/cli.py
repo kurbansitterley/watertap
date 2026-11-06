@@ -141,6 +141,7 @@ def install_reaktoro(yes: bool, dry_run: bool, test_install: bool):
         raise click.ClickException(
             f"conda install of reaktoro dependencies failed with exit code {e.returncode}"
         )
+    click.echo(f"Ran: {' '.join(cmd)}")
 
     if test_install:
         _try_reaktoro_installation()

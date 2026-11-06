@@ -56,9 +56,7 @@ def _module_installed(name: str) -> bool:
     return importlib.util.find_spec(name) is not None
 
 
-# @click.group(no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]}) 
-# @click.group()
-@click.group(no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]})
+@click.group()
 def watertap_cli():
     pass
 

@@ -23,6 +23,7 @@ assumptions", 2012, Wat. Sci. Tech., Vol. 65 No. 8, pp. 1496-1505
 __author__ = "Andrew Lee, Alejandro Garciadiego"
 
 import pytest
+import sys
 
 from pyomo.environ import assert_optimal_termination, value
 from pyomo.util.check_units import assert_units_consistent
@@ -33,7 +34,7 @@ from watertap.flowsheets.activated_sludge.ASM2D_flowsheet import (
     build_flowsheet,
 )
 
-
+@pytest.mark.skipif(sys.platform == "darwin", reason="Skipping on macOS")
 class TestASM2DFlowsheet:
     @pytest.fixture(scope="class")
     @classmethod

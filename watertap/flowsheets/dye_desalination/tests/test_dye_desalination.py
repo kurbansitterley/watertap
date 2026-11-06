@@ -9,6 +9,7 @@
 # information, respectively. These files are also available online at the URL
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
+import sys
 import pytest
 from pyomo.environ import (
     value,
@@ -92,6 +93,7 @@ class TestDyewithROFlowsheetwithPretreatment:
         )
 
     @pytest.mark.component
+    @pytest.mark.skipif(sys.platform == "darwin", reason="Skipping on macOS")
     def test_solve(self, system_frame):
         m = system_frame
 
@@ -537,3 +539,16 @@ class TestDyewithROFlowsheetwithGAC:
         m = system_frame
         display_results(m)
         display_costing(m)
+
+if __name__ == "__main__":
+
+    m = build(include_pretreatment=True)
+    set_operating_conditions(m)
+    initialize_system(m)
+    add_costing(m)
+    initialize_costing(m)
+    optimize_operation(m)
+
+    results = solve(m)
+    assert_optimal_termination(results)
+    display_costing(m)

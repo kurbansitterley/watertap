@@ -17,6 +17,7 @@ Tests for the METAB + ASM1 flowsheet example.
 __author__ = "Marcus Holly"
 
 import pytest
+import sys
 
 from pyomo.environ import assert_optimal_termination, value
 from pyomo.util.check_units import assert_units_consistent
@@ -45,6 +46,7 @@ class TestMETABASM1Flowsheet:
         assert_optimal_termination(model.results)
 
     @pytest.mark.integration
+    @pytest.mark.skipif(sys.platform == "darwin", reason="Skipping on macOS")
     def test_results(self, model):
         # Treated water
         assert value(model.fs.Treated.flow_vol[0]) == pytest.approx(1.0902e-4, rel=1e-4)

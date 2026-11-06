@@ -79,6 +79,8 @@ exposan = [
     "exposan",
 ]
 
+cli = ["click>=8"]
+
 dev = [
     "black==26.3.1",
     "pre-commit",
@@ -96,10 +98,10 @@ dev = [
     "sphinx_rtd_theme",
 
     # include all optional dependencies 
-    "watertap[testing,notebooks,oli_api,reaktoro]",
+    "watertap[testing,notebooks,oli_api,reaktoro,cli]",
 ]
 
-all = ["watertap[testing,notebooks,oli_api,reaktoro,exposan]"]
+all = ["watertap[testing,notebooks,oli_api,reaktoro,exposan,cli]"]
 
 [tool.setuptools]
 zip-safe = false
@@ -116,6 +118,9 @@ py-version = "3.10"
 "*" = ["*.json", "*.yaml", "*.yml", "*.csv", "*.png"]
 
 "watertap.tools.oli_api.tests" = ["test.dbs"]
+
+[project.scripts]
+watertap = "watertap.cli:main"
 
 [project.entry-points."watertap.flowsheets"]
 nf = "watertap.flowsheets.nf_dspmde.nf_ui"

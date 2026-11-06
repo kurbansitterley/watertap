@@ -34,6 +34,7 @@ from watertap.flowsheets.activated_sludge.ASM2D_flowsheet import (
     build_flowsheet,
 )
 
+
 @pytest.mark.skipif(sys.platform == "darwin", reason="Skipping on macOS")
 class TestASM2DFlowsheet:
     @pytest.fixture(scope="class")

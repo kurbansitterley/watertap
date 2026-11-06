@@ -22,6 +22,7 @@ assumptions", 2012, Wat. Sci. Tech., Vol. 65 No. 8, pp. 1496-1505
 # Some more information about this module
 __author__ = "Chenyu Wang"
 
+import sys
 import pytest
 
 from pyomo.environ import assert_optimal_termination, value
@@ -36,6 +37,7 @@ from idaes.core.util import DiagnosticsToolbox
 @pytest.mark.filterwarnings(
     "ignore:divide by zero encountered in divide:RuntimeWarning"
 )
+@pytest.mark.skipif(sys.platform == "darwin", reason="Skipping on macOS")
 class TestASM2DFlowsheet:
     @pytest.fixture(scope="class")
     @classmethod

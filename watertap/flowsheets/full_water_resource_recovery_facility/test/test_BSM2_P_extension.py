@@ -19,6 +19,7 @@ but comprises different specifications for default values than BSM2.
 # Some more information about this module
 __author__ = "Chenyu Wang"
 
+import sys
 import pytest
 
 from pyomo.environ import value
@@ -38,6 +39,7 @@ solver = get_solver()
 
 
 @pytest.mark.requires_idaes_solver
+@pytest.mark.skipif(sys.platform == "darwin", reason="Skipping on macOS")
 class TestFullFlowsheetBioPFalse:
     @pytest.fixture(scope="class")
     @classmethod

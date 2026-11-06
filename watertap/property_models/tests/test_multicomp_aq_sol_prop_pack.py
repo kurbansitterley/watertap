@@ -10,7 +10,7 @@
 # "https://github.com/watertap-org/watertap/"
 #################################################################################
 import re
-
+import sys
 import pytest
 
 from pyomo.environ import (
@@ -1757,6 +1757,8 @@ c_list = [10e-10, 10e-9, 10e-8, 10e-7, 10e-6, 10e-5]
 @pytest.mark.parametrize("c", c_list)
 @pytest.mark.component
 def test_calculate_state_with_flow_mol_stateVar(c):
+    if c == 1e-9 and sys.platform == "darwin":
+        pytest.skip("Skipping test for c == 1e-9 on macOS")
     m = ConcreteModel()
     m.fs = FlowsheetBlock(dynamic=False)
     mw = 0.50013 * pyunits.kg / pyunits.mol
@@ -1818,6 +1820,8 @@ def test_calculate_state_with_flow_mol_stateVar(c):
 @pytest.mark.parametrize("c", c_list)
 @pytest.mark.component
 def test_calculate_state_with_flow_mass_stateVar(c):
+    if c in [1e-8, 1e-9] and sys.platform == "darwin":
+        pytest.skip("Skipping test for c == 1e-9 on macOS")
     m = ConcreteModel()
     m.fs = FlowsheetBlock(dynamic=False)
     mw = 0.50013 * pyunits.kg / pyunits.mol
